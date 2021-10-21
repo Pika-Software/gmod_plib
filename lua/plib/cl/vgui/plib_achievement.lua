@@ -4,17 +4,25 @@ local surface_DrawOutlinedRect = surface.DrawOutlinedRect
 local surface_SetDrawColor = surface.SetDrawColor
 local surface_SetMaterial = surface.SetMaterial
 local surface_GetTextSize = surface.GetTextSize
+local draw_LinearGradient = draw.LinearGradient
 local surface_PlaySound = surface.PlaySound
+local surface_DrawRect = surface.DrawRect
 local surface_SetFont = surface.SetFont
 local draw_DrawText = draw.DrawText
 local table_remove = table.remove
 local ScreenScale = ScreenScale
+local cam_Start2D = cam.Start2D
 local math_floor = math.floor
 local math_Clamp = math.Clamp
 local FrameTime = FrameTime
-local CurTime = CurTime
-local Color = Color
+local cam_End2D = cam.End2D
+local math_max = math.max
+local hook_Add = hook.Add
 local IsValid = IsValid
+local CurTime = CurTime
+local ipairs = ipairs
+local Color = Color
+local ScrH = ScrH
 
 -- w 240 - ss 80
 -- h 96	 - ss 32
@@ -23,7 +31,7 @@ local function ScreenInit()
 	maxOnScreen = math_floor(ScrH()/ah)
 end
 
-hook.Add("OnScreenSizeChanged", "PLib:Achievement", ScreenInit)
+hook_Add("OnScreenSizeChanged", "PLib:Achievement", ScreenInit)
 ScreenInit()
 
 local font = "Main1"
@@ -36,7 +44,7 @@ function PANEL:TextChanged()
 	surface_SetFont(font)
 	local x1, y1 = surface_GetTextSize("#plib.achievement")
 	local x2, y2 = surface_GetTextSize(self["Title"])
-	self["TextW"] = math.max(x1, x2)
+	self["TextW"] = math_max(x1, x2)
 	self["TextH"] = y1
 end
 
@@ -149,11 +157,11 @@ function PANEL:Paint(w, h)
 	self:SetAlpha(alpha)
 
 	local w2 = w/2
-	surface.SetDrawColor(col1)
-	surface.DrawRect(0, 0, w2 + 1, h)
+	surface_SetDrawColor(col1)
+	surface_DrawRect(0, 0, w2 + 1, h)
 
-	draw.LinearGradient(x + w2, y, w2 + 1, h, preset1)
-	draw.LinearGradient(x + 1, y + 1, w - 2, h - 1, preset2)
+	draw_LinearGradient(x + w2, y, w2 + 1, h, preset1)
+	draw_LinearGradient(x + 1, y + 1, w - 2, h - 1, preset2)
 
 	surface_SetDrawColor(color_white)
 	surface_SetMaterial(self["Image"] or defaultIcon)
@@ -166,13 +174,13 @@ end
 vgui.Register("plib_achievement", PANEL)
 
 local table_IsEmpty = table.IsEmpty
-hook.Add("PostRender", "PLib:Achievements", function()
-	cam.Start2D()
+hook_Add("PostRender", "PLib:Achievements", function()
+	cam_Start2D()
 		for i = 1, #achievementsCreated do
 			local pnl = achievementsCreated[i]
 			if IsValid(pnl) then
 				pnl:PaintManual()
 			end
 		end
-	cam.End2D()
+	cam_End2D()
 end)
