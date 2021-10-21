@@ -61,7 +61,6 @@ function PANEL:Init()
 	self:NoClipping(true)
 	self:TextChanged()
 
-	local hasPlace = false
 	for num, pnl in ipairs(achievementsCreated) do
 		if not IsValid(pnl) then
 			self["Slot"] = num
