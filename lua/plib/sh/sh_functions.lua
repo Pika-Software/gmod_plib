@@ -110,28 +110,35 @@ function PLib.Model(model)
 	return model
 end
 
-function PLib.FindNearestPlayer(pos, radius, filter)
-	local plys, input = {}
-	if (radius != nil) then
-		input = ents_FindInSphere(pos, radius)
-	else
-		input = player_GetAll()
+function player.inRange(pos, range)
+	range = range ^ 2
+
+	local output = {}
+	for i, ply in ipairs(player_GetAll()) do
+		if ply:GetPos():DistToSqr(pos) <= range then
+			table_insert(output, ply)
+		end
 	end
 
-	for _, ply in ipairs(input) do
+	return output
+end
+
+function player.findNearest(pos, radius, filter)
+	local plys = {}
+	for num, ply in ipairs((radius == nil) and player_GetAll() or ents_FindInSphere(pos, radius)) do
 		if IsValid(ply) and ply:IsPlayer() and (!filter or !isfunction(filter) or filter(ply)) then
 			table_insert(plys, {pos:Distance(ply:GetPos()), ply})
 		end
 	end
 	
-	local output
+	local output = {}
 	for _, tbl in ipairs(plys) do
 		if !output or (tbl[1] < output[1]) then
 			output = tbl
 		end
 	end
 
-	return output or {}
+	return output
 end
 
 local Lerp = Lerp
