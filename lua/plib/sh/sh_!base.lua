@@ -85,6 +85,6 @@ concommand.Add("plib_info", function(ply)
     PLib:Log("Info", PLib:Translate("plib.title"), "\n",
     sCol, "["..PLib:Translate("plib.version").."] ", cols["print"], PLib["Version"], "\n",
     sCol, "["..PLib:Translate("plib.creators").."] ", cols["text"], "PrikolMen:-b, Rerto, Angel\n",
-    sCol, "["..PLib:Translate("plib.ugg").."] ", cols["text"], (ply:IsGoodGuy() and "Yes" or "No"), "\n",
+    sCol, "["..PLib:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
     sCol, "["..PLib:Translate("plib.commands").."] ", cols["text"], PLib:NumTableToList(PLib:Commands()))
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})

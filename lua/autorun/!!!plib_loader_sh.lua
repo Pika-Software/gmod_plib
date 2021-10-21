@@ -13,7 +13,7 @@ local Color = Color
 local MsgC = MsgC
 
 PLib = PLib or {
-    ["Version"] = 1.6,
+    ["Version"] = 1.7,
     ["_G"] = {},
 }
 

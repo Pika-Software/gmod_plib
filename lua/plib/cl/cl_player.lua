@@ -31,7 +31,7 @@ end)
 hook.Add("PostPlayerDraw", "PLib:GoodGuysCheck", function(ply)
     if (ply["PLib_GG_Checked"] == nil) then
         if ply:IsGoodGuy() then
-            ply:GiveAchievement("plib.gg_"..ply:SteamID64())
+            LocalPlayer():GiveAchievement("plib.gg_"..ply:SteamID64())
         end
 
         ply["PLib_GG_Checked"] = true
