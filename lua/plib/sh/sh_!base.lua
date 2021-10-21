@@ -79,12 +79,13 @@ function PLib:NumTableToList(tbl)
 end
 
 concommand.Add("plib_info", function(ply)
-    local cols = PLib["_C"]
-    local sCol = PLib:SideColor()
-
-    PLib:Log("Info", PLib:Translate("plib.title"), "\n",
-    sCol, "["..PLib:Translate("plib.version").."] ", cols["print"], PLib["Version"], "\n",
-    sCol, "["..PLib:Translate("plib.creators").."] ", cols["text"], "PrikolMen:-b, Rerto, Angel\n",
-    sCol, "["..PLib:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
-    sCol, "["..PLib:Translate("plib.commands").."] ", cols["text"], PLib:NumTableToList(PLib:Commands()))
+    local self = PLib
+    local cols = self["_C"]
+    local sCol = self:SideColor()
+    
+    self:Log("Info", self:Translate("plib.title"), "\n",
+    sCol, "["..self:Translate("plib.version").."] ", cols["print"], self["Version"], "\n",
+    sCol, "["..self:Translate("plib.creators").."] ", cols["text"], table.concat(self["Developers"], ", ") .. "\n",
+    sCol, "["..self:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
+    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))    
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})

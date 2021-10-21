@@ -13,8 +13,14 @@ local Color = Color
 local MsgC = MsgC
 
 PLib = PLib or {
-    ["Version"] = 1.7,
     ["_G"] = {},
+    ["Version"] = 1.6,
+    ["Developers"] = {
+        "_ᐱℕᏩĒŁØҜҜ_#8486",
+        "PrikolMen#3372",
+        "Swanchick#8689",
+        "Retro#1593",
+    },
 }
 
 PLib["_C"] = {
