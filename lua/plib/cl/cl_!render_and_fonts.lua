@@ -42,6 +42,10 @@ PLib["Fonts"] = {
         ["font"] = "Roboto",
         ["size"] = 6,
     },
+    {
+        ["font"] = "Comfortaa",
+        ["size"] = {8, 12},
+    }
 }
 
 local util_TableToJSON = util.TableToJSON
