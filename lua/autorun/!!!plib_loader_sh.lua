@@ -18,7 +18,6 @@ PLib = PLib or {
     ["Developers"] = {
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
-        "Swanchick#8689",
         "Retro#1593",
     },
 }
