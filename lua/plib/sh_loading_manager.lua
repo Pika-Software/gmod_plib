@@ -121,6 +121,10 @@ function PLib:LoadModules(dir, moduleName)
         end
 
         module = include(moduleFile)
+        if (module == nil) then
+            MsgC(self["_C"]["module"], "[Pika Software] ", self["_C"]["warn"], "Сritical error", self["_C"]["text"], ", your ", self["_C"]["sv"], "Garry's mod", self["_C"]["text"]," does not load files correctly, try restarting the game.\n")
+            return
+        end
 
         local init = module["Init"]
         if (init != nil) then

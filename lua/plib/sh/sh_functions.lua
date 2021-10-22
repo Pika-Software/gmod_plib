@@ -343,6 +343,18 @@ function math.striving_for(value, valueTo, delay)
     return value + (valueTo-value)/delay
 end
 
+function math.average(...)
+	local amount = select('#', ...)
+	assert(amount > 1, 'At least two numbers are required!')
+	local total = 0
+
+	for i = 1, amount do
+		total = total + select(i, ...)
+	end
+
+	return total / amount
+end
+
 function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
 	local result = {}
 

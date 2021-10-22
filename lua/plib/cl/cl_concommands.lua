@@ -3,7 +3,6 @@ local concommand_Add = concommand.Add
 local ents_GetAll = ents.GetAll
 local tostring = tostring
 local IsValid = IsValid
-local dprint = PLib["dprint"]
 local ipairs = ipairs
 
 concommand_Add("spawnmenu_reload", PLib["SpawnMenuReload"])
@@ -11,23 +10,24 @@ concommand_Add("plib_logo_update", function()
     PLib:UpdateLogo()
 end)
 
+local debugTag = "Debug/"
 concommand_Add("plib_ent", function(ply)
     local ent = ply:GetEyeTrace()["Entity"]
-    dprint("Entity", "Index: "..ent:EntIndex() or 0, " Class: "..ent:GetClass() or "error", " Model: "..ent:GetModel() or "No Model", " Name: ".. (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "nil"))
+    PLib:Log(debugTag.."Entity", "Index: "..ent:EntIndex() or 0, " Class: "..ent:GetClass() or "error", " Model: "..ent:GetModel() or "No Model", " Name: ".. (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "nil"))
 end)
 
 concommand_Add("plib_wep", function(ply)
 	local wep = ply:GetActiveWeapon()
 	if IsValid(wep) then
 		local id = wep:GetPrimaryAmmoType()
-		dprint("Weapon", string.format("Index: %s Name: %s Class: %s Model: %s", (wep:EntIndex() or 0), (wep["PrintName"] or wep["TrueName"] or (wep["GetName"] and wep:GetName()) or "nil"), (wep:GetClass() or "error"), (wep:GetModel() or "No Model")))
-		dprint("Ammo", "In Weapon: ", wep:Clip1().."/"..wep:GetMaxClip1(),", In Inventory: ", ply:GetAmmoCount(id), ", Type: ", game.GetAmmoName(id), " [ID: ", id, ", Damage: ", game.GetAmmoPlayerDamage(id), "]")
+		PLib:Log(debugTag.."Weapon", string.format("Index: %s Name: %s Class: %s Model: %s", (wep:EntIndex() or 0), (wep["PrintName"] or wep["TrueName"] or (wep["GetName"] and wep:GetName()) or "nil"), (wep:GetClass() or "error"), (wep:GetModel() or "No Model")))
+		PLib:Log(debugTag.."Ammo", "In Weapon: ", wep:Clip1().."/"..wep:GetMaxClip1(),", In Inventory: ", ply:GetAmmoCount(id), ", Type: ", game.GetAmmoName(id), " [ID: ", id, ", Damage: ", game.GetAmmoPlayerDamage(id), "]")
 	end
 end)
 
 concommand_Add("plib_player", function(ply)
 	local tbl, path = ply:GetAllData()
-	dprint("Saved", path)
+	PLib:Log(debugTag.."Saved", path)
 	PrintTable(tbl)
 	Msg("\n")
 end)
@@ -36,7 +36,7 @@ concommand_Add("plib_bounds", function(ply)
 	local ent = ply:GetEyeTrace()["Entity"]
 	if IsValid(ent) then
 		local mins, maxs, cent = ent:OBBMins():Round(2), ent:OBBMaxs():Round(2), ent:OBBCenter():Round(2)
-		dprint("Bounds", "MINS, MAXS, CENTER:\nlocal mins = Vector(", mins[1], ", ", mins[2], ", ", mins[3], ")", "\nlocal maxs = Vector(", maxs[1], ", ", maxs[2], ", ", maxs[3], ")", "\ncenter = Vector(", cent[1], ", ", cent[2], ", ", cent[3], ")\n")
+		PLib:Log(debugTag.."Bounds", "MINS, MAXS, CENTER:\nlocal mins = Vector(", mins[1], ", ", mins[2], ", ", mins[3], ")", "\nlocal maxs = Vector(", maxs[1], ", ", maxs[2], ", ", maxs[3], ")", "\ncenter = Vector(", cent[1], ", ", cent[2], ", ", cent[3], ")\n")
 	end
 end)
 
@@ -135,12 +135,12 @@ concommand_Add("vgui_cleanup", function()
 		end
 
 		if hit_blacklist then continue end
-		PLib:Log("vgui", "Removed " .. tostring(pnl))
+		PLib:Log(debugTag.."VGUI", "Removed " .. tostring(pnl))
 		pnl:Remove()
 		sum = sum + 1
 	end
 
-    PLib:Log("vgui", "Total panels removed: " .. sum)
+    PLib:Log(debugTag.."VGUI", "Total panels removed: " .. sum)
 end)
 
 concommand_Add("clentmodels_cleanup", function(ply)

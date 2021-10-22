@@ -52,8 +52,29 @@ local function ResetVars(path)
     file_Write(path, util_Compress("[]"))
 end
 
+local function hasDataTable(ply)
+    return ply["PLib"]["Data"] != nil
+end
+
+local function GetPlayerSavePath(ply)
+    local uid = "NULL"
+    if ply:IsBot() then
+        uid = ply:Nick()
+    else
+        uid = ply:SteamID64()
+
+        if (uid == nil) then
+            if (ply["PLib"]["SteamID64"] != nil) then
+                uid = ply["PLib"]["SteamID64"]
+            end
+        end
+    end
+
+    return player_path.."/"..uid..".dat"
+end
+
 function PLAYER:GetAllData()
-    local path = player_path.."/"..((self:IsBot() == true) and self:Nick() or self:SteamID64())..".dat"
+    local path = GetPlayerSavePath(self)
     if not file_Exists(path, "DATA") then
         return ResetVars(path)
     end
@@ -61,12 +82,21 @@ function PLAYER:GetAllData()
     return util_JSONToTable(util_Decompress(file_Read(path, "DATA"))), path
 end
 
-function PLAYER:GetData(key)
+function PLAYER:GetSavedData(key)
     local data = self:GetAllData()
     return istable(data) and data[key] or nil
 end
 
-function PLAYER:SetData(key, value)
+function PLAYER:ReplaceAllData(data)
+    local path = GetPlayerSavePath(self)
+    if not file_Exists(path, "DATA") then
+        return ResetVars(path)
+    end
+
+    file_Write(path, util_Compress(util_TableToJSON(data)))
+end
+
+function PLAYER:SaveData(key, value)
     local data, path = self:GetAllData()
     if istable(data) then
         data[key] = value
@@ -74,6 +104,53 @@ function PLAYER:SetData(key, value)
     else
         ResetVars(path)
     end
+end
+
+if SERVER then
+    function PLAYER:SyncData()
+        self["PLib"]["Data"] = self:GetAllData()
+        self["PLib"]["SteamID"] = self:SteamID()
+        self["PLib"]["SteamID64"] = self:SteamID64()
+        self["PLib"]["Nick"] = self:Nick()
+    end
+end
+
+function PLAYER:GetData(key)
+    if SERVER then
+        self["PLib"]["Data"] = self["PLib"]["Data"] or self:SyncData() or {}
+        return self["PLib"]["Data"][key]
+    else
+        return self:GetSavedData(key)
+    end
+end
+
+function PLAYER:SetData(key, value)
+    if SERVER then
+        self["PLib"]["Data"] = self["PLib"]["Data"] or self:SyncData() or {}
+        self["PLib"]["Data"][key] = value
+    else
+        self:SaveData(key, value)
+    end
+end
+
+if SERVER then
+    hook.Add("PlayerDisconnected", "PLib:PlayerData_Sync", function(ply)
+        if IsValid(ply) then
+            local plibTbl = ply["PLib"]
+            if (plibTbl != nil) then
+                local data = plibTbl["Data"]
+                if (data != nil) then
+                    self:ReplaceAllData(data)
+                end
+            end
+        end
+    end)
+    
+    hook.Add("PLib:PlayerInitialized", "PLib:PlayerData_Sync", function(ply)
+        if IsValid(ply) then
+            ply:SyncData()
+        end
+    end)
 end
 
 function PLAYER:HasAchievement(tag)

@@ -116,6 +116,8 @@ function PLib:ReBuildFonts()
     hook_Run("PLib:FontsUpdated", self["GeneratedFonts"])
 end
 
+PLib:ReBuildFonts()
+
 local mat_white = Material("vgui/white")
 function draw.SimpleLinearGradient(x, y, w, h, startColor, endColor, horizontal)
 	draw.LinearGradient(x, y, w, h, { {offset = 0, color = startColor}, {offset = 1, color = endColor} }, horizontal)
@@ -192,8 +194,7 @@ end
 
 local function ScreenSizeChanged()
     w, h = ScrW(), ScrH()
-    PLib:ReBuildFonts()
-
+    
     PLib:UpdateLogo()
 
     hook.Run("PLib:ResolutionChanged", w, h)
