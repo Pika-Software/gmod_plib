@@ -93,7 +93,7 @@ PLib["MAT_"] = {
 		return 997
 	end,
 	[MAT_WOOD] = function()
-		return math_random(540, 740)
+		return math_random(150, 300)
 	end,
 	[MAT_SNOW] = function()
 		return math_random(200, 600)

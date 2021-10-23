@@ -36,6 +36,7 @@ local ScrW = ScrW
 local ScrH = ScrH
 local Msg = Msg
 
+local colors = PLib["_C"]
 PLib["Fonts"] = {
     {
         ["name"] = "Main1",
@@ -47,6 +48,14 @@ PLib["Fonts"] = {
         ["size"] = {8, 12},
     }
 }
+
+local surface_GetTextSize = surface.GetTextSize
+local surface_SetFont = surface.SetFont
+
+function PLib.GetFontSize(text, font)
+    surface_SetFont(font)
+    return surface_GetTextSize(text)
+end
 
 local util_TableToJSON = util.TableToJSON
 local util_CRC = util.CRC
@@ -242,19 +251,20 @@ cvars.AddChangeCallback("plib_logo_offset", function(name, old, new)
     offset = tonumber(new)
 end, "PLib")
 
-local col = PLib["_C"]["logo"]
+local logo_enabled = false
+local col = colors["logo"]
 local function UpdateLogoState(bool)
     if (bool == false) and (PLib["ServerLogo"] == nil) then
         hook.Remove("HUDPaint", "PLib:DrawLogo")
+        logo_enabled = false
         return
     end
 
+    logo_enabled = true
     hook.Add("HUDPaint", "PLib:DrawLogo", function()
-        PLib:Draw2D(function(w, h)
-            surface_SetDrawColor(col)
-            surface_SetMaterial(logo)
-            surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
-        end)
+        surface_SetDrawColor(col)
+        surface_SetMaterial(logo)
+        surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
     end)
 end
 
@@ -268,6 +278,113 @@ function PLib:StandbyScreen()
     surface_SetMaterial(logo)
     surface_DrawTexturedRect(ssw, ssh, logo_w, logo_h)
 end
+
+local grey = colors["grey"]
+grey:SetAlpha(220)
+
+local dy = colors["dy"]
+local getFontSize = PLib["GetFontSize"]
+
+local devEntData, devEnt
+local devHFont = "DermaDefault"
+local function drawDeveloperHUD()
+    if (devEntData == nil) then return end
+
+    if IsValid(devEnt) then
+        cam.Start3D()
+            local mins, maxs = devEnt:OBBMins(), devEnt:OBBMaxs() --ent:GetModelBounds()
+            local cmins, cmaxs = devEnt:GetCollisionBounds()
+            local pos = devEnt:GetPos()
+            local angle = devEnt:GetAngles()
+            render.DrawWireframeBox(pos, angle, cmins, cmaxs, Color(255,0,0), true)
+            render.DrawWireframeBox(pos, angle, mins, maxs, devEnt:GetColor(), true)
+
+            local OBBCenter = devEnt:OBBCenter()
+            OBBCenter:Rotate(angle)
+
+            local centerpos = pos + OBBCenter
+            render.DrawLine( centerpos, centerpos + 8 * angle:Forward(), Color( 255, 0, 0 ), true )
+            render.DrawLine( centerpos, centerpos + 8 * -angle:Right(), Color( 0, 255, 0 ), true )
+            render.DrawLine( centerpos, centerpos + 8 * angle:Up(), Color( 0, 0, 255 ), true )
+        cam.End3D()
+    end
+
+    local devHW = 50
+    for i = 1, #devEntData do
+        local w = getFontSize(devEntData[i], devHFont) + 30
+        if (w > devHW) then
+            devHW = w
+        end
+    end
+
+    local x, y = w - devHW, ((logo_enabled != false) and logo_h*2 or 0)
+    draw.RoundedBox(15, x, y, devHW, #devEntData * 20 + 20, grey)
+
+    for i = 1, #devEntData do
+        local x, y = x + 15, y + 20*i
+        draw.SimpleText(devEntData[i], devHFont, x, y, ((i % 2 == 1) and dy or color_white), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    end
+    -- draw.SimpleText(, "Comfortaa_8")
+end
+
+local developer
+local string_format = string.format
+local IsValid = IsValid
+
+local function devGetEntData()
+    if (developer == nil) then return end
+    if (developer:Alive() == false) then
+        devEntData = nil
+        return 
+    end
+
+    local ent = developer:GetEyeTrace()["Entity"]
+    if (devEnt != ent) then
+        devEntData = {}
+        table_insert(devEntData, "Index: "..ent:EntIndex())
+        table_insert(devEntData, "Name: "..(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
+        table_insert(devEntData, "ClassName: "..ent:GetClass())
+        table_insert(devEntData, "Model: "..ent:GetModel())
+
+        if IsValid(ent) then
+            local pos = ent:GetPos():Floor()
+            local ang = ent:GetAngles():Floor()
+            table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
+            table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
+            table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
+
+
+            if ent:IsPlayer() then
+                table_insert(devEntData, "UserID: "..ent:UserID())
+            end
+        end
+
+        devEnt = ent
+    end
+end
+
+hook.Add("PLib:PlayerInitialized", "PLib:DeveloperHUD", function(ply)
+    developer = ply
+end)
+
+if (PLib["Loaded"] == true) then
+    developer = LocalPlayer()
+end
+
+local function toggleDevHUD(bool)
+    if (bool == true) then
+        hook.Add("HUDPaint", "PLib:DeveloperHUD", drawDeveloperHUD)
+        hook.Add("Think", "PLib:DeveloperHUD", devGetEntData)
+    else
+        hook.Remove("HUDPaint", "PLib:DeveloperHUD")
+        hook.Remove("Think", "PLib:DeveloperHUD")
+    end
+end
+
+toggleDevHUD(cvars.Bool("developer", false))
+cvars.AddChangeCallback("developer", function(name, old, new)
+    toggleDevHUD(tobool(new))
+end, "PLib:DeveloperHUD")
 
 function PLib:ReplaceDefaultFont(new, sizeMult, underline)
     if system_IsLinux() then

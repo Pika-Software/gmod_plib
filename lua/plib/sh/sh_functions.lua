@@ -223,6 +223,57 @@ function PLib.EyePos(ply)
 	return ENTITY.EyePos(ply)
 end
 
+function ENTITY:GetDownTrace(filter)
+	return util_QuickTrace(self:EyePos(), Vector(0, 0, -1)*50000, filter or {self})
+end
+
+function ENTITY:StandingOnGround()
+	local tr = self:GetDownTrace()
+	if tr["Hit"] then
+		if self:IsOnGround() or (self:GetPos():DistToSqr(tr["HitPos"]) < 500) then
+			return true
+		end
+	end
+
+	return false
+end
+
+function ENTITY:InBox(mins, maxs)
+	local ent_list = ents.FindInBox(mins, maxs)
+	for i = 1, #ent_list do
+		if (self == ent_list[i]) then
+			return true
+		end
+	end
+
+	return false
+end
+
+function ENTITY:GetSpeed()
+	return self:GetVelocity():Length() or 0
+end
+
+function ENTITY:GetHorizontalSpeed()
+	local vel = self:GetVelocity()
+
+	return Vector(vel[1], vel[2], 0):Length() or 0
+end
+
+function ENTITY:GetVerticalSpeed()
+	return self:GetVelocity()[3]
+end
+
+local math_max = math.max
+function ENTITY:GetWight()
+	local mins, maxs = self:GetCollisionBounds()
+	return math_max(maxs[1] - mins[1], maxs[2] - mins[2])
+end
+
+function ENTITY:GetHight()
+	local mins, maxs = self:GetCollisionBounds()
+	return maxs[3] - mins[3]
+end
+
 function ENTITY:TeamObject(ply)
 	if IsValid(ply) and IsValid(self) then
 		local owner = self:CPPIGetOwner() or self:GetCreator() or self:GetOwner()
@@ -235,12 +286,7 @@ function ENTITY:TeamObject(ply)
 	return false
 end
 
-function ENTITY:GetDownTrace(filter)
-	return util_QuickTrace(self:EyePos(), Vector(0, 0, -1)*50000, filter or {self})
-end
-
 local validStr = string["isvalid"]
-
 function ENTITY:IsDoor()
 	local class = self:GetClass()
 	if validStr(class) and class:match("door") then
@@ -259,6 +305,15 @@ function ENTITY:GetSize()
 	end
 	
 	return self["PLib.Size"]
+end
+
+function ENTITY:CubicDistance()
+	if (self["PLib.CubicDistance"] == nil) then
+		local mins, maxs = self:GetCollisionBounds()
+		self["PLib.CubicDistance"] = mins:Distance(maxs)
+	end
+	
+	return self["PLib.CubicDistance"]
 end
 
 function ENTITY:GetSpeed()
@@ -300,7 +355,10 @@ function VECTOR:Round(dec)
 end
 
 function VECTOR:Floor()
-    return Vector(math_floor(self[1]), math_floor(self[2]), math_floor(self[3]))
+	self[1] = math_floor(self[1])
+	self[2] = math_floor(self[2])
+	self[3] = math_floor(self[3])
+    return self
 end
 
 function VECTOR:Middle()
@@ -316,6 +374,13 @@ function ANGLE:Lerp(frac, b)
 	return LerpAngle(frac, self, b)
 end
 
+function ANGLE:Floor()
+	self[1] = math_floor(self[1])
+	self[2] = math_floor(self[2])
+	self[3] = math_floor(self[3])
+    return self
+end
+
 local COLOR = FindMetaTable("Color")
 function COLOR:Lerp(frac, b)
 	self["r"] = Lerp(frac, b["r"], self["r"])
@@ -328,6 +393,7 @@ end
 
 function COLOR:SetAlpha(alpha)
 	self["a"] = alpha
+	return self
 end
 
 local IMaterial = FindMetaTable("IMaterial")
@@ -368,7 +434,7 @@ function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
 
 	if (size == nil) then
 		if IsValid(ent) then
-			size = ent:GetSize()
+			size = ent:CubicDistance()
 		else
 			return result
 		end

@@ -14,7 +14,7 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 1.8,
+    ["Version"] = 1.9,
     ["Developers"] = {
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
@@ -35,6 +35,7 @@ PLib["_C"] = {
     ["gmod_white"] = Color(230, 230, 230),
     ["achievement"] = Color(255, 200, 0),
     ["module"] = Color(179, 138, 255),
+    ["grey"] = Color(50, 50, 50),
 }
 
 PLib["GoodGuys"] = {
