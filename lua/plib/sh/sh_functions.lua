@@ -249,10 +249,6 @@ function ENTITY:InBox(mins, maxs)
 	return false
 end
 
-function ENTITY:GetSpeed()
-	return self:GetVelocity():Length() or 0
-end
-
 function ENTITY:GetHorizontalSpeed()
 	local vel = self:GetVelocity()
 
@@ -323,6 +319,10 @@ function ENTITY:GetSpeed()
 	end
 
 	return 0
+end
+
+function ENTITY:Speed()
+	return self:GetVelocity():Length()
 end
 
 function ENTITY:IsDoor()

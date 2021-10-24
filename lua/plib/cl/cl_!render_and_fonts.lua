@@ -317,6 +317,7 @@ local function drawDeveloperHUD()
     drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
     drawDevFrame("PING: "..developer:Ping(), 1)
     drawDevFrame(os_date("%H:%M"), 2)
+    drawDevFrame("Speed: "..math_floor(developer:Speed()), 3)
 
     if IsValid(devEnt) then
         cam_Start3D()
