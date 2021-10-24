@@ -43,10 +43,6 @@ PLib["Fonts"] = {
         ["font"] = "Roboto",
         ["size"] = 6,
     },
-    {
-        ["font"] = "Comfortaa",
-        ["size"] = {8, 12},
-    }
 }
 
 local surface_GetTextSize = surface.GetTextSize
@@ -279,34 +275,66 @@ function PLib:StandbyScreen()
     surface_DrawTexturedRect(ssw, ssh, logo_w, logo_h)
 end
 
-local grey = colors["grey"]
-grey:SetAlpha(220)
+local grey = colors["grey"]:SetAlpha(220)
+local greyBG = grey
+greyBG:SetAlpha(220)
 
-local dy = colors["dy"]
 local getFontSize = PLib["GetFontSize"]
 
 local devEntData, devEnt
 local devHFont = "DermaDefault"
+
+local IsValid = IsValid
+local cam_End3D = cam.End3D
+local math_floor = math.floor
+local cam_Start3D = cam.Start3D
+local draw_RoundedBox = draw.RoundedBox
+local render_DrawLine = render.DrawLine
+local render_DrawWireframeBox = render.DrawWireframeBox
+
+local red = Color(255, 0, 0)
+local green = Color(0, 255, 0)
+local blue = Color(0, 0, 255)
+
+local dy = colors["dy"]
+
+local function drawDevFrame(text, num)
+    local x = 85 * num
+    draw_RoundedBox(5, 5 + x, 5, 80, 30, greyBG)
+    draw_SimpleText(text, devHFont, 45 + x, 20, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+end
+
+local developer
+local os_date = os.date
+local string_FormattedTime = string.FormattedTime
+local util_TraceLine = util.TraceLine
+local string_format = string.format
+local string_len = string.len
+
 local function drawDeveloperHUD()
     if (devEntData == nil) then return end
 
+    drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
+    drawDevFrame("PING: "..developer:Ping(), 1)
+    drawDevFrame(os_date("%H:%M"), 2)
+
     if IsValid(devEnt) then
-        cam.Start3D()
+        cam_Start3D()
             local mins, maxs = devEnt:OBBMins(), devEnt:OBBMaxs() --ent:GetModelBounds()
             local cmins, cmaxs = devEnt:GetCollisionBounds()
             local pos = devEnt:GetPos()
             local angle = devEnt:GetAngles()
-            render.DrawWireframeBox(pos, angle, cmins, cmaxs, Color(255,0,0), true)
-            render.DrawWireframeBox(pos, angle, mins, maxs, devEnt:GetColor(), true)
+            render_DrawWireframeBox(pos, angle, cmins, cmaxs, red, true)
+            render_DrawWireframeBox(pos, angle, mins, maxs, devEnt:GetColor(), true)
 
-            local OBBCenter = devEnt:OBBCenter()
-            OBBCenter:Rotate(angle)
+            local center = devEnt:OBBCenter()
+            center:Rotate(angle)
 
-            local centerpos = pos + OBBCenter
-            render.DrawLine( centerpos, centerpos + 8 * angle:Forward(), Color( 255, 0, 0 ), true )
-            render.DrawLine( centerpos, centerpos + 8 * -angle:Right(), Color( 0, 255, 0 ), true )
-            render.DrawLine( centerpos, centerpos + 8 * angle:Up(), Color( 0, 0, 255 ), true )
-        cam.End3D()
+            local centerpos = pos + center
+            render_DrawLine(centerpos, centerpos + 8 * angle:Forward(), red, true)
+            render_DrawLine(centerpos, centerpos + 8 * -angle:Right(), green, true)
+            render_DrawLine(centerpos, centerpos + 8 * angle:Up(), blue, true)
+        cam_End3D()
     end
 
     local devHW = 50
@@ -318,19 +346,13 @@ local function drawDeveloperHUD()
     end
 
     local x, y = w - devHW, ((logo_enabled != false) and logo_h*2 or 0)
-    draw.RoundedBox(15, x, y, devHW, #devEntData * 20 + 20, grey)
+    draw_RoundedBox(15, x, y, devHW, #devEntData * 20 + 20, greyBG)
 
     for i = 1, #devEntData do
         local x, y = x + 15, y + 20*i
-        draw.SimpleText(devEntData[i], devHFont, x, y, ((i % 2 == 1) and dy or color_white), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw_SimpleText(devEntData[i], devHFont, x, y, ((i % 2 == 1) and dy or color_white), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
     end
-    -- draw.SimpleText(, "Comfortaa_8")
 end
-
-local developer
-local string_format = string.format
-local string_len = string.len
-local IsValid = IsValid
 
 local function devGetEntData()
     if (developer == nil) then return end
@@ -339,55 +361,70 @@ local function devGetEntData()
         return 
     end
 
-    local ent = developer:GetEyeTrace()["Entity"]
-    if (devEnt != ent) then
-        devEntData = {}
-        table_insert(devEntData, "Index: "..ent:EntIndex())
-        table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
-        table_insert(devEntData, "Model: "..ent:GetModel())
-        table_insert(devEntData, "ClassName: "..ent:GetClass())
+    local startPos = developer:EyePos()
+    local tr = util_TraceLine({
+        ["start"] = startPos,
+        ["endpos"] = startPos + (developer:GetAimVector() * 1000),
+        ["filter"] = developer,
+    })
 
-        if IsValid(ent) then
-            local pos = ent:GetPos():Floor()
-            local ang = ent:GetAngles():Floor()
-            table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
-            table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
-            table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
-
-            if ent:IsPlayer() then
-                table_insert(devEntData, "UserID: "..ent:UserID())
+    if (tr["Hit"] == true) then
+        local ent = tr["Entity"]
+        if (devEnt != ent) then
+            devEntData = {}
+            table_insert(devEntData, "Index: "..ent:EntIndex())
+            if (tr["HitPos"] == startPos) then
+                table_insert(devEntData, "Name: Void")
+                devEnt = ent
+                return 
             end
         
-            local ent_info = {}
-            local maxLen = 0
-            for key, value in pairs(ent:GetTable()) do
-                if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
-                if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
-                if (value == "") then continue end
-                local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
-                local len = string_len(text)
-                if (len > maxLen) then
-                    maxLen = len
+            table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
+            table_insert(devEntData, "Model: "..ent:GetModel())
+            table_insert(devEntData, "ClassName: "..ent:GetClass())
+
+            if IsValid(ent) then
+                local pos = ent:GetPos():Floor()
+                local ang = ent:GetAngles():Floor()
+                table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
+                table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
+                table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
+
+                if ent:IsPlayer() then
+                    table_insert(devEntData, "UserID: "..ent:UserID())
+                end
+            
+                local ent_info = {}
+                local maxLen = 0
+                for key, value in pairs(ent:GetTable()) do
+                    if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
+                    if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
+                    if (value == "") then continue end
+                    local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
+                    local len = string_len(text)
+                    if (len > maxLen) then
+                        maxLen = len
+                    end
+
+                    table_insert(ent_info, text)
                 end
 
-                table_insert(ent_info, text)
+                if (#ent_info > 0) then
+                    local separator = ""
+                    for i = 1, maxLen do
+                        separator = separator.."-"
+                    end
+
+                    table_insert(devEntData, separator)
+            
+                    for num, text in ipairs(ent_info) do
+                        table_insert(devEntData, text)
+                    end
+                end
             end
 
-            if (#ent_info > 0) then
-                local separator = ""
-                for i = 1, maxLen do
-                    separator = separator.."-"
-                end
-
-                table_insert(devEntData, separator)
-        
-                for num, text in ipairs(ent_info) do
-                    table_insert(devEntData, text)
-                end
-            end
+            devEnt = ent
         end
-
-        devEnt = ent
     end
 end
 
