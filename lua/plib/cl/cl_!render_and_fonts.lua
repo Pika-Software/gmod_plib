@@ -329,6 +329,7 @@ end
 
 local developer
 local string_format = string.format
+local string_len = string.len
 local IsValid = IsValid
 
 local function devGetEntData()
@@ -342,9 +343,9 @@ local function devGetEntData()
     if (devEnt != ent) then
         devEntData = {}
         table_insert(devEntData, "Index: "..ent:EntIndex())
-        table_insert(devEntData, "Name: "..(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
-        table_insert(devEntData, "ClassName: "..ent:GetClass())
+        table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
         table_insert(devEntData, "Model: "..ent:GetModel())
+        table_insert(devEntData, "ClassName: "..ent:GetClass())
 
         if IsValid(ent) then
             local pos = ent:GetPos():Floor()
@@ -353,9 +354,36 @@ local function devGetEntData()
             table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
             table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
 
-
             if ent:IsPlayer() then
                 table_insert(devEntData, "UserID: "..ent:UserID())
+            end
+        
+            local ent_info = {}
+            local maxLen = 0
+            for key, value in pairs(ent:GetTable()) do
+                if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
+                if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
+                if (value == "") then continue end
+                local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
+                local len = string_len(text)
+                if (len > maxLen) then
+                    maxLen = len
+                end
+
+                table_insert(ent_info, text)
+            end
+
+            if (#ent_info > 0) then
+                local separator = ""
+                for i = 1, maxLen do
+                    separator = separator.."-"
+                end
+
+                table_insert(devEntData, separator)
+        
+                for num, text in ipairs(ent_info) do
+                    table_insert(devEntData, text)
+                end
             end
         end
 
@@ -375,9 +403,13 @@ local function toggleDevHUD(bool)
     if (bool == true) then
         hook.Add("HUDPaint", "PLib:DeveloperHUD", drawDeveloperHUD)
         hook.Add("Think", "PLib:DeveloperHUD", devGetEntData)
+        timer.Create("PLib:DeveloperHUD_ResetEnt", 1, 0, function()
+            devEnt = nil
+        end)
     else
         hook.Remove("HUDPaint", "PLib:DeveloperHUD")
         hook.Remove("Think", "PLib:DeveloperHUD")
+        timer.Remove("PLib:DeveloperHUD_ResetEnt")
     end
 end
 

@@ -57,7 +57,7 @@ local function hasDataTable(ply)
 end
 
 local function GetPlayerSavePath(ply)
-    local uid = "NULL"
+    local uid
     if ply:IsBot() then
         uid = ply:Nick()
     else
@@ -70,7 +70,7 @@ local function GetPlayerSavePath(ply)
         end
     end
 
-    return player_path.."/"..uid..".dat"
+    return player_path.."/"..(uid or "NULL")..".dat"
 end
 
 function PLAYER:GetAllData()

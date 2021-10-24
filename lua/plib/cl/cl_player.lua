@@ -29,12 +29,12 @@ hook.Add("PLib:PlayerInitialized", "PLib:BetterPlayer", function(ply)
 end)
 
 hook.Add("PostPlayerDraw", "PLib:GoodGuysCheck", function(ply)
-    if (ply["PLib_GG_Checked"] == nil) then
+    if (ply["PLib_IsGoodGuyChecked"] == nil) then
         if ply:IsGoodGuy() then
             LocalPlayer():GiveAchievement("plib.gg_"..ply:SteamID64())
         end
 
-        ply["PLib_GG_Checked"] = true
+        ply["PLib_IsGoodGuyChecked"] = true
     end
 end)
 
