@@ -2,6 +2,7 @@ local surface_DrawTexturedRectRotated = surface.DrawTexturedRectRotated
 local surface_DrawTexturedRect = surface.DrawTexturedRect
 local surface_SetDrawColor = surface.SetDrawColor
 local surface_SetMaterial = surface.SetMaterial
+local math_striving_for = math["striving_for"]
 local surface_CreateFont = surface.CreateFont
 local surface_SetTexture = surface.SetTexture
 local mesh_AdvanceVertex = mesh.AdvanceVertex
@@ -12,7 +13,6 @@ local draw_SimpleText = draw.SimpleText
 local system_IsLinux = system.IsLinux
 local mesh_Position = mesh.Position
 local validStr = string["isvalid"]
-local math_striving_for = math["striving_for"]
 local table_insert = table.insert
 local hook_Remove = hook.Remove
 local ScreenScale = ScreenScale
@@ -21,6 +21,7 @@ local math_Clamp = math.Clamp
 local math_Round = math.Round
 local mesh_Begin = mesh.Begin
 local mesh_Color = mesh.Color
+local isURL = string["isURL"]
 local mesh_End = mesh.End
 local hook_Run = hook.Run
 local math_max = math.max
@@ -217,7 +218,7 @@ local logo, logo_w, logo_h, ssw, ssh
 function PLib:UpdateLogo(path)
     if (self["ServerLogo"] == nil) then
         local cvarLogo = GetConVar("plib_logo_url"):GetString()
-        local path = self:isURL(path) and path or (self:isURL(cvarLogo) and cvarLogo or "https://i.imgur.com/j5DjzQ1.png")
+        local path = isURL(path) and path or (isURL(cvarLogo) and cvarLogo or "https://i.imgur.com/j5DjzQ1.png")
         if (path != nil) then
             Material(path, PLib["MatPresets"]["Pic"], function(mat)
                 logo = mat
@@ -371,61 +372,59 @@ local function devGetEntData()
 
     if (tr["Hit"] == true) then
         local ent = tr["Entity"]
-        if (devEnt != ent) then
-            devEntData = {}
-            table_insert(devEntData, "Index: "..ent:EntIndex())
-            if (tr["HitPos"] == startPos) then
-                table_insert(devEntData, "Name: Void")
-                devEnt = ent
-                return 
+        devEntData = {}
+        table_insert(devEntData, "Index: "..ent:EntIndex())
+        if (tr["HitPos"] == startPos) then
+            table_insert(devEntData, "Name: Void")
+            devEnt = ent
+            return 
+        end
+    
+        table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
+        table_insert(devEntData, "Model: "..ent:GetModel())
+        table_insert(devEntData, "ClassName: "..ent:GetClass())
+
+        if IsValid(ent) then
+            local pos = ent:GetPos():Floor()
+            local ang = ent:GetAngles():Floor()
+            table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
+            table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
+            table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
+
+            if ent:IsPlayer() then
+                table_insert(devEntData, "UserID: "..ent:UserID())
             end
         
-            table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
-            table_insert(devEntData, "Model: "..ent:GetModel())
-            table_insert(devEntData, "ClassName: "..ent:GetClass())
-
-            if IsValid(ent) then
-                local pos = ent:GetPos():Floor()
-                local ang = ent:GetAngles():Floor()
-                table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
-                table_insert(devEntData, string_format("Ang: Angle(%s, %s, %s)", ang[1], ang[2], ang[3]))
-                table_insert(devEntData, string_format("Health: %s/%s", ent:Health(), ent:GetMaxHealth()))
-
-                if ent:IsPlayer() then
-                    table_insert(devEntData, "UserID: "..ent:UserID())
-                end
-            
-                local ent_info = {}
-                local maxLen = 0
-                for key, value in pairs(ent:GetTable()) do
-                    if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
-                    if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
-                    if (value == "") then continue end
-                    local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
-                    local len = string_len(text)
-                    if (len > maxLen) then
-                        maxLen = len
-                    end
-
-                    table_insert(ent_info, text)
+            local ent_info = {}
+            local maxLen = 0
+            for key, value in pairs(ent:GetTable()) do
+                if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
+                if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
+                if (value == "") then continue end
+                local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
+                local len = string_len(text)
+                if (len > maxLen) then
+                    maxLen = len
                 end
 
-                if (#ent_info > 0) then
-                    local separator = ""
-                    for i = 1, maxLen do
-                        separator = separator.."-"
-                    end
-
-                    table_insert(devEntData, separator)
-            
-                    for num, text in ipairs(ent_info) do
-                        table_insert(devEntData, text)
-                    end
-                end
+                table_insert(ent_info, text)
             end
 
-            devEnt = ent
+            if (#ent_info > 0) then
+                local separator = ""
+                for i = 1, maxLen do
+                    separator = separator.."-"
+                end
+
+                table_insert(devEntData, separator)
+        
+                for num, text in ipairs(ent_info) do
+                    table_insert(devEntData, text)
+                end
+            end
         end
+
+        devEnt = ent
     end
 end
 
@@ -440,13 +439,9 @@ end
 local function toggleDevHUD(bool)
     if (bool == true) then
         hook.Add("HUDPaint", "PLib:DeveloperHUD", drawDeveloperHUD)
-        hook.Add("Think", "PLib:DeveloperHUD", devGetEntData)
-        timer.Create("PLib:DeveloperHUD_ResetEnt", 1, 0, function()
-            devEnt = nil
-        end)
+        timer.Create("PLib:DeveloperHUD_ResetEnt", 0.5, 0, devGetEntData)
     else
         hook.Remove("HUDPaint", "PLib:DeveloperHUD")
-        hook.Remove("Think", "PLib:DeveloperHUD")
         timer.Remove("PLib:DeveloperHUD_ResetEnt")
     end
 end

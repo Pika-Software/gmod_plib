@@ -1,4 +1,5 @@
 local ents_FindByClass = ents.FindByClass
+local isURL = string["isURL"]
 local IsValid = IsValid
 
 function PLib:AreaPortalFix(ent)
@@ -22,7 +23,7 @@ hook.Add("EntityRemoved", "PLib.AreaPortalFix", function(ent)
 end)
 
 function PLib:ServerLogoUpdate(url)
-    if self:isURL(url) then
+    if isURL(url) then
         hook.Add("PLib:PlayerInitialized", "PLib:Logo", function(ply)
             net.Start("PLib")
                 net.WriteUInt(3, 3)
