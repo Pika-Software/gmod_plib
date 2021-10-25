@@ -490,6 +490,7 @@ function string.charCount(str, chr)
 end
 
 function net.WriteCompressTable(tbl)
+	if (tbl == nil) then return end
     local data = util_Compress(util_TableToJSON(tbl))
     net_WriteUInt(#data,16)
     net_WriteData(data,#data)
