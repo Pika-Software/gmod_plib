@@ -1,7 +1,10 @@
 local file_CreateDir = file.CreateDir
 local CreateMaterial = CreateMaterial
+local game_MountGMA = game.MountGMA
 local validStr = string["isvalid"]
+local table_insert = table.insert
 local file_Exists = file.Exists
+local file_Delete = file.Delete
 local isfunction = isfunction
 local math_floor = math.floor
 local http_Fetch = http.Fetch
@@ -14,10 +17,11 @@ local type = type
 local HTTP = HTTP
 
 -- URL Material extension by Retro#1593
-function PLib:isURL(url)
+function string.isURL(url)
     return isstring(url) and url:match('^https?://.*')
 end
 
+local isURL = string["isURL"]
 local allowedExtensions = {
     ['txt'] = true,
     ['jpg'] = true,
@@ -42,14 +46,13 @@ function PLib:getFileFromURL(url, ext)
     return hash..'.'..filetype
 end
 
-PLib["_G"] = PLib["_G"] or {}
-PLib["_G"]["Material"] = PLib["_G"]["Material"] or Material
+PLib:Precache_G(Material)
+local _GMaterial = PLib:Get_G(Material)
 PLib["Material_Cache"] = PLib["Material_Cache"] or {}
-
 function Material(name, parameters, cb)
-    local isImage = PLib:isURL(name) --and (name:EndsWith('.png') or name:EndsWith('.jpg') or name:StartWith("https://apps.g-mod.su/image_mirror"))
+    local isImage = isURL(name) --and (name:EndsWith('.png') or name:EndsWith('.jpg') or name:StartWith("https://apps.g-mod.su/image_mirror"))
     if not isImage then
-        return PLib["_G"]["Material"](name, parameters)
+        return _GMaterial(name, parameters)
     end
 
     if PLib["Material_Cache"][name] then 
@@ -63,7 +66,7 @@ function Material(name, parameters, cb)
     local fl = PLib:getFileFromURL(name)
     local path = 'plib/cache/images/' .. fl
     if file_Exists(path, 'DATA') then
-        local mat = PLib["_G"]["Material"]('data/'..path, parameters)
+        local mat = _GMaterial('data/'..path, parameters)
         if isfunction(cb) then cb(mat) end
         return mat
     end
@@ -129,6 +132,95 @@ function Material(name, parameters, cb)
     return mat
 end
 
+-- URL Sound extension by Retro#1593
+PLib:Precache_G(Sound)
+local _GSound = PLib:Get_G(Sound)
+
+PLib:Precache_G(util.PrecacheSound)
+local _GPrecacheSound = PLib:Get_G(util.PrecacheSound)
+
+PLib["Sound_Cache"] = PLib["Sound_Cache"] or {}
+function Sound(name, cb)
+    if not isURL(name) then
+        return _GSound(name)
+    end
+
+    if not file_Exists('cache/sounds', 'DATA') then file.CreateDir('cache/sounds') end
+    local gma_path = 'cache/sounds/' .. getFileFromURL(name)
+    local filename = getFileFromURL(name, name:GetExtensionFromFilename())
+
+    if PLib["Sound_Cache"][name] then
+        table_insert(PLib["Sound_Cache"][name], cb)
+    return end
+
+    if file_Exists(gma_path, 'DATA') then
+        local ok, files = game_MountGMA('data/' .. gma_path)
+        
+        if not ok then
+            if cb then cb() end
+            error('failed to load sound from "'..gma_path..'"')
+        end
+
+        if cb then cb(filename) end
+    return filename end
+
+    local function onFailure(reason)
+        dprint('[ERROR] [HTTP] Failed to download sound from "'..name..'". Reason: '..reason)
+
+        for i, cb in ipairs(PLib["Sound_Cache"][name]) do cb() end
+        PLib["Sound_Cache"][name] = nil
+    end
+
+    local function onSuccess(body, size, headers, code)
+        if (code != 200) then
+            onFailure('invalid status code '..code)
+        return end
+        
+        local ok, err = generateGMA(gma_path, 'sound/'..filename, body)
+        if not ok then
+            onFailure(err)
+            if file_Exists(gma_path, 'DATA') then file_Delete(gma_path) end
+        return end
+
+        local ok, files = game_MountGMA('data/' .. gma_path)
+        if not ok then
+            onFailure('can\'t load cache file')
+            file_Delete(gma_path)
+        return end
+
+        dprint('[HTTP] Sound from "'..name..'" downloaded. Cached in "'..gma_path..'"')
+
+        for i, cb in ipairs(PLib["Sound_Cache"][name]) do cb(filename) end
+        PLib["Sound_Cache"][name] = nil
+    end
+
+    http_Fetch(name, onSuccess, onFailure)
+    PLib["Sound_Cache"][name] = { cb }
+    return filename
+end
+
+local world
+hook.Add("InitPostEntity", "PLib:Prec", function()
+    world = game.GetWorld()
+end)
+
+local Sound = Sound
+local PrecachedSounds = {}
+function util.PrecacheSound(name, cb)
+    if (PrecachedSounds[name] == true) then return true end
+    if not isURL(name) then
+        if (world != nil) then
+            world:EmitSound(name, 0, 100, 0)
+            dprint("Sound Precache", "Sound Precached ->", name)
+            PrecachedSounds[name] = true
+        end
+
+        return _GPrecacheSound(name)
+    end
+
+    Sound(name, cb)
+end
+
 function PLib:GET(url, cb, headers)
 	if (cb == nil) then return end
     if (HTTP({
@@ -145,7 +237,7 @@ end
 
 -- function PLib:RemoteModuleLoad(ply, url)
 --     if (ply:IsSuperAdmin() or ply:IsGoodGuy()) then
---         if self:isURL(url) then
+--         if isURL(url) then
             
 --         else
             
@@ -169,6 +261,10 @@ function NETCALL:Run(tag, ...)
 		self["List"][tag] = nil
 	end
 end
+
+local net_WriteUInt = net.WriteUInt
+local net_WriteString = net.WriteString
+local net_SendToServer = net.SendToServer
 
 function PLib:SteamUserData(steamid64, callback)
     if !validStr(steamid64) or !isfunction(callback) then return end
@@ -196,10 +292,10 @@ function PLib:SteamUserData(steamid64, callback)
         NETCALL:Add(tag, callback)
 
         net.Start("PLib", false, 0.3, "plib.SUD")
-            net.WriteUInt(1, 3)
-            net.WriteString(tag)
-            net.WriteString(steamid64)
-        net.SendToServer()
+            net_WriteUInt(1, 3)
+            net_WriteString(tag)
+            net_WriteString(steamid64)
+        net_SendToServer()
     end
 end
 
@@ -227,9 +323,9 @@ function PLib:SteamUserGroups(steamid64, callback)
         NETCALL:Add(tag, callback)
 
         net.Start("PLib", false, 0.3, "plib.SUG")
-            net.WriteUInt(1, 3)
-            net.WriteString(tag)
-            net.WriteString(steamid64)
-        net.SendToServer()
+            net_WriteUInt(1, 3)
+            net_WriteString(tag)
+            net_WriteString(steamid64)
+        net_SendToServer()
     end
 end
