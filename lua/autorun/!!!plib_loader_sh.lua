@@ -6,6 +6,7 @@ local string_lower = string.lower
 local string_Left = string.Left
 local isfunction = isfunction
 local file_Find = file.Find
+local tostring = tostring
 local isstring = isstring
 local include = include
 local ipairs = ipairs
@@ -21,6 +22,19 @@ PLib = PLib or {
         "Retro#1593",
     },
 }
+
+function PLib:Precache_G(func)
+    if isfunction(func) then
+        local name = tostring(func)
+        if (self["_G"][name] == nil) then
+            self["_G"][name] = func
+        end
+    end
+end
+
+function PLib:Get_G(func)
+    return self["_G"][tostring(func)]
+end
 
 PLib["_C"] = {
     ["cl"] = Color(255, 193, 7),
@@ -116,25 +130,19 @@ end
 function PLib:Include(dir, fl, tag)
     local fileTag = string_lower(string_Left(fl, 3))
 
-    local ok, err = pcall(function()
-        if SERVER and (fileTag == "sv_") then
-            self:SV(dir, fl, tag)
-        elseif (fileTag == "cl_") then
-            self:CL(dir, fl, tag)
-        else
-            if SERVER and (fileTag != "sh_") then
-                self:Log(tag, "Attention, non sh or cl file has been sent to the client, this can be a significant hole in the server's security,\n if this is not the case, change the filename ", self["_C"]["warn"], fl, self["_C"]["text"]," to ", self["_C"]["dg"],"sh_"..fl, "\n")
-            end
-
-            self:SH(dir, fl, tag)
-        end
-    end)
-
-    if (ok == true) then
-        self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
+    if SERVER and (fileTag == "sv_") then
+        self:SV(dir, fl, tag)
+    elseif (fileTag == "cl_") then
+        self:CL(dir, fl, tag)
     else
-        self:Log(tag, fl, ": ", self["_C"]["warn"], "Error! ("..err..")")
+        if SERVER and (fileTag != "sh_") then
+            self:Log(tag, "Attention, non sh or cl file has been sent to the client, this can be a significant hole in the server's security,\n if this is not the case, change the filename ", self["_C"]["warn"], fl, self["_C"]["text"]," to ", self["_C"]["dg"],"sh_"..fl, "\n")
+        end
+
+        self:SH(dir, fl, tag)
     end
+
+    self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
 end
 
 function PLib:Load(dir, tag)

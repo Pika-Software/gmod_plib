@@ -6,11 +6,8 @@ local tostring = tostring
 local isnumber = isnumber
 local IsValid = IsValid
 
-if (PLib["_G"]["net.Start"] == nil) then
-    PLib["_G"]["net.Start"] = net.Start
-end
-
-local net_Start = PLib["_G"]["net.Start"]
+PLib:Precache_G(net.Start)
+local net_Start = PLib:Get_G(net.Start)
 local math_random = math.random
 local SysTime = SysTime
 
