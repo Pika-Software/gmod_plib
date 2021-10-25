@@ -78,6 +78,64 @@ function PLib:NumTableToList(tbl)
     return str
 end
 
+-- GMA Builder by Retro#1593
+local function WriteLongLong(f, x)
+    f:WriteLong(x)
+    f:WriteLong(0)
+end
+
+local function WriteULongLong(f, x)
+    f:WriteULong(x)
+    f:WriteULong(0)
+end
+
+local function WriteString(f, str)
+    f:Write(str)
+    f:WriteByte(0)
+end
+
+local util_Buffer = util.Buffer
+function PLib:buildGMA(f, path, data)
+    local size = #data
+    local buffer = util_Buffer()
+
+    buffer:Write('GMAD')
+    buffer:WriteByte(3)
+    buffer:WriteULongLong(0)
+    buffer:WriteULongLong(os.time())
+    buffer:WriteByte(0)
+    buffer:WriteString('File Packer')
+    buffer:WriteString('By Retro')
+    buffer:WriteString('Author Name')
+    buffer:WriteLong(1)
+
+    -- Writing list
+    buffer:WriteULong(1)
+    buffer:WriteString(path)
+    buffer:WriteLongLong(size)
+    buffer:WriteULong(0)
+    buffer:WriteULong(0) -- end of list
+
+    -- Writing file
+    buffer:Write(data)
+    buffer:WriteULong(0)
+    return buffer
+end
+
+local file_Write = file.Write
+function PLib:generateGMA(name, path, data)
+    if not validStr(name) or not validStr(path) or not validStr(data) then return end
+
+    ok, err = pcall(self:buildGMA(), f, path, data)
+
+    if ok then
+        err:Start()
+        file_Write(name, err:Read(err:GetSize()))
+    end
+
+    return ok, err
+end
+
 concommand.Add("plib_info", function(ply)
     local self = PLib
     local cols = self["_C"]
