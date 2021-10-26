@@ -46,8 +46,8 @@ function PLib:getFileFromURL(url, ext)
     return hash..'.'..filetype
 end
 
-PLib:Precache_G(Material)
-local _GMaterial = PLib:Get_G(Material)
+PLib:Precache_G("Material", Material)
+local _GMaterial = PLib:Get_G("Material")
 PLib["Material_Cache"] = PLib["Material_Cache"] or {}
 function Material(name, parameters, cb)
     local isImage = isURL(name) --and (name:EndsWith('.png') or name:EndsWith('.jpg') or name:StartWith("https://apps.g-mod.su/image_mirror"))
@@ -133,11 +133,11 @@ function Material(name, parameters, cb)
 end
 
 -- URL Sound extension by Retro#1593
-PLib:Precache_G(Sound)
-local _GSound = PLib:Get_G(Sound)
+PLib:Precache_G("Sound", Sound)
+local _GSound = PLib:Get_G("Sound")
 
-PLib:Precache_G(util.PrecacheSound)
-local _GPrecacheSound = PLib:Get_G(util.PrecacheSound)
+PLib:Precache_G("util.PrecacheSound", util.PrecacheSound)
+local _GPrecacheSound = PLib:Get_G("util.PrecacheSound")
 
 PLib["Sound_Cache"] = PLib["Sound_Cache"] or {}
 function Sound(name, cb)
@@ -205,14 +205,14 @@ hook.Add("InitPostEntity", "PLib:Prec", function()
 end)
 
 local Sound = Sound
-local PrecachedSounds = {}
+PLib["PrecachedSounds"] = PLib["PrecachedSounds"] or {}
 function util.PrecacheSound(name, cb)
-    if (PrecachedSounds[name] == true) then return true end
+    if (PLib["PrecachedSounds"][name] == true) then return true end
     if not isURL(name) then
         if (world != nil) then
             world:EmitSound(name, 0, 100, 0)
-            dprint("Sound Precache", "Sound Precached ->", name)
-            PrecachedSounds[name] = true
+            dprint("Sound", "Sound Precached -> ", name)
+            PLib["PrecachedSounds"][name] = true
         end
 
         return _GPrecacheSound(name)

@@ -6,8 +6,8 @@ local tostring = tostring
 local isnumber = isnumber
 local IsValid = IsValid
 
-PLib:Precache_G(net.Start)
-local net_Start = PLib:Get_G(net.Start)
+PLib:Precache_G("net.Start", net.Start)
+local net_Start = PLib:Get_G("net.Start")
 local math_random = math.random
 local SysTime = SysTime
 

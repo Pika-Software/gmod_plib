@@ -23,17 +23,18 @@ PLib = PLib or {
     },
 }
 
-function PLib:Precache_G(func)
-    if isfunction(func) then
-        local name = tostring(func)
-        if (self["_G"][name] == nil) then
-            self["_G"][name] = func
+function PLib:Precache_G(name, func)
+    if (self["_G"][name] == nil) then
+        self["_G"][name] = func
+
+        if (self["dprint"] != nil) then
+            self["dprint"]("_G", "_G Precached -> ", name)
         end
     end
 end
 
-function PLib:Get_G(func)
-    return self["_G"][tostring(func)]
+function PLib:Get_G(name)
+    return self["_G"][name]
 end
 
 PLib["_C"] = {
@@ -160,30 +161,30 @@ function PLib:Load(dir, tag)
     end
 end
 
-function PLib:ListReload()
-    local loadList = self["LoadList"] or {}
-    if not table_IsEmpty(loadList) then
-        for num, tbl in ipairs(loadList) do
-            print("\n")
-            local dir, tag = tbl[1], tbl[2]
-            local preLoad, afterLoad = tbl[3], tbl[4]
-            self:Log(tag, "Start loading...")
-            if isfunction(preLoad) then
-                preLoad(dir, tag)
-            end
+-- function PLib:ListReload()
+--     local loadList = self["LoadList"] or {}
+--     if not table_IsEmpty(loadList) then
+--         for num, tbl in ipairs(loadList) do
+--             print("\n")
+--             local dir, tag = tbl[1], tbl[2]
+--             local preLoad, afterLoad = tbl[3], tbl[4]
+--             self:Log(tag, "Start loading...")
+--             if isfunction(preLoad) then
+--                 preLoad(dir, tag)
+--             end
 
-            if isstring(dir) then
-                self:Load(dir, tag)
-            end
+--             if isstring(dir) then
+--                 self:Load(dir, tag)
+--             end
 
-            if isfunction(afterLoad) then
-                afterLoad(dir, tag)
-            end
+--             if isfunction(afterLoad) then
+--                 afterLoad(dir, tag)
+--             end
 
-            self:Log(tag, "Loaded!")
-        end
-    end
-end
+--             self:Log(tag, "Loaded!")
+--         end
+--     end
+-- end
 
 PLib:SH("plib", "sh_loading_manager.lua")
 PLib["Loaded"] = true

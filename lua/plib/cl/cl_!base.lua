@@ -15,8 +15,8 @@ hook.Add("OnPlayerChat", "PLib:OnPlayerChat_Manager", function(...)
 	if (ret != nil) then return ret end
 end)
 
-PLib:Precache_G(spawnmenu.AddToolMenuOption)
-local original = PLib:Get_G(spawnmenu.AddToolMenuOption)
+PLib:Precache_G("spawnmenu.AddToolMenuOption", spawnmenu.AddToolMenuOption)
+local original = PLib:Get_G("spawnmenu.AddToolMenuOption")
 function spawnmenu.AddToolMenuOption(tab, ...)
 	return original(((tab == "Options") and "Utilities" or tab), ...)
 end
