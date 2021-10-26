@@ -27,6 +27,15 @@ local IsValid = IsValid
 local tobool = tobool
 local Angle = Angle
 
+
+local player_GetHumans = player.GetHumans
+local player_GetAll = player.GetAll
+
+function player.Random(no_bots)
+    local players = no_bots and player_GetHumans() or player_GetAll()
+    return players[math_random(1, #players)]
+end
+
 local PLAYER = FindMetaTable("Player")
 
 function PLAYER:Notify(tag, text)
