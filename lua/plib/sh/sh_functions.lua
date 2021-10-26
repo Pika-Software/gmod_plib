@@ -13,6 +13,7 @@ local validStr = string["isvalid"]
 local net_ReadUInt = net.ReadUInt
 local net_ReadData = net.ReadData
 local table_insert = table.insert
+local table_remove = table.remove
 local string_lower = string.lower
 local file_Exists = file.Exists
 local math_random = math.random
@@ -41,7 +42,7 @@ function PLib:GetMapList()
     for i = 1, #maps do
         local map = maps[i]
         if string.EndsWith(map, ".bsp") then
-            table.insert(tbl, string.sub(map, 0, #map - 4))
+            table_insert(tbl, string.sub(map, 0, #map - 4))
         end
     end
 
@@ -93,7 +94,7 @@ function PLib:RemoveAchievement(tag)
 	local num = 1
 	for id, tbl in pairs(self["Achievements"]) do
 		if (id == tag) then
-			return table.remove(self["Achievements"], num)
+			return table_remove(self["Achievements"], num)
 		end
 
 		num = num + 1
@@ -156,6 +157,26 @@ function player.findNearest(pos, radius, filter)
 		end
 	end
 
+	return output
+end
+
+local player_GetHumans = player.GetHumans
+local player_GetAll = player.GetAll
+
+function player.Random(no_bots)
+    local players = no_bots and player_GetHumans() or player_GetAll()
+    return players[math_random(1, #players)]
+end
+
+local game_GetAmmoName = game.GetAmmoName
+function game.AmmoList()
+	local last = game_GetAmmoName(1)
+	local output = {last}
+  
+	while (last != nil) do
+		last = game_GetAmmoName(table_insert(output, last))
+	end
+  
 	return output
 end
 
@@ -464,18 +485,18 @@ function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
 				if (ent:WorldToLocal(tEnt:LocalToWorld(tEnt:OBBCenter())):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(mn)):WithinAABox(mins, maxs) 
 				or ent:WorldToLocal(tEnt:LocalToWorld(mx)):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mn[1],mn[2],mx[3]))):WithinAABox(mins, maxs)
 				or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mx[1],mx[2],mn[3]))):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:GetPos()):WithinAABox(mins, maxs)) then
-					table.insert(result, tEnt)
+					table_insert(result, tEnt)
 				end
 			end
 		end
 	else
 		for _, eTarget in ipairs(ents.FindInSphere(pos, size))do
 			if WorldToLocal(eTarget:GetPos(), eTarget:GetAngles(), pos, ang):WithinAABox(mins, maxs) then
-				table.insert(result, eTarget)
+				table_insert(result, eTarget)
 			elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles() - Angle(0,180,0), pos, ang):WithinAABox(mins, maxs) then
-				table.insert(result, eTarget)
+				table_insert(result, eTarget)
 			elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles()*(-1), pos, ang):WithinAABox(mins, maxs) then
-				table.insert(result, eTarget)
+				table_insert(result, eTarget)
 			end
 			
 		end
