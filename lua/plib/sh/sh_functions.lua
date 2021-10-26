@@ -103,6 +103,7 @@ function PLib:RemoveAchievement(tag)
 end
 
 PLib:Precache_G("Color", Color)
+local _GColor = PLib:Get_G("Color")
 
 function Color(hex, g, b, a)
     if validStr(hex) and (g == nil) and (b == nil) and (a == nil) then
