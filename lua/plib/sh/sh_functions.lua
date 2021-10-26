@@ -2,6 +2,8 @@ local util_PrecacheModel = util.PrecacheModel
 local ents_FindInSphere = ents.FindInSphere
 local util_TableToJSON = util.TableToJSON
 local util_JSONToTable = util.JSONToTable
+local weapons_Register = weapons.Register
+local scripted_ents_Register = scripted_ents.Register
 local util_Decompress = util.Decompress
 local util_QuickTrace = util.QuickTrace
 local player_GetAll = player.GetAll
@@ -17,6 +19,8 @@ local table_remove = table.remove
 local string_lower = string.lower
 local file_Exists = file.Exists
 local math_random = math.random
+local table_Merge = table.Merge
+local dprint = PLib["dprint"]
 local isfunction = isfunction
 local math_Round = math.Round
 local math_floor = math.floor
@@ -527,6 +531,57 @@ function string.charCount(str, chr)
 	return count 
 end
 
+function PLib:CreateWeapon(class, data)
+	if validStr(class) and istable(data) then
+		local SWEP = {}
+		SWEP["PrintName"] = "PLib Weapon"
+		SWEP["Primary"] 	= {}
+		SWEP["Secondary"] 	= {}
+		SWEP["WorldModel"]	= ""
+		SWEP["ViewModel"]	= "models/weapons/c_arms.mdl"
+		SWEP["Category"]	= "PLib"
+		SWEP["HoldType"]	= "normal"
+		SWEP["Spawnable"]	= true
+		SWEP["UseHands"]	= true
+
+		function SWEP:Initialize()
+			self:SetWeaponHoldType(self["HoldType"])
+		end
+
+		weapons_Register(table_Merge(SWEP, data), class)
+		dprint("SWEP", "Weapon Created -> ", class)
+
+		if CLIENT then
+			self:SpawnMenuReload()
+		end
+	end
+end
+
+function PLib:CreateEntity(class, data)
+	if validStr(class) and istable(data) then
+		local ENT 			= {}
+		ENT["Base"] 		= "base_anim"
+		ENT["Model"]		= "models/props_c17/oildrum001_explosive.mdl"
+		ENT["Category"]		= "PLib"
+		ENT["PrintName"] 	= "PLib Entity"
+		ENT["Spawnable"]	= true
+
+		function ENT:Initialize()
+			if SERVER then
+				self:SetModel(self["Model"])
+				self:PhysicsInit(SOLID_VPHYSICS)
+			end
+		end
+
+		scripted_ents_Register(table_Merge(ENT, data), class)
+		dprint("ENT", "Entity Created -> ", class)
+
+		if CLIENT then
+			self:SpawnMenuReload()
+		end
+	end
+end
+
 -- Net Compressed tables by DefaultOS#5913
 function net.WriteCompressTable(tbl)
 	if (tbl == nil) then return end
@@ -538,4 +593,74 @@ end
 function net.ReadCompressTable()
     local len = net_ReadUInt(16)
 	return util_JSONToTable(util_Decompress(net_ReadData(len)))
+end
+
+local function rotChar177(letter_byte, addition)
+	return (letter_byte + (addition % 177)) % 177
+end
+
+local function unRotChar177(letter_byte, soustraction)
+	return (letter_byte - (soustraction % 177)) % 177
+end
+
+local lenKeyToGen = 128
+
+local unpack = unpack
+local string_char = string.char
+function PLib:genObfuscateKey(len)
+	len = len or lenKeyToGen
+	local out = {}
+	local i = 1
+	while (i <= len) do
+		out[i] = math_random(33,126)
+		i = i + 1
+	end
+
+	return string_char(unpack(out))
+end
+
+local util_CRC = util.CRC
+local string_byte = string.byte
+
+function PLib:ObfuscateLua(str_lua_code, key)
+	key = key or self:genObfuscateKey()
+	local keySum = tonumber(util_CRC(key))
+	local keylen = key:len()
+	local code_len = str_lua_code:len()
+	local codeTBL = {string_byte(str_lua_code, 1, code_len)}
+	local codedPayload = ""
+	local i = 1
+
+	while (i <= code_len) do
+		local i2 = 1
+		local toadd = string_byte(key[(i % (keylen - 1)) + 1])
+		while (i2 <= toadd) do
+			codedPayload = codedPayload .. string_char(math_random(177))
+			i2 = i2 + 1
+		end
+
+		codedPayload = codedPayload .. string_char(rotChar177(codeTBL[i], keySum))
+		i = i + 1
+	end
+
+	return codedPayload, key
+end
+
+function PLib:deObfuscateLua(obfuscated_code, key)
+	local keySum = tonumber(util_CRC(key))
+	local code_len = obfuscated_code:len()
+	local keylen = key:len()
+	local i = 1
+	local real_i = 1
+	local code = {}
+
+	while (i <= code_len) do
+		i = i + string_byte(key[(real_i % (keylen - 1)) + 1])
+		code[real_i] = unRotChar177(string_byte(obfuscated_code[i]), keySum)
+
+		real_i = real_i + 1
+		i = i + 1
+	end
+
+	return string_char(unpack(code))
 end

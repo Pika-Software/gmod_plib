@@ -140,7 +140,7 @@ if SERVER then
             if (plibTbl != nil) then
                 local data = plibTbl["Data"]
                 if (data != nil) then
-                    self:ReplaceAllData(data)
+                    ply:ReplaceAllData(data)
                 end
             end
         end
