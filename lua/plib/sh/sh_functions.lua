@@ -9,6 +9,7 @@ local util_Compress = util.Compress
 local net_WriteUInt = net.WriteUInt
 local net_WriteData = net.WriteData
 local FindMetaTable = FindMetaTable
+local validStr = string["isvalid"]
 local net_ReadUInt = net.ReadUInt
 local net_ReadData = net.ReadData
 local table_insert = table.insert
@@ -19,6 +20,7 @@ local isfunction = isfunction
 local math_Round = math.Round
 local math_floor = math.floor
 local tostring = tostring
+local tonumber = tonumber
 local IsValid = IsValid
 local CurTime = CurTime
 local Vector = Vector
@@ -98,6 +100,21 @@ function PLib:RemoveAchievement(tag)
 	end
 
 	return false
+end
+
+PLib:Precache_G("Color", Color)
+
+function Color(hex, g, b, a)
+    if validStr(hex) and (g == nil) and (b == nil) and (a == nil) then
+		local hex = hex:gsub("#", "")
+		if (hex:len() == 3) then
+			return _GColor((tonumber("0x"..hex:sub(1, 1)) * 17), (tonumber("0x"..hex:sub(2, 2)) * 17), (tonumber("0x"..hex:sub(3, 3)) * 17))
+		else
+			return _GColor(tonumber("0x"..hex:sub(1, 2)), tonumber("0x"..hex:sub(3, 4)), tonumber("0x"..hex:sub(5, 6)))
+		end
+	end
+
+	return _GColor(hex, g, b, a)
 end
 
 local PrechangedModels = {}
@@ -282,7 +299,6 @@ function ENTITY:TeamObject(ply)
 	return false
 end
 
-local validStr = string["isvalid"]
 function ENTITY:IsDoor()
 	local class = self:GetClass()
 	if validStr(class) and class:match("door") then
@@ -489,6 +505,7 @@ function string.charCount(str, chr)
 	return count 
 end
 
+-- Net Compressed tables by DefaultOS#5913
 function net.WriteCompressTable(tbl)
 	if (tbl == nil) then return end
     local data = util_Compress(util_TableToJSON(tbl))
