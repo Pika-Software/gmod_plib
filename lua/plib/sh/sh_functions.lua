@@ -594,10 +594,7 @@ function net.ReadCompressTable()
     local len = net_ReadUInt(16)
 	return util_JSONToTable(util_Decompress(net_ReadData(len)))
 end
-<<<<<<< Updated upstream
-=======
 
 function PLib:ObfuscateLua(code)
 	-- not yet
 end
->>>>>>> Stashed changes
