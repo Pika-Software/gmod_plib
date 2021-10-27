@@ -595,6 +595,7 @@ function net.ReadCompressTable()
 	return util_JSONToTable(util_Decompress(net_ReadData(len)))
 end
 
+-- https://github.com/ExtReMLapin/glua_vtf_backdooring
 local function rotChar177(letter_byte, addition)
 	return (letter_byte + (addition % 177)) % 177
 end
