@@ -87,7 +87,7 @@ function PLib:Path(dir, fl)
                 dir = dir .. "/"
             end
         else
-            return fl
+            return false
         end
     elseif not isstring(fl) then
         return false
@@ -96,36 +96,29 @@ function PLib:Path(dir, fl)
     return (dir or "")..(fl or "")
 end
 
-function PLib:SH(dir, fl, tag)
+function PLib:CL(dir, fl)
     local path = self:Path(dir, fl)
-    if (path != false) then
-        if SERVER then
-            include(path)
-            AddCSLuaFile(path)
-        else
-            include(path)
-        end
-    end
-end
-
-function PLib:CL(dir, fl, tag)
-    local path = self:Path(dir, fl)
-    if (path != false) then
-        if SERVER then 
-            AddCSLuaFile(path)
-        else
-            include(path)
-        end
-    end
-end
-
-function PLib:SV(dir, fl, tag)
+    assert(path, "Invalid path returned")
+    
     if SERVER then
-        local path = self:Path(dir, fl)
-        if (path != false) then
-            include(path)
-        end
+        AddCSLuaFile(path)
+    else
+        include(path)
     end
+end
+
+function PLib:SV(dir, fl)
+    if !SERVER then return end
+    
+    local path = self:Path(dir, fl)
+    assert(path, "Invalid path returned")
+    
+    include(path)
+end
+
+function PLib:SH(dir, fl)
+    self:SV(dir, fl)
+    self:CL(dir, fl)
 end
 
 function PLib:Include(dir, fl, tag)
