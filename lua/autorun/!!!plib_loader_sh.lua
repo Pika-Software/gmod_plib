@@ -15,7 +15,7 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 2.1,
+    ["Version"] = 2.2,
     ["Developers"] = {
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
@@ -71,6 +71,27 @@ PLib["GoodGuys"] = {
     ["76561198287965045"] = true, -- лёлик
 }   -- <3
 
+-- SafeInclude by Retro#1593
+function SafeInclude(fileName)
+    assert(type(fileName) == "string", "bad argument #1 (string expected)")
+
+    local errorHandler = debug.getregistry()[1]
+    local lastError
+    debug.getregistry()[1] = function(err)
+        lastError = err
+        -- return err
+    end
+
+    local args = { include(fileName) }
+    debug.getregistry()[1] = errorHandler
+
+    if lastError then
+        return false, lastError
+    else
+        return true, unpack(args)
+    end
+end
+
 function PLib:SideColor()
     return (CLIENT and self["_C"]["cl"] or self["_C"]["sv"])
 end
@@ -103,40 +124,51 @@ function PLib:CL(dir, fl)
     if SERVER then
         AddCSLuaFile(path)
     else
-        include(path)
+        return SafeInclude(path)
     end
 end
 
 function PLib:SV(dir, fl)
-    if !SERVER then return end
+    if CLIENT then return end
     
     local path = self:Path(dir, fl)
     assert(path, "Invalid path returned")
     
-    include(path)
+    return SafeInclude(path)
 end
 
 function PLib:SH(dir, fl)
-    self:SV(dir, fl)
-    self:CL(dir, fl)
+    local path = self:Path(dir, fl)
+    assert(path, "Invalid path returned")
+    
+    if SERVER then
+        AddCSLuaFile(path)
+    end
+
+    return SafeInclude(path)
 end
 
 function PLib:Include(dir, fl, tag)
     local fileTag = string_lower(string_Left(fl, 3))
 
+    local ok, err = false, ""
     if SERVER and (fileTag == "sv_") then
-        self:SV(dir, fl, tag)
+        ok, err = self:SV(dir, fl)
     elseif (fileTag == "cl_") then
-        self:CL(dir, fl, tag)
+        ok, err = self:CL(dir, fl)
     else
         if SERVER and (fileTag != "sh_") then
             self:Log(tag, "Attention, non sh or cl file has been sent to the client, this can be a significant hole in the server's security,\n if this is not the case, change the filename ", self["_C"]["warn"], fl, self["_C"]["text"]," to ", self["_C"]["dg"],"sh_"..fl, "\n")
         end
 
-        self:SH(dir, fl, tag)
+        ok, err = self:SH(dir, fl)
     end
 
-    self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
+    if (ok == true) then
+        self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
+    else
+        self:Log(tag, fl, ": ", self["_C"]["warn"], err or "Initialization error!")
+    end
 end
 
 function PLib:Load(dir, tag)

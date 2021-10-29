@@ -75,94 +75,59 @@ function PLib:ServerLoad(dir, tag)
     end 
 end
 
-function PLib:IncludeModule(dir, fl, moduleName)
-    local fileTag = string_lower(string_Left(fl, 3))
-
-    local ok, err = pcall(function()
-        if SERVER and (fileTag == "sv_") then
-            self:SV(dir, fl, tag)
-        elseif (fileTag == "cl_") then
-            self:CL(dir, fl, tag)
-        else
-            if SERVER and (fileTag != "sh_") and (fl != "_plib_module.lua") then
-                self:Log(tag, "Attention, non sh or cl file has been sent to the client, this can be a significant hole in the server's security,\n if this is not the case, change the filename ", self["_C"]["warn"], fl, self["_C"]["text"]," to ", self["_C"]["dg"],"sh_"..fl, "\n")
-            end
-
-            self:SH(dir, fl, tag)
-        end
-    end)
-
-    if (ok == true) then
-        -- self:Log(moduleName, fl, ": ", self["_C"]["g"], "OK")
-
-        return true
-    else
-        self:Log(moduleName, fl, ": ", self["_C"]["warn"], "Error! ("..err..")")
-
-        return false
-    end
-end
-
 local moduleConfig = "/_plib_module.lua"
 local file_Exists = file.Exists
 function PLib:LoadModules(dir, moduleName)
     local files, folders = file_Find(dir.."/*", "LUA")
 
-    local module
-    local moduleFile = dir..moduleConfig
+    local moduleFile, moduleTbl = dir..moduleConfig
     if file_Exists(moduleFile, "LUA") then
         if SERVER then
             AddCSLuaFile(moduleFile)
         end
 
-        module = include(moduleFile)
-        if (module == nil) then
+        moduleTbl = include(moduleFile)
+        if (moduleTbl == nil) then
             MsgC(self["_C"]["module"], "[Pika Software] ", self["_C"]["warn"], "Сritical error", self["_C"]["text"], ", your ", self["_C"]["sv"], "Garry's mod", self["_C"]["text"]," does not load files correctly, try restarting the game.\n")
             return
         end
 
-        local init = module["Init"]
+        local init = moduleTbl["Init"]
         if (init != nil) then
             init(self, dir)
         end
 
-        if (module["DisableAutoload"] == true) then
+        if (moduleTbl["DisableAutoload"] == true) then
             return 
         end
     end
-    
+
     dir = dir .. "/"
 
-    local hasError = false
     for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
-            if (self:IncludeModule(dir, fl, moduleName) == false) then
-                hasError = true
-            end
+            self:Include(dir, fl, moduleName)
         end
     end
 
-    local hasErrors = false
     for _, fol in ipairs(folders) do
-        hasErrors = self:LoadModules(dir..fol, ((moduleName != nil) and moduleName or fol))
+        self:LoadModules(dir..fol, ((moduleName != nil) and moduleName or fol))
         if (moduleName == nil) and not file_Exists(dir..fol..moduleConfig, "LUA") then
-            self:Log(nil, "Module Loaded: ", ((hasErrors == false) and self["_C"]["module"] or self["_C"]["warn"]), fol)
+            self:Log(nil, "Module Loaded: ", self["_C"]["module"], fol)
         end
     end
 
-    if (module != nil) then
-        local name = module["Name"]
+    if (moduleTbl != nil) then
+        local name = moduleTbl["Name"]
         if (name != nil) then
-            self:Log(nil, "Module Loaded: ", ((hasErrors == false) and self["_C"]["module"] or self["_C"]["warn"]), name)
+            self:Log(nil, "Module Loaded: ", self["_C"]["module"], name)
         end
 
-        local postload = module["PostLoad"]
+        local postload = moduleTbl["PostLoad"]
         if (postload != nil) then
             postload(self, dir)
         end
     end
-
-    return hasError
 end
 
 PLib:SharedLoad("plib/sh")

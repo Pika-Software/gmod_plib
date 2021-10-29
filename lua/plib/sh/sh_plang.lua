@@ -19,7 +19,7 @@ PLib["phrases"] = {
         ["plib.get_error"] = "Возникла ошибка при выполнении GET запроса!",
         ["plib.creators"] = "Создатели",
         ["plib.invalid_font_args"] = "Неверные аргументы функции, должно быть строка[1] и (таблица или номер)[2]",
-        ["plib.invalid_logo_url"] = "Логотип сервера отсутствует или содержит ошибку в url адресе!",
+        ["plib.invalid_logo_url"] = "Логотип сервера отсутствует или содержит ошибку в url адресе! (Используйте plib_server_logo на сервере, что бы установить его)",
         ["plib.meet_the"] = "Встречайте,",
     },
     ["en"] = {
@@ -35,7 +35,7 @@ PLib["phrases"] = {
         ["plib.get_error"] = "An error occured while executing GET request!",
         ["plib.creators"] = "Creators",
         ["plib.invalid_font_args"] = "Invalid function arguments should be string[1] and (table or number)[2]",
-        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address!",
+        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server for install him)",
         ["plib.meet_the"] = "Meet the",
     }
 }
