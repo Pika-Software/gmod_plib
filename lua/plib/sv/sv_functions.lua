@@ -156,7 +156,7 @@ function ENTITY:GetMass()
 	if (self["PLib.Mass"] == nil) then
 		local mass = PLib["MAT_"][self:GetMaterialType()] -- in pika units ^3
 		if (mass != nil) then
-			mass = mass() * self:GetSize() * 0.0001
+			mass = mass() * self:GetSize() * 0.01
 		end
 
 		self["PLib.Mass"] = mass or 0
