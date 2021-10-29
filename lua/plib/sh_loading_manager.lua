@@ -9,8 +9,7 @@ function PLib:VGUILoad(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
-    for i = 1, #files do
-        local fl = files[i]
+    for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
             local path = self:Path(dir, fl)
             if (path != false) then
@@ -25,8 +24,8 @@ function PLib:VGUILoad(dir, tag)
         end
     end
 
-    for i = 1, #folders do
-        self:VGUILoad(dir..folders[i], tag)
+    for _, fol in ipairs(folders) do
+        self:VGUILoad(dir .. fol, tag)
     end 
 end
 
@@ -34,15 +33,13 @@ function PLib:ClientLoad(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
-    for i = 1, #files do
-        local fl = files[i]
+    for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
             self:CL(dir, fl, tag)
         end
     end
 
-    for i = 1, #folders do
-        local fol = folders[i]
+    for _, fol in ipairs(folders) do
         if (fol == "vgui") then return end
         self:ClientLoad(dir..fol, tag)
     end
@@ -52,32 +49,30 @@ function PLib:SharedLoad(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
-    for i = 1, #files do
-        local fl = files[i]
+    for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
             self:SH(dir, fl, tag)
         end
     end
 
-    for i = 1, #folders do
-        self:SharedLoad(dir..folders[i], tag)
-    end
+    for _, fol in ipairs(folders) do
+        self:SharedLoad(dir .. fol, tag)
+    end 
 end
 
 function PLib:ServerLoad(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
-    for i = 1, #files do
-        local fl = files[i]
+    for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
             self:SV(dir, fl, tag)
         end
     end
 
-    for i = 1, #folders do
-        self:ServerLoad(dir..folders[i], tag)
-    end
+    for _, fol in ipairs(folders) do
+        self:ServerLoad(dir .. fol, tag)
+    end 
 end
 
 function PLib:IncludeModule(dir, fl, moduleName)
@@ -139,8 +134,7 @@ function PLib:LoadModules(dir, moduleName)
     dir = dir .. "/"
 
     local hasError = false
-    for i = 1, #files do
-        local fl = files[i]
+    for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
             if (self:IncludeModule(dir, fl, moduleName) == false) then
                 hasError = true
@@ -149,8 +143,7 @@ function PLib:LoadModules(dir, moduleName)
     end
 
     local hasErrors = false
-    for i = 1, #folders do
-        local fol = folders[i]
+    for _, fol in ipairs(folders) do
         hasErrors = self:LoadModules(dir..fol, ((moduleName != nil) and moduleName or fol))
         if (moduleName == nil) and not file_Exists(dir..fol..moduleConfig, "LUA") then
             self:Log(nil, "Module Loaded: ", ((hasErrors == false) and self["_C"]["module"] or self["_C"]["warn"]), fol)
