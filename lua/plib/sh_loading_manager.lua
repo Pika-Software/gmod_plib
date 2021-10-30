@@ -80,7 +80,7 @@ local file_Exists = file.Exists
 function PLib:LoadModules(dir, moduleName)
     local files, folders = file_Find(dir.."/*", "LUA")
 
-    local moduleFile, moduleTbl = dir..moduleConfig
+    local moduleFile, moduleTbl = dir.."/"..self["ModulesConfigName"]
     if file_Exists(moduleFile, "LUA") then
         if SERVER then
             AddCSLuaFile(moduleFile)
@@ -105,14 +105,14 @@ function PLib:LoadModules(dir, moduleName)
     dir = dir .. "/"
 
     for _, fl in ipairs(files) do
-        if string_EndsWith(fl, ".lua") then
+        if string_EndsWith(fl, ".lua") and (fl != self["ModulesConfigName"]) then
             self:Include(dir, fl, moduleName)
         end
     end
 
     for _, fol in ipairs(folders) do
         self:LoadModules(dir..fol, ((moduleName != nil) and moduleName or fol))
-        if (moduleName == nil) and not file_Exists(dir..fol..moduleConfig, "LUA") then
+        if (moduleName == nil) and not file_Exists(dir..fol.."/"..self["ModulesConfigName"], "LUA") then
             self:Log(nil, "Module Loaded: ", self["_C"]["module"], fol)
         end
     end

@@ -21,6 +21,7 @@ PLib = PLib or {
         "PrikolMen#3372",
         "Retro#1593",
     },
+    ["ModulesConfigName"] = "_plib_module.lua",
 }
 
 function PLib:Precache_G(name, func)
