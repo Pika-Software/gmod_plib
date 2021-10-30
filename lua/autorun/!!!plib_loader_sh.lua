@@ -80,7 +80,7 @@ function SafeInclude(fileName)
     local lastError
     debug.getregistry()[1] = function(err)
         lastError = err
-        -- return err
+        return err
     end
 
     local args = { include(fileName) }
