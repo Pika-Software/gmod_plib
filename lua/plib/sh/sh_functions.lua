@@ -24,6 +24,7 @@ local dprint = PLib["dprint"]
 local isfunction = isfunction
 local math_Round = math.Round
 local math_floor = math.floor
+local math_abs = math.abs
 local tostring = tostring
 local tonumber = tonumber
 local IsValid = IsValid
@@ -357,7 +358,7 @@ end
 function ENTITY:GetSpeed()
 	local vel = self:GetVelocity()
 	if (vel != nil) then
-		return vel:Length(), vel
+		return math_abs(vel:Length()), vel
 	end
 
 	return 0
