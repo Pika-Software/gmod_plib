@@ -109,3 +109,7 @@ local gmod_white = PLib["_C"]["gmod_white"]
 function PLAYER:GotAchievement(id)
     chat.AddText(self, gmod_white, PLib:Translate("plib.earned_achievement"), achievement_col, PLib:GetAchievementName(id))
 end
+
+function PLAYER:PNotify(title, text, style, lifetime, image, animated)
+    PLib:AddNotify(title, text, style or "default", lifetime, image, animated)
+end

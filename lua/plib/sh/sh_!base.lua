@@ -17,7 +17,7 @@ end
 local validStr = string["isvalid"]
 
 function PLib.dprint(tag, ...)
-    if SERVER or (cvars_Bool('developer') == true) then
+    if SERVER or PLib["Debug"] then
         PLib:Log("Debug"..((isstring(tag)) and ("/"..tag) or ""), ...)
     end
 end

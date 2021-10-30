@@ -27,22 +27,6 @@ local IsValid = IsValid
 local tobool = tobool
 local Angle = Angle
 
-local PLAYER = FindMetaTable("Player")
-
-function PLAYER:Notify(tag, text)
-    if CLIENT then
-        chat.AddText(tag, " - " ,text)
-    else
-        net_Start("PLib")
-            net.WriteUInt(2, 3)
-            net.WriteString(tag)
-            net.WriteString(text)
-        net.Send(self)
-    end
-end
-
-PLAYER["PLib"] = {}
-
 local player_path = "plib/players"
 local function ResetVars(path)
     if not file_Exists(player_path, "DATA") then
@@ -72,6 +56,10 @@ local function GetPlayerSavePath(ply)
 
     return player_path.."/"..(uid or "NULL")..".dat"
 end
+
+local PLAYER = FindMetaTable("Player")
+
+PLAYER["PLib"] = {}
 
 function PLAYER:GetAllData()
     local path = GetPlayerSavePath(self)

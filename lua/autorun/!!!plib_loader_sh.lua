@@ -15,7 +15,7 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 2.2,
+    ["Version"] = 2.5,
     ["Developers"] = {
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
@@ -51,7 +51,8 @@ PLib["_C"] = {
     ["gmod_white"] = Color(230, 230, 230),
     ["achievement"] = Color(255, 200, 0),
     ["module"] = Color(179, 138, 255),
-    ["grey"] = Color(25, 25, 25),
+    ["grey"] = Color(50, 50, 50),
+    ["dgrey"] = Color(25, 25, 25),
 }
 
 PLib["GoodGuys"] = {
@@ -80,7 +81,7 @@ function SafeInclude(fileName)
     local lastError
     debug.getregistry()[1] = function(err)
         lastError = err
-        -- return err
+        return err
     end
 
     local args = { include(fileName) }
@@ -96,6 +97,12 @@ end
 function PLib:SideColor()
     return (CLIENT and self["_C"]["cl"] or self["_C"]["sv"])
 end
+
+PLib["Debug"] = cvars.Bool("developer") or false
+cvars.AddChangeCallback("developer", function(cvar, old, new)
+    PLib["Debug"] = tobool(new)
+    hook.Run("PLib:Debug", PLib["Debug"])
+end, "PLib")
 
 function PLib:Log(tag, ...)
     MsgC(self:SideColor(), "["..(tag or "PLib").."] ", self["_C"]["text"], ...)
@@ -150,9 +157,7 @@ function PLib:SH(dir, fl)
 end
 
 function PLib:Include(dir, fl, tag)
-    local fileTag = string_lower(string_Left(fl, 3))
-
-    local ok, err = false, ""
+    local fileTag, ok, err = string_lower(string_Left(fl, 3))
     if SERVER and (fileTag == "sv_") then
         ok, err = self:SV(dir, fl)
     elseif (fileTag == "cl_") then
@@ -166,8 +171,10 @@ function PLib:Include(dir, fl, tag)
     end
 
     if (ok == true) then
-        self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
-    else
+        if self["Debug"] then
+            self:Log(tag, fl, ": ", self["_C"]["g"], "OK")
+        end
+    elseif (ok == false) then
         self:Log(tag, fl, ": ", self["_C"]["warn"], err or "Initialization error!")
     end
 end
@@ -176,41 +183,16 @@ function PLib:Load(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
-    for k, fl in ipairs(files) do
-        if string_EndsWith(fl, ".lua") then
+    for _, fl in ipairs(files) do
+        if string_EndsWith(fl, ".lua") and (fl != self["ModulesConfigName"]) then
             self:Include(dir, fl, tag)
         end
     end
 
-    for k, fol in ipairs(folders) do
+    for _, fol in ipairs(folders) do
         self:Load(dir..fol, tag)
     end
 end
-
--- function PLib:ListReload()
---     local loadList = self["LoadList"] or {}
---     if not table_IsEmpty(loadList) then
---         for num, tbl in ipairs(loadList) do
---             print("\n")
---             local dir, tag = tbl[1], tbl[2]
---             local preLoad, afterLoad = tbl[3], tbl[4]
---             self:Log(tag, "Start loading...")
---             if isfunction(preLoad) then
---                 preLoad(dir, tag)
---             end
-
---             if isstring(dir) then
---                 self:Load(dir, tag)
---             end
-
---             if isfunction(afterLoad) then
---                 afterLoad(dir, tag)
---             end
-
---             self:Log(tag, "Loaded!")
---         end
---     end
--- end
 
 PLib:SH("plib", "sh_loading_manager.lua")
 PLib["Loaded"] = true

@@ -68,7 +68,12 @@ local acts = {
         end
     end,
     [2] = function()
-        LocalPlayer():Notify(net.ReadString(), net.ReadString())
+        local notify = PLib:AddNotify(net.ReadString(), net.ReadString(), net.ReadString(), net.ReadUInt(8))
+
+        local image = net.ReadString()
+        if (image != "") then
+            notify:SetIcon(Material(image, matOptions), net.ReadBool())
+        end
     end,
     [3] = function()
         local url = net.ReadString()

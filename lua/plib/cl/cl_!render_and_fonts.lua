@@ -86,7 +86,9 @@ function PLib:FontInit(name, font, size, tbl)
         outline = isbool(tbl["outline"]) and tbl["outline"] or false,
     })
 
-    self:Log("Fonts", "[", table_insert(self["GeneratedFonts"], title), "] Added: ", self["_C"]["print"], title)
+    if self["Debug"] then
+        self:Log("Fonts", "[", table_insert(self["GeneratedFonts"], title), "] Added: ", self["_C"]["print"], title)
+    end
 end
 
 function PLib:AddFont(tbl)
@@ -224,7 +226,10 @@ function PLib:UpdateLogo(path)
                 logo = mat
                 logo_w, logo_h = self:MaterialSize(mat)
                 ssw, ssh = (w - logo_w)/2, (h - logo_h)/2
-                self:Log(nil, "Logo updated!")
+                
+                if self["Debug"] then
+                    self:Log(nil, "Logo updated!")
+                end
             end)
         end
     else
@@ -276,9 +281,9 @@ function PLib:StandbyScreen()
     surface_DrawTexturedRect(ssw, ssh, logo_w, logo_h)
 end
 
-local grey = colors["grey"]:SetAlpha(220)
+local grey = colors["dgrey"]
 local greyBG = grey
-greyBG:SetAlpha(220)
+greyBG:SetAlpha(200)
 
 local getFontSize = PLib["GetFontSize"]
 
@@ -313,13 +318,12 @@ local string_format = string.format
 local string_len = string.len
 
 local function drawDeveloperHUD()
-    if (devEntData == nil) then return end
-
     drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
     drawDevFrame("PING: "..developer:Ping(), 1)
     drawDevFrame(os_date("%H:%M"), 2)
     drawDevFrame("Speed: "..math_floor(developer:Speed()), 3)
 
+    if (devEntData == nil) then return end
     if IsValid(devEnt) then
         cam_Start3D()
             local mins, maxs = devEnt:OBBMins(), devEnt:OBBMaxs() --ent:GetModelBounds()
@@ -446,10 +450,8 @@ local function toggleDevHUD(bool)
     end
 end
 
-toggleDevHUD(cvars.Bool("developer", false))
-cvars.AddChangeCallback("developer", function(name, old, new)
-    toggleDevHUD(tobool(new))
-end, "PLib:DeveloperHUD")
+toggleDevHUD(PLib["Debug"])
+hook.Add("PLib:Debug", "PLib:DeveloperHUD", toggleDevHUD)
 
 function PLib:ReplaceDefaultFont(new, sizeMult, underline)
     if system_IsLinux() then

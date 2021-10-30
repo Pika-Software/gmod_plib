@@ -56,7 +56,13 @@ hook.Add("LanguageChanged", "PLib:Phrases", function(_, lang)
 end)
 
 function PLib:Translate(tag)
-    return ((PLang != nil) and PLang:GetPhrase(tag) or (CLIENT and language_GetPhrase(tag) or self["phrases"]["en"][tag] or tag))
+    local PLang = PLang
+    if (PLang == nil) then
+        return (CLIENT and language_GetPhrase(tag) or self["phrases"]["en"][tag]) or tag
+    else
+        local phrase = PLang:GetPhrase(nil, tag)
+        return istable(phrase) and phrase[1] or tag
+    end
 end
 
 local space = " "
@@ -72,7 +78,7 @@ function PLib:TranslateText(name)
 			str = string_sub(str, 2, #str)
 		end
 
-		output = output..self:Translate(str)..space
+		output = output .. self:Translate(str) .. space
 	end
 
 	return output
