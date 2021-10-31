@@ -21,7 +21,7 @@ PLib = PLib or {
         "PrikolMen#3372",
         "Retro#1593",
     },
-    ["ModulesConfigName"] = "_plib_module.lua",
+    ["ModuleInitName"] = "_plib_module.lua",
 }
 
 function PLib:Precache_G(name, func)
@@ -179,18 +179,20 @@ function PLib:Include(dir, fl, tag)
     end
 end
 
-function PLib:Load(dir, tag)
+function PLib:Load(dir, tag, blacklist)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
     for _, fl in ipairs(files) do
-        if string_EndsWith(fl, ".lua") and (fl != self["ModulesConfigName"]) then
+        if (blacklist != nil) and blacklist[fol] then continue end
+        if string_EndsWith(fl, ".lua") and (fl != self["ModuleInitName"]) then
             self:Include(dir, fl, tag)
         end
     end
 
     for _, fol in ipairs(folders) do
-        self:Load(dir..fol, tag)
+        if (blacklist != nil) and blacklist[fol] then continue end
+        self:Load(dir..fol, tag, blacklist)
     end
 end
 

@@ -40,6 +40,15 @@ concommand_Add("plib_bounds", function(ply)
 	end
 end)
 
+concommand_Add("plib_modules", function()
+	PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
+end)
+
+concommand_Add("plib_modules_reload", function()
+	PLib:LoadModules("plib/modules")
+	PLib:Log(nil, "Modules reloaded!")
+end)
+
 local achiCount = achievements.Count()
 concommand_Add("plib_achievement_test", function(ply, cmd, args)
 	if (args[1] == "me") then
