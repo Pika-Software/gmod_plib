@@ -8,6 +8,22 @@ hook.Add("PlayerInitialSpawn", "PLib:PlayerInitialized", function(ply)
 	end)
 end)
 
+hook.Add("PlayerDisconnected", "PLib:PlayerData_Sync", function(ply)
+	if IsValid(ply) then
+		local plibTbl = ply["PLib"]
+		if (plibTbl != nil) then
+			local data = plibTbl["Data"]
+			if (data != nil) then
+				ply:ReplaceAllData(data)
+			end
+		end
+	end
+end)
+
+hook.Add("PLib:PlayerInitialized", "PLib:PlayerData_Sync", function(ply)
+	ply:SyncData()
+end)
+
 function PLib:SendAchievements(ply)
 	net.Start("PLib")
 		net.WriteUInt(0, 3)

@@ -1,3 +1,10 @@
+-- Magic by KlΞn_list 🎀 ~ >,.,<#0710
+debug.getmetatable("String").__add = function(a, b)
+    if isstring(a) and isstring(b) then
+        return a .. b
+    end
+end
+
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
     hook.Remove("InitPostEntity", "PLib:GameLoaded")
 
@@ -147,3 +154,7 @@ concommand.Add("plib_info", function(ply)
     sCol, "["..self:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
     sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))    
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
+
+concommand.Add("plib_modules", function()
+	PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
+end)

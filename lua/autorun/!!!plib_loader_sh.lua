@@ -15,7 +15,7 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 2.6,
+    ["Version"] = 2.8,
     ["Developers"] = {
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
@@ -158,7 +158,7 @@ end
 
 function PLib:Include(dir, fl, tag)
     local fileTag, ok, err = string_lower(string_Left(fl, 3))
-    if SERVER and (fileTag == "sv_") then
+    if (fileTag == "sv_") then
         ok, err = self:SV(dir, fl)
     elseif (fileTag == "cl_") then
         ok, err = self:CL(dir, fl)
@@ -179,20 +179,19 @@ function PLib:Include(dir, fl, tag)
     end
 end
 
-function PLib:Load(dir, tag, blacklist)
+function PLib:Load(dir, tag)
     dir = dir .. "/"
     local files, folders = file_Find(dir.."*", "LUA")
 
     for _, fl in ipairs(files) do
-        if (blacklist != nil) and blacklist[fol] then continue end
         if string_EndsWith(fl, ".lua") and (fl != self["ModuleInitName"]) then
             self:Include(dir, fl, tag)
         end
     end
 
     for _, fol in ipairs(folders) do
-        if (blacklist != nil) and blacklist[fol] then continue end
-        self:Load(dir..fol, tag, blacklist)
+        if (fol == "vgui") then continue end
+        self:Load(dir .. fol, tag)
     end
 end
 

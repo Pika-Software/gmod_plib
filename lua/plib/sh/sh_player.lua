@@ -121,23 +121,19 @@ function PLAYER:SetData(key, value)
     end
 end
 
+-- Yeah fuck rubat again :>
 if SERVER then
-    hook.Add("PlayerDisconnected", "PLib:PlayerData_Sync", function(ply)
-        if IsValid(ply) then
-            local plibTbl = ply["PLib"]
-            if (plibTbl != nil) then
-                local data = plibTbl["Data"]
-                if (data != nil) then
-                    ply:ReplaceAllData(data)
-                end
-            end
+    util.AddNetworkString("PLib.ConCommand")
+    function PLAYER:ConCommand(cmd)
+        if validStr(cmd) then
+            net.Start("PLib.ConCommand")
+                net.WriteString(cmd)
+            net.Send(self)
         end
-    end)
-    
-    hook.Add("PLib:PlayerInitialized", "PLib:PlayerData_Sync", function(ply)
-        if IsValid(ply) then
-            ply:SyncData()
-        end
+    end
+else
+    net.Receive("PLib.ConCommand", function()
+        LocalPlayer():ConCommand(net.ReadString())
     end)
 end
 
@@ -218,17 +214,16 @@ end
 
 local LocalPlayer = LocalPlayer
 hook.Add("StartCommand", "PLib:LastActivity", function(ply, cmd)
-    if CLIENT and ply != LocalPlayer() then return end
+    if CLIENT and (ply != LocalPlayer()) then return end
     local lr, fb, ud = cmd:GetSideMove(), cmd:GetForwardMove(), cmd:GetUpMove()
-    if (lr + fb + ud) != 0 then
+    if ((lr + fb + ud) != 0) then
         ply["LastActivity"]= CurTime()
         return
     end
 
     local mx, my, mw = cmd:GetMouseX(), cmd:GetMouseY(), cmd:GetMouseWheel()
-    if (mx + my + mw) != 0 then
+    if ((mx + my + mw) != 0) then
         ply["LastActivity"] = CurTime()
-        return
     end
 end)
 
@@ -239,7 +234,18 @@ end)
 local ModelFlexes = {}
 local ModelNoFlexes = {}
 
-CreateClientConVar("plib_voice_vibration", "0", true, false, "Talking players without flexes will 'vibrate'", 0, 1)
+local flexes = {
+    "jaw_drop",
+    "left_part",
+    "right_part",
+    "left_mouth_drop",
+    "right_mouth_drop",
+    "cheek",
+    "blink",
+    "open",
+    "mouth",
+}
+
 function PLAYER:MouthMoveAnimation()
     if self:IsSpeaking() then
 		local model = self:GetModel()
@@ -248,113 +254,33 @@ function PLAYER:MouthMoveAnimation()
             if (flCount > 0) then
                 if (ModelFlexes[model] == nil) then
                     ModelFlexes[model] = {}
-                    local animeEmotions = {
-                        "Ah",
-                        "A13",
-                        "E",
-                        "U",
-                        "Wa",
-                    }
-                    
-                    local flexes = {
-                        "jaw_drop",
-                        "left_part",
-                        "right_part",
-                        "left_mouth_drop",
-                        "right_mouth_drop",
-                        -- "cheek",
-                        -- "blink",
-                        "open",
-                        "mouth",
-                    }
-                
-                    local blacklist = {
-                        "sideways"
-                    }
 
                     local mdl = util_GetModelInfo(model)
                     local tbl = util_KeyValuesToTablePreserveOrder(mdl["KeyValues"])
 
-                    local mult = math_Round(tbl[1]["Value"][8]["Value"], 2)/500
+                    local mult = math_Round(tbl[1]["Value"][8]["Value"], 2) / 500
 
                     for id = 0, flCount do
                         local name = self:GetFlexName(id)
-                        for i = 1, #animeEmotions do
-                            if (name == animeEmotions[i]) then
-                                local min, max = self:GetFlexBounds(id)
-                                table_insert(ModelFlexes[model], {id, min, max, mult})
-                            end
-                        end
 
                         for i = 1, #flexes do
                             local flex = flexes[i]
                             if ((name == flex) or string_lower(name):match(flex)) then
-                                local blocked = false
-                                for i = 1, #blacklist do
-                                    if string_lower(name):match(blacklist[i]) then
-                                        blocked = true
-                                    end
-                                end
-
-                                if (blocked == false) then
-                                    local min, max = self:GetFlexBounds(id)
-                                    table_insert(ModelFlexes[model], {id, min, max, mult})
-                                end
+                                local min, max = self:GetFlexBounds(id)
+                                table_insert(ModelFlexes[model], {id, min, max, mult})
                             end
                         end
                     end
                 end
 
-                local volume = math_Round(math.striving_for((self["OldVoiceVolume"] or 0), self:VoiceVolume(), 10), 4)
+                self["LastVoiceVolume"] = math_Round(math.striving_for((self["LastVoiceVolume"] or 0), self:VoiceVolume(), 10), 4)
 
-                self["OldVoiceVolume"] = volume
-
-                local flexes = ModelFlexes[model]
-                for i = 1, #flexes do
-                    local tbl = flexes[i]
-                    self:SetFlexWeight(tbl[1], math_Clamp(volume*tbl[4], tbl[2], tbl[3]))
+                for num, flex in ipairs(ModelFlexes[model]) do
+                    self:SetFlexWeight(flex[1], math_Clamp(self["LastVoiceVolume"] * flex[4], flex[2], flex[3]))
                 end
-            elseif CLIENT then
-                if (ModelNoFlexes[model] == nil) then
-                    local bones = {
-                        "ValveBiped.Bip01_Head",
-                        "ValveBiped.Bip01_Neck1",
-                        "ValveBiped.Bip01_Spine4",
-                        "ValveBiped.Bip01_Spine3",
-                        "ValveBiped.Bip01_Spine2",
-                        "ValveBiped.Bip01_Spine1",
-                        "ValveBiped.Bip01_Spine",
-                        "ValveBiped.Bip01_Pelvis",
-                    }
-
-                    for i = 1, #bones do
-                        local bone = self:LookupBone(bones[i])
-                        if (bone != nil) and (bone > -1) then
-                            ModelNoFlexes[model] = bone
-                            break;
-                        end
-                    end
-                end
-
-                local mult = 5
-                local bone = ModelNoFlexes[model]
-
-                if (GetConVar("plib_voice_vibration"):GetBool() == true) then
-                    bone = 0
-                    mult = 10
-                end
-
-                local rnd = math_random(-1, 1)
-                local rnd2 = math_random(-1, 1)
-
-                local volume = math_Round(math.striving_for((self["OldVoiceVolume"] or 0), self:VoiceVolume(), 10), 4)
-                
-                self["OldVoiceVolume"] = volume
-
-                self:ManipulateBoneAngles(bone, Angle(0, volume*rnd*mult, volume*rnd2*mult))
             end
         end
-	elseif (self["OldVoiceVolume"] != nil) then
+	elseif (self["LastVoiceVolume"] != nil) then
         local flexes = ModelFlexes[self:GetModel()]
 		if (flexes != nil) then
 			for i = 1, #flexes do
@@ -362,6 +288,6 @@ function PLAYER:MouthMoveAnimation()
 			end
 		end
 
-		self["OldVoiceVolume"] = nil
+		self["LastVoiceVolume"] = nil
 	end
 end

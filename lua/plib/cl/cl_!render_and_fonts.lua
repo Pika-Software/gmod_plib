@@ -49,9 +49,15 @@ PLib["Fonts"] = {
 local surface_GetTextSize = surface.GetTextSize
 local surface_SetFont = surface.SetFont
 
+local GetSizeCache = {}
 function PLib.GetFontSize(text, font)
-    surface_SetFont(font)
-    return surface_GetTextSize(text)
+    local tag = font.."_"..text
+    if (GetSizeCache[tag] == nil) then
+        surface_SetFont(font)
+        GetSizeCache[tag] = {surface_GetTextSize(text)}
+    end
+
+    return GetSizeCache[tag][1], GetSizeCache[tag][2]
 end
 
 local util_TableToJSON = util.TableToJSON
@@ -217,6 +223,28 @@ hook.Add("OnScreenSizeChanged", "PLib:2D_RE", ScreenSizeChanged)
 hook.Add("PLib:PlayerInitialized", "PLib:2D_RE", ScreenSizeChanged)
 
 local logo, logo_w, logo_h, ssw, ssh
+local offset = CreateClientConVar("plib_logo_offset", "25", true, false, "Logo offset from the top right corner..."):GetInt()
+cvars.AddChangeCallback("plib_logo_offset", function(name, old, new)
+    offset = tonumber(new)
+end, "PLib")
+
+local logo_enabled = false
+local col = colors["logo"]
+local function UpdateLogoState(bool)
+    if (bool == false) and (PLib["ServerLogo"] == nil) then
+        hook.Remove("HUDPaint", "PLib:DrawLogo")
+        logo_enabled = false
+        return
+    end
+
+    logo_enabled = true
+    hook.Add("HUDPaint", "PLib:DrawLogo", function()
+        surface_SetDrawColor(col)
+        surface_SetMaterial(logo)
+        surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
+    end)
+end
+
 function PLib:UpdateLogo(path)
     if (self["ServerLogo"] == nil) then
         local cvarLogo = GetConVar("plib_logo_url"):GetString()
@@ -247,28 +275,6 @@ PLib:UpdateLogo(CreateClientConVar("plib_logo_url", "https://i.imgur.com/j5DjzQ1
 cvars.AddChangeCallback("plib_logo_url", function(name, old, new)
     PLib:UpdateLogo(new)
 end, "PLib")
-
-local offset = CreateClientConVar("plib_logo_offset", "25", true, false, "Logo offset from the top right corner..."):GetInt()
-cvars.AddChangeCallback("plib_logo_offset", function(name, old, new)
-    offset = tonumber(new)
-end, "PLib")
-
-local logo_enabled = false
-local col = colors["logo"]
-local function UpdateLogoState(bool)
-    if (bool == false) and (PLib["ServerLogo"] == nil) then
-        hook.Remove("HUDPaint", "PLib:DrawLogo")
-        logo_enabled = false
-        return
-    end
-
-    logo_enabled = true
-    hook.Add("HUDPaint", "PLib:DrawLogo", function()
-        surface_SetDrawColor(col)
-        surface_SetMaterial(logo)
-        surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
-    end)
-end
 
 UpdateLogoState(CreateClientConVar("plib_logo", "0", true, false, "Displays the logo in the upper right corner. (0/1)", 0, 1):GetBool())
 cvars.AddChangeCallback("plib_logo", function(name, old, new)
@@ -302,6 +308,25 @@ local red = Color(255, 0, 0)
 local green = Color(0, 255, 0)
 local blue = Color(0, 0, 255)
 
+function PLib:DebugEntityDraw(ent)
+    if (self["Debug"] == true) then
+        local mins, maxs = ent:OBBMins(), ent:OBBMaxs() --ent:GetModelBounds()
+        local cmins, cmaxs = ent:GetCollisionBounds()
+        local pos = ent:GetPos()
+        local angle = ent:GetAngles()
+        render_DrawWireframeBox(pos, angle, cmins, cmaxs, red, true)
+        render_DrawWireframeBox(pos, angle, mins, maxs, ent:GetColor(), true)
+
+        local center = ent:OBBCenter()
+        center:Rotate(angle)
+
+        local centerpos = pos + center
+        render_DrawLine(centerpos, centerpos + 8 * angle:Forward(), red, true)
+        render_DrawLine(centerpos, centerpos + 8 * -angle:Right(), green, true)
+        render_DrawLine(centerpos, centerpos + 8 * angle:Up(), blue, true)
+    end
+end
+
 local dy = colors["dy"]
 
 local function drawDevFrame(text, num)
@@ -326,20 +351,7 @@ local function drawDeveloperHUD()
     if (devEntData == nil) then return end
     if IsValid(devEnt) then
         cam_Start3D()
-            local mins, maxs = devEnt:OBBMins(), devEnt:OBBMaxs() --ent:GetModelBounds()
-            local cmins, cmaxs = devEnt:GetCollisionBounds()
-            local pos = devEnt:GetPos()
-            local angle = devEnt:GetAngles()
-            render_DrawWireframeBox(pos, angle, cmins, cmaxs, red, true)
-            render_DrawWireframeBox(pos, angle, mins, maxs, devEnt:GetColor(), true)
-
-            local center = devEnt:OBBCenter()
-            center:Rotate(angle)
-
-            local centerpos = pos + center
-            render_DrawLine(centerpos, centerpos + 8 * angle:Forward(), red, true)
-            render_DrawLine(centerpos, centerpos + 8 * -angle:Right(), green, true)
-            render_DrawLine(centerpos, centerpos + 8 * angle:Up(), blue, true)
+            PLib:DebugEntityDraw(devEnt)
         cam_End3D()
     end
 

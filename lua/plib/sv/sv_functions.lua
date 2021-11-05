@@ -34,6 +34,24 @@ function PLib:ChangeMap(map)
     return true
 end
 
+function PLib:GetHostName()
+	return cvars.String("hostname", GetHostName())
+end
+
+function PLib:SetHostName(str)
+	local old = self:GetHostName()
+	RunConsoleCommand("hostname", isstring(str) and str or old)
+	timer.Simple(0, function()
+		local new = self:GetHostName()
+		self:Log(nil, string.format("Server hostname changed from '%s' to '%s'!", old, new))
+
+		net.Start("PLib")
+			net.WriteUInt(5, 3)
+			net.WriteString(new)
+		net.Broadcast()
+	end)
+end
+
 local string_find = string.find
 concommand.Add("plib_map", function(ply, cmd, args)
     if IsValid(ply) then

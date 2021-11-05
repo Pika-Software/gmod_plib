@@ -40,6 +40,16 @@ concommand_Add("plib_bounds", function(ply)
 	end
 end)
 
+concommand_Add("plib_getpos", function(ply)
+	local pos, ang = ply:EyePos():Round(2):Floor(), ply:GetAngles():Floor()
+	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
+end)
+
+concommand_Add("plib_get_trace_pos", function(ply)
+	local pos, ang = ply:GetEyeTrace()["HitPos"]:Round(2):Floor(), ply:GetAngles():Floor() * -1
+	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
+end)
+
 local achiCount = achievements.Count()
 concommand_Add("plib_achievement_test", function(ply, cmd, args)
 	if (args[1] == "me") then
@@ -101,9 +111,6 @@ local blacklist = {
 	["Panel"] = true,
 	['xlib_Panel'] = true,
 	['CGMODMouseInput'] = true,
-	['atlaschat.chat'] = true,
-	['atlaschat.chat.list'] = true,
-	['DevHUD'] = true,
 }
 
 local whitelist = {
@@ -121,20 +128,20 @@ concommand_Add("vgui_cleanup", function()
 	local sum = 0
 	for _, pnl in ipairs(vgui_GetWorldPanel():GetChildren()) do
 		if not IsValid(pnl) then continue end
-		local hit_blacklist = false
+		-- local hit_blacklist = false
 		local name = pnl:GetName()
 		local class = pnl:GetClassName()
 
-		if blacklist[class] or blacklist[name] then continue end
+		if --[[blacklist[class] or ]] blacklist[name] then continue end
 
-		for i = 1, #whitelist do
-			if name:lower():match(whitelist[i]:lower()) then
-				hit_blacklist = true
-				continue
-			end
-		end
+		-- for i = 1, #whitelist do
+		-- 	if name:lower():match(whitelist[i]:lower()) then
+		-- 		hit_blacklist = true
+		-- 		continue
+		-- 	end
+		-- end
 
-		if hit_blacklist then continue end
+		-- if hit_blacklist then continue end
 		PLib:Log(debugTag.."VGUI", "Removed " .. tostring(pnl))
 		pnl:Remove()
 		sum = sum + 1
@@ -144,9 +151,5 @@ concommand_Add("vgui_cleanup", function()
 end)
 
 concommand_Add("clentmodels_cleanup", function(ply)
-	for _, ent in ipairs(ents_GetAll()) do
-		if IsValid(ent) and (ent:EntIndex() == -1) then
-			ent:Remove()
-		end
-	end
+	PLib:CleanUpClientSideEnts()
 end)

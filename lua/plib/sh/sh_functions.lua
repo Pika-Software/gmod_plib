@@ -59,6 +59,18 @@ function PLib.string(...)
     return table_concat({...}, " ")
 end
 
+function PLib:GetServerName()
+	return GetGlobalString("ServerName", SERVER and self:GetHostName() or "Garry's Mod")
+end
+
+function PLib:SetServerName(str)
+	local old = self:GetServerName()
+	SetGlobalString("ServerName", isstring(str) and str or old)
+	timer.Simple(0, function()
+		self:Log(nil, string.format("Server name changed from '%s' to '%s'!", old, self:GetServerName()))
+	end)
+end
+
 function PLib.GetBonePos(ent, bone)
 	local pos = ent:GetBonePosition(bone)
 	if pos == ent:GetPos() then
@@ -397,6 +409,10 @@ function VECTOR:Round(dec)
     return Vector(math_Round(self[1], dec or 0), math_Round(self[2], dec or 0), math_Round(self[3], dec or 0))
 end
 
+function VECTOR:InBox(vec1, vec2)
+	return self[1] >= vec1[1] and self[1] <= vec2[1] and self[2] >= vec1[2] and self[2] <= vec2[2] and self[3] >= vec1[3] and self[3] <= vec2[3]
+end
+
 function VECTOR:Floor()
 	self[1] = math_floor(self[1])
 	self[2] = math_floor(self[2])
@@ -446,6 +462,54 @@ end
 
 function PLib:MaterialSize(mat)
     return mat:GetInt("$realwidth"), mat:GetInt("$realheight")
+end
+
+function table.Sub(tbl, offset, len)
+    local newTbl = {}
+    for i = 1, len do
+        newTbl[i] = tbl[i + offset]
+    end
+
+    return newTbl
+end
+
+function table.Sum(arr)
+    local sum = 0
+    for i = 1, #arr do
+        sum = sum + arr[i]
+    end
+
+    return sum
+end
+
+function table.Min(tbl)
+    local min = nil
+    for key, value in ipairs(tbl) do
+        if (min == nil) or (value < min) then
+            min = value
+        end
+    end
+
+    return min
+end
+
+function table.Max(tbl)
+    local max = nil
+    for key, value in ipairs(tbl) do
+        if (max == nil) or (value > max) then
+            max = value
+        end
+    end
+
+    return max
+end
+
+function math.power2(n)
+	return math.pow(2, math.ceil(math.log(n) / math.log(2)))
+end
+
+function math.Map(int, from1, to1, from2, to2)
+    return (int - from1) / (to1 - from1) * (to2 - from2) + from2;
 end
 
 function math.striving_for(value, valueTo, delay)
@@ -520,6 +584,74 @@ function table.shuffle(tbl)
     return tbl
 end
 
+function table.Lookup(tbl, key, default)
+	local fragments = string.Split(key, '.')
+	local value = tbl
+
+	for _, fragment in ipairs(fragments) do
+		value = value[fragment]
+
+		if not value then
+			return default
+		end
+	end
+
+	return value
+end
+
+function string.hash( str )
+	local bytes = {string.byte(str, 0, string.len(str))}
+	local hash = 0
+
+	for _, v in ipairs( bytes ) do
+		hash = math.fmod( v + ((hash*32) - hash ), 0x07FFFFFF )
+	end
+	
+	return hash
+end
+
+function string.FormatSeconds(sec)
+	local hours = math.floor(sec / 3600)
+	local minutes = math.floor((sec % 3600) / 60)
+	local seconds = sec % 60
+
+	if minutes < 10 then
+		minutes = "0" .. tostring(minutes)
+	end
+
+	if seconds < 10 then
+		seconds = "0" .. tostring(seconds)
+	end
+
+	if hours > 0 then
+		return string.format("%s:%s:%s", hours, minutes, seconds)
+	else
+		return string.format("%s:%s", minutes, seconds)
+	end
+end
+
+function string.reduce(str, font, width)
+	surface.SetFont( font )
+
+	local tw, th = surface.GetTextSize(str)
+	while tw > width do
+		str = string.sub(str, 1, string.len(str) - 1)
+		tw, th = surface.GetTextSize(str)
+	end
+
+	return str
+end
+
+function string.findFromTable(str, tbl)
+	for _, v in ipairs(tbl) do
+		if string.find(str, v) then
+			return true
+		end
+	end
+
+	return false
+end
+
 function string.charCount(str, chr)
 	if !str or !chr then return end
 	local count = 0
@@ -530,6 +662,63 @@ function string.charCount(str, chr)
 	end
 
 	return count 
+end
+
+if CLIENT then
+	hook.Add("PostGamemodeLoaded", "PLib:IsSandbox_Check", function()
+		if GAMEMODE["IsSandboxDerived"] then
+			PLib["isSandbox"] = true
+			hook.Run("PLib:IsSandbox")
+		else
+			PLib["isSandbox"] = false
+		end
+	end)
+
+	function PLib:SpawnMenuReload()
+		if not self["isSandbox"] or not hook.Run("SpawnMenuEnabled") then return end
+	
+		-- If we have an old spawn menu remove it.
+		if IsValid(g_SpawnMenu) then
+			g_SpawnMenu:Remove()
+			g_SpawnMenu = nil
+		end
+	
+		hook.Run("PreReloadToolsMenu")
+	
+		-- Start Fresh
+		spawnmenu.ClearToolMenus()
+	
+		-- Add defaults for the gamemode. In sandbox these defaults
+		-- are the Main/Postprocessing/Options tabs.
+		-- They're added first in sandbox so they're always first
+		hook.Run("AddGamemodeToolMenuTabs")
+	
+		-- Use this hook to add your custom tools
+		-- This ensures that the default tabs are always
+		-- first.
+		hook.Run("AddToolMenuTabs")
+	
+		-- Use this hook to add your custom tools
+		-- We add the gamemode tool menu categories first
+		-- to ensure they're always at the top.
+		hook.Run("AddGamemodeToolMenuCategories")
+		hook.Run("AddToolMenuCategories")
+	
+		-- Add the tabs to the tool menu before trying
+		-- to populate them with tools.
+		hook.Run("PopulateToolMenu")
+	
+		g_SpawnMenu = vgui.Create("SpawnMenu")
+	
+		if IsValid(g_SpawnMenu) then
+			g_SpawnMenu:SetVisible( false )
+			hook.Run("SpawnMenuCreated", g_SpawnMenu)
+		end
+	
+		CreateContextMenu()
+	
+		hook.Run("PostReloadToolsMenu")
+	end
 end
 
 function PLib:CreateWeapon(class, data)
@@ -558,19 +747,21 @@ function PLib:CreateWeapon(class, data)
 	end
 end
 
-function PLib:CreateEntity(class, data)
+function PLib:CreateEntity(class, data, clear)
 	if validStr(class) and istable(data) then
-		local ENT 			= {}
-		ENT["Base"] 		= "base_anim"
-		ENT["Model"]		= "models/props_c17/oildrum001_explosive.mdl"
-		ENT["Category"]		= "PLib"
-		ENT["PrintName"] 	= "PLib Entity"
-		ENT["Spawnable"]	= true
+		local ENT = {}
+		if not clear then
+			ENT["Base"] = "base_anim"
+			ENT["Model"] = "models/props_c17/oildrum001_explosive.mdl"
+			ENT["Category"]	= "PLib"
+			ENT["PrintName"] = "PLib Entity"
+			ENT["Spawnable"] = true
 
-		function ENT:Initialize()
-			if SERVER then
-				self:SetModel(self["Model"])
-				self:PhysicsInit(SOLID_VPHYSICS)
+			function ENT:Initialize()
+				if SERVER then
+					self:SetModel(self["Model"])
+					self:PhysicsInit(SOLID_VPHYSICS)
+				end
 			end
 		end
 
@@ -581,6 +772,108 @@ function PLib:CreateEntity(class, data)
 			self:SpawnMenuReload()
 		end
 	end
+end
+
+function PLib:CreateTriggerEntity(class, data, trigger, use)
+	local ENT = {}
+	ENT["Type"] = "anim"
+	ENT["PrintName"] = "PLib Trigger"
+	ENT["Mins"] = Vector(-25, -25, -25)
+	ENT["Maxs"] = Vector(25, 25, 25)
+
+	function ENT:Init()
+	end
+
+	function ENT:SetSize(mins, maxs)
+		self["Mins"], self["Maxs"] = mins, maxs
+	end
+
+	function ENT:SetupBox(mins, maxs)
+		OrderVectors(mins, maxs)
+		self:SetCollisionBounds(mins, maxs)
+		self["Mins"], self["Maxs"] = mins, maxs
+	end
+
+	function ENT:Initialize()
+		self:SetCollisionGroup((use != nil) and COLLISION_GROUP_DEBRIS or COLLISION_GROUP_IN_VEHICLE)
+		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_BBOX)
+		self:DrawShadow(false)
+		self:SetNoDraw(true)
+
+		if SERVER then
+			self:SetTrigger((trigger == true) and trigger or false)
+			if (use != nil) then
+				self:SetUseType(isnumber(use) and use or SIMPLE_USE)
+			end
+		end
+
+		self:SetupBox(self["Mins"], self["Maxs"])
+		self:Init()
+	end
+
+	if CLIENT then
+		local plib = self
+		function ENT:Draw()
+			plib:DebugEntityDraw(self)
+		end
+	end
+
+	self:CreateEntity(class, table_Merge(ENT, data or {}), true)
+end
+
+PLib:CreateTriggerEntity("plib_achievement_trigger", {
+	["Init"] = function(self)
+		self:SetNoDraw(false)
+	end,
+	["SetAchievement"] = function(self, tag)
+		self["Achievement"] = tag
+	end,
+	["StartTouch"] = function(self, ply)
+		local tag = self["Achievement"]
+        if isstring(tag) and IsValid(ply) and ply:IsPlayer() and (ply[tag] == nil) then
+            ply:GiveAchievement(tag)
+            ply[tag] = true
+        end
+    end,
+}, true)
+
+PLib:CreateTriggerEntity("plib_achievement_button", {
+	["SetAchievement"] = function(self, tag)
+		self["Achievement"] = tag
+	end,
+	["Init"] = function(self)
+		self:SetNoDraw(false)
+	end,
+	["Use"] = function(self, ply)
+		local tag = self["Achievement"]
+        if isstring(tag) and IsValid(ply) and ply:IsPlayer() and (ply[tag] == nil) then
+            ply:GiveAchievement(tag)
+            ply[tag] = true
+        end
+    end,
+}, false, true)
+
+PLib:Precache_G("ents.Create", ents.Create)
+local ents_Create = PLib:Get_G("ents.Create")
+
+function ents.Create(class)
+	if SERVER then
+		return ents_Create(class)
+	else
+		return ents.CreateClientside(class)
+	end
+end
+
+PLib:Precache_G("game.CleanUpMap", game.CleanUpMap)
+local game_CleanUpMap = PLib:Get_G("game.CleanUpMap")
+
+function game.CleanUpMap(dontSendToClients, extraFilters, cleanupClientside)
+	if CLIENT and cleanupClientside then
+		PLib:CleanUpClientSideEnts(extraFilters)
+	end
+
+	return game_CleanUpMap(dontSendToClients, extraFilters)
 end
 
 -- Net Compressed tables by DefaultOS#5913

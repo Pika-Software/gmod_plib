@@ -68,21 +68,24 @@ local acts = {
         end
     end,
     [2] = function()
-        local notify = PLib:AddNotify(net.ReadString(), net.ReadString(), net.ReadString(), net.ReadUInt(8))
+        local notify = PLib:AddNotify(net_ReadString(), net_ReadString(), net_ReadString(), net.ReadUInt(8))
 
-        local image = net.ReadString()
+        local image = net_ReadString()
         if (image != "") then
             notify:SetIcon(Material(image, matOptions), net.ReadBool())
         end
     end,
     [3] = function()
-        local url = net.ReadString()
+        local url = net_ReadString()
         PLib["ServerLogo"] = Material(url, matOptions)
         RunConsoleCommand("plib_logo_update")
     end,
     [4] = function()
         local NETCALL = PLib["NetCallback"]
-        NETCALL:Run(net.ReadString(), net.ReadCompressTable())
+        NETCALL:Run(net_ReadString(), net.ReadCompressTable())
+    end,
+    [5] = function()
+        PLib:SetServerName(net_ReadString())
     end,
 }
 

@@ -154,9 +154,7 @@ function PLib:GetModuleInfo(info, folder)
     return tbl
 end
 
-local blacklist = {"vgui"}
 local relationalOperators = {">=", "<=", ">", "<"}
-
 local function BuildRequiredCheck(str)
     local name, operator1, ver1, operator2, ver2
     
@@ -216,8 +214,7 @@ local function BuildRequiredCheck(str)
         local args = {...}
         local version = args[1]
         return (version ]]..operator1.." "..ver1.." "..((operator2 != nil) and (" and version "..operator2.." "..ver2) or "")..")",
-        "BuildRequiredCheck"
-    ), name
+    "CompileRequiredCheck"), name
 end
 
 function PLib:LoadModules(path)
@@ -321,12 +318,12 @@ function PLib:LoadModules(path)
                     loadTable["postInit"] = postInit
                 end
 
-                table.insert(self["Modules"], priority, loadTable)
+                table.insert(self["Modules"], loadTable)
             else
                 self:Log(folder, "Error in ", self["_C"]["warn"], moduleConfig, self["_C"]["text"], "!\n", self["_C"]["warn"], info)
             end
         else
-            table.insert(self["Modules"], #self["Modules"], {
+            table.insert(self["Modules"], {
                 ["name"] = folder,
                 ["path"] = path,
                 ["version"] = 0,
@@ -346,7 +343,7 @@ function PLib:LoadModules(path)
 
         local path = tbl["path"]
         if (tbl["useloader"] == true) then
-            self:Load(path, name, blacklist)
+            self:Load(path, name)
         end
 
         self:VGUILoad(path .. "/vgui", name)

@@ -164,8 +164,10 @@ function PLib:AddNotify(title, text, color, lifetime, image, animated)
     local notify = vgui_Create("plib_notify")
 
     if (color != nil) then
-        if isstring(color) and (color == "") then
-            color = "default"
+        if isstring(color) then
+            if (color == "") then
+                color = "default"
+            end
         elseif not istable(color) then
             color = nil
         end
@@ -180,6 +182,14 @@ PLib:AddNotifyPreset("default", {
     lifetime = 10,
     colors = {
         main = PLib["_C"]["sv"],
+        bg = PLib["_C"]["grey"],
+    },
+})
+
+PLib:AddNotifyPreset("warn", {
+    lifetime = 10,
+    colors = {
+        main = PLib["_C"]["warn"],
         bg = PLib["_C"]["grey"],
     },
 })

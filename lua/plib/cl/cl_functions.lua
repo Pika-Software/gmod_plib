@@ -11,10 +11,17 @@ local IsValid = IsValid
 -- Sound Analyze by _ᐱℕᏩĒŁØҜҜ_#8486
 PLib["URL_Sound_List"] = PLib["URL_Sound_List"] or {}
 PLib["DefaultSoundURL"] = "https://radio.pika-soft.ru/stream"
+PLib["MaxURLSoundDist"] = 200
+PLib["MaxURLSoundDist^"] = math.pow(PLib["MaxURLSoundDist"], 2) * 20
 function PLib:PlayURL(tag, url, target, flags, callback)
     if (tag == nil) then
         tag = "PLib"
         dprint("PlayURL", "No TAG, installed by default: PLib")
+    end
+
+    if (url == "Stop") then
+        self:RemoveURLSound(tag)
+        return
     end
 
     if (validStr(url) == false) then
@@ -43,7 +50,10 @@ function PLib:PlayURL(tag, url, target, flags, callback)
                     pos = pos + target:OBBCenter()
                 end
 
+                channel:Set3DFadeDistance(self["MaxURLSoundDist"] / 2, 0)
                 channel:SetPos(pos)
+
+                target[tag] = channel
             end
 
             channel:Play()
@@ -69,7 +79,15 @@ function PLib:URLSoundThink()
                         if (target["OBBCenter"] != nil) then
                             pos = pos + target:OBBCenter()
                         end
-        
+
+                        if (LocalPlayer():GetPos():DistToSqr(pos) < self["MaxURLSoundDist^"]) then
+                            if (channel:GetState() == 2) then
+                                channel:Play()
+                            end
+                        elseif (channel:GetState() == 1) then
+                            channel:Pause()
+                        end
+
                         channel:SetPos(pos)
                     else
                         channel:Stop()
@@ -119,38 +137,32 @@ end
 
 function PLib:SoundAnalyze(channel)
     local bass, fft = 0, {}
-    if (channel != nil) then
-        channel:FFT(fft, 5)
+    if IsValid(channel) then
+    channel:FFT(fft, 6)
 
-        for i = 1, 250 do
-            if (fft[i] != nil) then
-                bass = math_max(0, bass, fft[i]*170)
-            end
-        end
-
-        local left, right = 0, 0
-        if ((self["SoundAnalyzeTimeout"] or 0) < CurTime()) then
-            left, right = channel:GetLevel()
-            self["SoundAnalyzeTimeout"] = CurTime() + 0.25
-        end
-
-        return fft, bass, left, right
-    else
-        return {}, 0, 0, 0   
-    end    
+    for i = 1, 255 do
+        if (fft[i] == nil) then continue end
+        bass = math_max(0, bass, fft[i]*170)
+    end
+end
+    return fft, bass
 end   
 
 function PLib:GetBass(channel)
     local bass, fft = 0, {}
     channel:FFT(fft, 6)
 
-    for i = 1, 250 do
-        if (fft[i] != nil) then
-            bass = math_max(0, bass, fft[i]*170)
-        end
+    for i = 1, 255 do
+        if (fft[i] == nil) then continue end
+        bass = math_max(0, bass, fft[i]*170)
     end
 
     return math_Round(bass)
+end
+
+local HSVToColor = HSVToColor
+function PLib:BassColor(bass, frequency, saturation, value)
+    return HSVToColor(bass * frequency  % 360, saturation or 1, value or 1)
 end
 
 local StandardAchievementIcons = {
@@ -190,4 +202,51 @@ function PLib:GetStandardAchievementIcon(id)
     if isnumber(id) and (id < 29) then
         return Material(StandardAchievementIcons[id], matOptions)
     end
+end
+
+local ents_GetAll = ents.GetAll
+function PLib:CleanUpClientSideEnts(filters)
+	local filterFunc = filters
+	if not isfunction(filterFunc) then
+		local funcStr = [[
+			local args = {...}
+			local ent, filter = args[1], args[2]
+		]]
+
+		if IsEntity(filters) then
+			funcStr = funcStr .. [[
+				return (ent == filter)
+			]]
+		elseif isstring(filters) then
+			funcStr = funcStr .. [[
+				return (ent:GetClass() == filter)
+			]]
+		elseif istable(filters) and not table.IsEmpty(filters) then
+			funcStr = funcStr .. [[
+				local class = ent:GetClass()
+				for num, value in ipairs(filter) do
+					if (ent == value) or (class == value) then
+						return true
+					end
+				end
+				
+				return false
+			]]
+		else
+			funcStr = "return true"
+		end
+
+		filterFunc = CompileString(funcStr, "CleanUpClientSideEnts")
+	end
+
+	for _, ent in ipairs(ents_GetAll()) do
+		if IsValid(ent) and (ent:EntIndex() == -1) and filterFunc(ent, filters) then
+			ent:Remove()
+		end
+	end
+end
+
+function PLib.LightLevel(pos)
+    local col = render.GetLightColor(pos):ToColor()
+    return (col["r"] / 255 + col["g"] / 255 + col["b"] / 255) / 3
 end

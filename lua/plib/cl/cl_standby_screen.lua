@@ -7,12 +7,33 @@ cvars.AddChangeCallback("plib_waittime", function(_, _, new)
     waitTime = tonumber(new)
 end, "PLib")
 
+local function StartPlayerWaiting()
+    if input.IsKeyTrapping() then return end
+    input.StartKeyTrapping()
+
+    hook.Add("Think", "PLib:StandbyScreen", function()
+        if input.IsKeyTrapping() then
+            if isnumber(input.CheckKeyTrapping()) then
+                hook.Remove("Think", "PLib:StandbyScreen")
+                LocalPlayer()["LastActivity"] = CurTime()
+            end
+        else
+            hook.Remove("Think", "PLib:StandbyScreen")
+        end
+    end)
+end
+
 function PLib:AddStandbyScreen(ply)
     local screenFade = false
     hook.Add("RenderScene", "PLib:StandbyScreen", function()
-        if not system_HasFocus() or ((waitTime != 0) and (CurTime() - ply["LastActivity"]) > waitTime) then         
+        local waitTime = ((waitTime != 0) and (CurTime() - ply["LastActivity"]) > waitTime)
+        if not system_HasFocus() or waitTime then         
             if (screenFade == false) then
                 screenFade = true
+            end
+            
+            if waitTime then
+                StartPlayerWaiting()
             end
 
             if (self["StandbyScreen"] != nil) then

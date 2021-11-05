@@ -50,7 +50,7 @@ PLib:Precache_G("Material", Material)
 local _GMaterial = PLib:Get_G("Material")
 PLib["Material_Cache"] = PLib["Material_Cache"] or {}
 function Material(name, parameters, cb)
-    local isImage = isURL(name) --and (name:EndsWith('.png') or name:EndsWith('.jpg') or name:StartWith("https://apps.g-mod.su/image_mirror"))
+    local isImage = isURL(name) and (name:EndsWith('.png') or name:EndsWith('.jpg'))
     if not isImage then
         return _GMaterial(name, parameters)
     end
@@ -206,19 +206,19 @@ end)
 
 local Sound = Sound
 PLib["PrecachedSounds"] = PLib["PrecachedSounds"] or {}
-function util.PrecacheSound(name, cb)
-    if (PLib["PrecachedSounds"][name] == true) then return true end
-    if not isURL(name) then
+function util.PrecacheSound(path, cb)
+    if (PLib["PrecachedSounds"][path] == true) then return true end
+    if not isURL(path) then
         if (world != nil) then
-            world:EmitSound(name, 0, 100, 0)
-            dprint("Sound", "Sound Precached -> ", name)
-            PLib["PrecachedSounds"][name] = true
+            world:EmitSound(path, 0, 100, 0)
+            dprint("Sound", "Sound Precached -> ", path)
+            PLib["PrecachedSounds"][path] = true
         end
 
-        return _GPrecacheSound(name)
+        return _GPrecacheSound(path)
     end
 
-    Sound(name, cb)
+    Sound(path, cb)
 end
 
 function PLib:GET(url, cb, headers)
