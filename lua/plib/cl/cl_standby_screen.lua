@@ -5,7 +5,7 @@ local cam_End2D = cam.End2D
 local enabled = CreateClientConVar("plib_ss", "1", true, false, "Enable standby screen", 0, 1):GetBool()
 cvars.AddChangeCallback("plib_ss", function(_, _, new)
     enabled = tobool(new)
-    PLib:AddStandbyScreen(ply)
+    PLib:AddStandbyScreen(LocalPlayer())
 end, "PLib")
 
 local waitTime = CreateClientConVar("plib_ss_time", "300", true, false, "Need time to show standby screen", 0, 18000):GetInt()
