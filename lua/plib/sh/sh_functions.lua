@@ -854,6 +854,83 @@ PLib:CreateTriggerEntity("plib_achievement_button", {
     end,
 }, false, true)
 
+local steamworks_DownloadUGC = steamworks and steamworks.DownloadUGC
+PLib["WorkshopDownloaded"] = PLib["WorkshopDownloaded"] or {}
+
+function PLib:WorkshopDownload(id, cb)
+	local saved = PLib["WorkshopDownloaded"][id]
+	if (saved == nil) then
+		if CLIENT then
+			notification.AddProgress("plib.workshop_download_#" .. id, "[PLib] Downloading: " .. id)
+		end
+
+		steamworks_DownloadUGC(id, function(path)
+			if CLIENT then
+				notification.Kill("plib.workshop_download_#" .. id)
+			end
+
+			PLib["WorkshopDownloaded"][id] = path
+			if isfunction(cb) then
+				cb(path)
+			end
+
+			dprint("Workshop", "Install try download workshop addon, id: ", id)
+		end)
+	else
+		if isfunction(cb) then
+			cb(saved)
+		end
+
+		return saved
+	end
+
+	dprint("Workshop", "Install try download workshop addon, id: ", id)
+end
+
+PLib["WorkshopInstalled"] = PLib["WorkshopInstalled"] or {}
+local game_MountGMA = game.MountGMA
+
+function PLib:WorkshopInstall(id, cb)
+	local saved = PLib["WorkshopDownloaded"][id]
+	if (saved == nil) then
+		self:WorkshopDownload(id, function(path)
+			local ok, files = game_MountGMA(path)
+
+			local outputTbl = {path, files}
+			if (ok == true) then
+				PLib["WorkshopInstalled"][id] = outputTbl
+			end
+
+			if isfunction(cb) then
+				cb(ok, path, files)
+			end
+
+			return (ok == true) and outputTbl or false
+		end)
+	else
+		if isfunction(cb) then
+			cb(true, saved[1], saved[2])
+		end	
+
+		return saved
+	end
+end
+
+function PLib:TryInstallWorkshop(id, cb, num)
+	self:WorkshopInstall(id, function(ok, path, files)
+		if (ok == false) then
+			local num = num + 1
+			timer.Simple(10, function()
+				self:TryInstallWorkshop(id, cb, num)
+			end)
+
+			dprint("Workshop", "Install try #", num)
+		elseif isfunction(cb) then
+			cb(path, files)
+		end
+	end)
+end
+
 PLib:Precache_G("ents.Create", ents.Create)
 local ents_Create = PLib:Get_G("ents.Create")
 

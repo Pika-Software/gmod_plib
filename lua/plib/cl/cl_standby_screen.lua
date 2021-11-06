@@ -2,8 +2,14 @@ local system_HasFocus = system.HasFocus
 local cam_Start2D = cam.Start2D
 local cam_End2D = cam.End2D
 
-local waitTime = CreateClientConVar("plib_waittime", "300", true, false, "Need time to show standby screen", 0, 18000):GetInt()
-cvars.AddChangeCallback("plib_waittime", function(_, _, new)
+local enabled = CreateClientConVar("plib_ss", "1", true, false, "Enable standby screen", 0, 1):GetBool()
+cvars.AddChangeCallback("plib_ss", function(_, _, new)
+    enabled = tobool(new)
+    PLib:AddStandbyScreen(ply)
+end, "PLib")
+
+local waitTime = CreateClientConVar("plib_ss_time", "300", true, false, "Need time to show standby screen", 0, 18000):GetInt()
+cvars.AddChangeCallback("plib_ss_time", function(_, _, new)
     waitTime = tonumber(new)
 end, "PLib")
 
@@ -24,6 +30,11 @@ local function StartPlayerWaiting()
 end
 
 function PLib:AddStandbyScreen(ply)
+    if (enabled == false) then
+        hook.Remove("RenderScene", "PLib:StandbyScreen")
+        return
+    end
+
     local screenFade = false
     hook.Add("RenderScene", "PLib:StandbyScreen", function()
         local waitTime = ((waitTime != 0) and (CurTime() - ply["LastActivity"]) > waitTime)

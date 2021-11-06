@@ -21,8 +21,6 @@ function ENT:Initialize()
     end
 end
 
-local color_white = color_white
-
 if CLIENT then
     local surface_DrawTexturedRectRotated = surface.DrawTexturedRectRotated
     local surface_SetDrawColor = surface.SetDrawColor
@@ -36,6 +34,8 @@ if CLIENT then
     local hours = Material("https://i.imgur.com/BvfYi4f.png", PLib["MatPresets"]["Pic"])
     local mins = Material("https://i.imgur.com/yRMoWa5.png", PLib["MatPresets"]["Pic"])
     local secs = Material("https://i.imgur.com/OiHyZVq.png", PLib["MatPresets"]["Pic"])
+
+    local color_white = color_white
 
     function ENT:Draw()
         self:DrawModel()

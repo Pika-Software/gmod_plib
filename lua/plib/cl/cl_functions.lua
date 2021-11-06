@@ -244,6 +244,8 @@ function PLib:CleanUpClientSideEnts(filters)
 			ent:Remove()
 		end
 	end
+
+    hook.Run("PLib:PostClientCleanup")
 end
 
 function PLib.LightLevel(pos)

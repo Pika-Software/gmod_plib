@@ -72,7 +72,7 @@ function Material(name, parameters, cb)
     end
 
     if CLIENT and cvars.Bool("developer") and PLib["Initialized"] then
-        notification.AddProgress("plib.http_material", "[PLib] Downloading "..fl)
+        notification.AddProgress("plib.http_material_#" .. name, "[PLib] Downloading "..fl)
     end
 
     local mat = CreateMaterial(name, 'UnlitGeneric', {
@@ -84,7 +84,7 @@ function Material(name, parameters, cb)
 
     local function onFailure(reason)
         if CLIENT then
-            notification.Kill("plib.http_material")
+            notification.Kill("plib.http_material_#" .. name)
         end
 
         dprint('[ERROR] [HTTP] Failed to download image from "'..name..'". Reason: '..reason)
@@ -119,7 +119,7 @@ function Material(name, parameters, cb)
         end
 
         if CLIENT and PLib["Initialized"] then
-            notification.Kill("plib.http_material")
+            notification.Kill("plib.http_material_#" .. name)
         end
 
         dprint('[HTTP] Material from "'..name..'" downloaded. Cached in "'..path..'"')

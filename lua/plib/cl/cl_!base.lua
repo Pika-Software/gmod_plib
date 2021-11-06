@@ -22,3 +22,15 @@ hook.Add("PLib:IsSandbox", "ReplaceSandboxSpawnmenuOptions", function()
 		return original(((tab == "Options") and "Utilities" or tab), ...)
 	end
 end)
+
+hook.Add("OnEntityCreated", "PLib:OnEntityCreated", function( ent )
+	timer.Simple(0, function()
+		if IsValid(ent) then
+			hook.Run("EntityCreated", ent)
+		end
+	end)
+end)
+
+hook.Add("NetworkEntityCreated", "PLib:NetworkEntityCreated", function(ent)
+	hook.Run("EntityCreated", ent)
+end)
