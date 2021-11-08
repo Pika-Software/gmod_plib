@@ -5,8 +5,7 @@ local nextlogtime = 0.3
 
 -- Function for handling messages from the network
 function net.Incoming(len, client)
-    local id = net.ReadHeader()
-    local poolstr = util.NetworkIDToString(id)
+    local poolstr = util.NetworkIDToString(net.ReadHeader())
 
     if not poolstr then return end
     poolstr = poolstr:lower()
