@@ -56,26 +56,6 @@ concommand_Add("plib_get_trace_pos", function(ply)
 	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
 end)
 
-concommand_Add("plib_find_netpool", function(ply, cmd, args)
-	if not PLib:DebugAllowed() then return end
-	local findpatt = args[1]
-	if not findpatt or findpatt == "" then return end
-	findpatt = findpatt:lower()
-	PLib:Log(debugTag.."NetPoolSearch", "Results:")
-	for id = 1, 4096 do
-		local strpool = util.NetworkIDToString(id)
-		if strpool and strpool:find(findpatt) then
-			local func = net.Receivers[strpool]
-			local info = "[NOT IN RECEIVERS]:-1"
-			if func then
-				info = debug.getinfo(func)
-				info = info.source .. ":" .. info.linedefined
-			end
-			PLib:Log(id, string.format("%s	%s", strpool, info))
-		end
-	end 
-end)
-
 local achiCount = achievements.Count()
 concommand_Add("plib_achievement_test", function(ply, cmd, args)
 	if not PLib:DebugAllowed() then return end
