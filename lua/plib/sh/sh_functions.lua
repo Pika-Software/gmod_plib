@@ -376,7 +376,7 @@ function ENTITY:GetSpeed()
 	return 0
 end
 
-function ENTITY:Speed()
+function ENTITY:GetRawSpeed()
 	return self:GetVelocity():Length()
 end
 

@@ -348,7 +348,7 @@ local function drawDeveloperHUD()
     drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
     drawDevFrame("PING: "..developer:Ping(), 1)
     drawDevFrame(os_date("%H:%M"), 2)
-    drawDevFrame("Speed: "..math_floor(developer:Speed()), 3)
+    drawDevFrame("Speed: "..math_floor(developer:GetRawSpeed()), 3)
 
     if (devEntData == nil) then return end
     if IsValid(devEnt) then
