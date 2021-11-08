@@ -2,6 +2,8 @@ local ents_FindByClass = ents.FindByClass
 local isURL = string["isURL"]
 local IsValid = IsValid
 
+CreateConVar("plib_debug_allow", "1", {FCVAR_LUA_SERVER, FCVAR_ARCHIVE}, "Allow the display of debugging information and the use of debugging commands for clients")
+
 function PLib:AreaPortalFix(ent)
     if (self["MapCleaning"] == false) and IsValid(ent) and self["DoorClasses"][ent:GetClass()] then
         local name = ent:GetName()
@@ -52,6 +54,6 @@ hook.Add("PLib:GameLoaded", "PLib:GlueLib", function()
 end)
 
 concommand.Add("plib_modules_reload", function()
-	PLib:LoadModules("plib/modules")
-	PLib:Log(nil, "Modules reloaded!")
+    PLib:LoadModules("plib/modules")
+    PLib:Log(nil, "Modules reloaded!")
 end)

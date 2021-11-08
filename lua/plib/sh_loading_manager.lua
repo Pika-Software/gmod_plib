@@ -17,7 +17,7 @@ function PLib:VGUILoad(dir, tag)
                     self:Log(tag, "VGUI Include: ", self["_C"]["cl"], string.sub(fl, 0, #fl - 4))
                 end
 
-                if SERVER then 
+                if SERVER then
                     AddCSLuaFile(path)
                 else
                     include(path)
@@ -28,7 +28,7 @@ function PLib:VGUILoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:VGUILoad(dir .. fol, tag)
-    end 
+    end
 end
 
 function PLib:ClientLoad(dir, tag)
@@ -59,7 +59,7 @@ function PLib:SharedLoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:SharedLoad(dir .. fol, tag)
-    end 
+    end
 end
 
 function PLib:ServerLoad(dir, tag)
@@ -74,7 +74,7 @@ function PLib:ServerLoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:ServerLoad(dir .. fol, tag)
-    end 
+    end
 end
 
 local file_Exists = file.Exists
@@ -157,7 +157,7 @@ end
 local relationalOperators = {">=", "<=", ">", "<"}
 local function BuildRequiredCheck(str)
     local name, operator1, ver1, operator2, ver2
-    
+
     for _, op in ipairs(relationalOperators) do
         local start = string.find(str, op)
         if (start != nil) then
@@ -177,7 +177,7 @@ local function BuildRequiredCheck(str)
                 local num = math.abs(i)
                 local char = name[num]
                 if (char == " ") or (char == "  ") then
-                    continue 
+                    continue
                 end
 
                 name = string.sub(name, 0, num)
@@ -186,7 +186,7 @@ local function BuildRequiredCheck(str)
             end
 
             operator1 = op
-            
+
             local opStart = start + #op
             local start2 = string.find(str, ",", opStart)
             if (start2 != nil) then
@@ -238,7 +238,7 @@ function PLib:LoadModules(path)
                     self:Log(nil, "Module ", self["_C"]["warn"], folder, self["_C"]["text"], " lost the load table, please report this to the creator of the module or try restart game.")
                     return
                 end
-    
+
                 local priority = #self["Modules"]
                 local moduleData = self:GetModuleInfo(info, folder)
 
@@ -302,7 +302,7 @@ function PLib:LoadModules(path)
                         ["tag"] = "",
                     },
                 }
-                
+
                 local init = moduleData["init"]
                 local useloader = moduleData["useloader"]
 
@@ -335,7 +335,7 @@ function PLib:LoadModules(path)
     for id, tbl in ipairs(self["Modules"]) do
         local name = tbl["name"]
         local version = tbl["version"]
-        
+
         local init = tbl["init"]
         if (init != nil) then
             init(self, tbl, modules)
@@ -352,7 +352,7 @@ function PLib:LoadModules(path)
         if (postInit != nil) then
             postInit(self, tbl, modules)
         end
-        
+
         self:Log(nil, "Module Loaded: ", self["_C"]["module"], name)
     end
 end

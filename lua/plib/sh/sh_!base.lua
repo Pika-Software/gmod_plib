@@ -1,8 +1,22 @@
 -- Magic by KlΞn_list 🎀 ~ >,.,<#0710
-debug.getmetatable("String").__add = function(a, b)
-    if isstring(a) and isstring(b) then
-        return a .. b
-    end
+local stringMeta = debug.getmetatable("String")
+
+stringMeta.__add = function(left, right)
+    if left == nil then error("attempt to concatenate nil value (left)") end
+    if right == nil then error("attempt to concatenate nil value (right)") end
+    return tostring(left) .. tostring(right)
+end
+
+stringMeta.__mul = function(left, right)
+    if isnumber(left) then return right:rep(left) end
+    if isnumber(right) then return left:rep(right) end
+    error("can't multiply string by non-number (" .. type(left) .. " * " .. type(right) .. ")")
+end
+
+stringMeta.__sub = function(left, right)
+    if isnumber(left) then return right:sub(1 + left) end
+    if isnumber(right) then return left:sub(1, left:len() - right) end
+    error("can't subtraction string by non-number (" .. type(left) .. " - " .. type(right) .. ")")
 end
 
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
@@ -79,7 +93,7 @@ end
 function PLib:NumTableToList(tbl)
     local str = ""
     for i = 1, #tbl do
-        str = str..tbl[i]..((i < #tbl) and ", " or "")     
+        str = str..tbl[i]..((i < #tbl) and ", " or "")
     end
 
     return str
@@ -147,14 +161,14 @@ concommand.Add("plib_info", function(ply)
     local self = PLib
     local cols = self["_C"]
     local sCol = self:SideColor()
-    
+
     self:Log("Info", self:Translate("plib.title"), "\n",
     sCol, "["..self:Translate("plib.version").."] ", cols["print"], self["Version"], "\n",
     sCol, "["..self:Translate("plib.creators").."] ", cols["text"], table.concat(self["Developers"], ", ") .. "\n",
     sCol, "["..self:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
-    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))    
+    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
 concommand.Add("plib_modules", function()
-	PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
+    PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
 end)

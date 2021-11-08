@@ -38,11 +38,11 @@ function PLib:AddStandbyScreen(ply)
     local screenFade = false
     hook.Add("RenderScene", "PLib:StandbyScreen", function()
         local waitTime = ((waitTime != 0) and (CurTime() - ply["LastActivity"]) > waitTime)
-        if not system_HasFocus() or waitTime then         
+        if not system_HasFocus() or waitTime then
             if (screenFade == false) then
                 screenFade = true
             end
-            
+
             if waitTime then
                 StartPlayerWaiting()
             end

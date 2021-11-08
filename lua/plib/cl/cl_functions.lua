@@ -28,7 +28,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
         url = self["DefaultSoundURL"]
         dprint("PlayURL", "No URL, installed by default: ", self["DefaultSoundURL"])
     end
-    
+
     local tbl = self["URL_Sound_List"][tag]
     if (tbl != nil) then
         local soundChannel = tbl[1]
@@ -36,7 +36,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
             soundChannel:Stop()
             dprint("PlayURL", "SoundChannel already created! Recreating...")
         end
-    end 
+    end
 
     sound_PlayURL(url, (IsValid(target) and "3d " or "")..((isstring(flags)) and flags or ""), function(channel, errorID, errorName)
         if IsValid(channel) then
@@ -63,12 +63,12 @@ function PLib:PlayURL(tag, url, target, flags, callback)
             end)
         else
             dprint("PlayURL", string_format("Error, %s! [%s]", errorID, errorName))
-        end 
+        end
     end)
 end
 
 function PLib:URLSoundThink()
-    for tag, tbl in pairs(self["URL_Sound_List"]) do 
+    for tag, tbl in pairs(self["URL_Sound_List"]) do
         if (tbl != nil) then
             local channel = tbl[1]
             if IsValid(channel) then
@@ -146,7 +146,7 @@ function PLib:SoundAnalyze(channel)
     end
 end
     return fft, bass
-end   
+end
 
 function PLib:GetBass(channel)
     local bass, fft = 0, {}
@@ -206,44 +206,44 @@ end
 
 local ents_GetAll = ents.GetAll
 function PLib:CleanUpClientSideEnts(filters)
-	local filterFunc = filters
-	if not isfunction(filterFunc) then
-		local funcStr = [[
-			local args = {...}
-			local ent, filter = args[1], args[2]
-		]]
+    local filterFunc = filters
+    if not isfunction(filterFunc) then
+        local funcStr = [[
+            local args = {...}
+            local ent, filter = args[1], args[2]
+        ]]
 
-		if IsEntity(filters) then
-			funcStr = funcStr .. [[
-				return (ent == filter)
-			]]
-		elseif isstring(filters) then
-			funcStr = funcStr .. [[
-				return (ent:GetClass() == filter)
-			]]
-		elseif istable(filters) and not table.IsEmpty(filters) then
-			funcStr = funcStr .. [[
-				local class = ent:GetClass()
-				for num, value in ipairs(filter) do
-					if (ent == value) or (class == value) then
-						return true
-					end
-				end
-				
-				return false
-			]]
-		else
-			funcStr = "return true"
-		end
+        if IsEntity(filters) then
+            funcStr = funcStr .. [[
+                return (ent == filter)
+            ]]
+        elseif isstring(filters) then
+            funcStr = funcStr .. [[
+                return (ent:GetClass() == filter)
+            ]]
+        elseif istable(filters) and not table.IsEmpty(filters) then
+            funcStr = funcStr .. [[
+                local class = ent:GetClass()
+                for num, value in ipairs(filter) do
+                    if (ent == value) or (class == value) then
+                        return true
+                    end
+                end
 
-		filterFunc = CompileString(funcStr, "CleanUpClientSideEnts")
-	end
+                return false
+            ]]
+        else
+            funcStr = "return true"
+        end
 
-	for _, ent in ipairs(ents_GetAll()) do
-		if IsValid(ent) and (ent:EntIndex() == -1) and filterFunc(ent, filters) then
-			ent:Remove()
-		end
-	end
+        filterFunc = CompileString(funcStr, "CleanUpClientSideEnts")
+    end
+
+    for _, ent in ipairs(ents_GetAll()) do
+        if IsValid(ent) and (ent:EntIndex() == -1) and filterFunc(ent, filters) then
+            ent:Remove()
+        end
+    end
 
     hook.Run("PLib:PostClientCleanup")
 end
