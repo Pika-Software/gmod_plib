@@ -1,8 +1,22 @@
 -- Magic by KlΞn_list 🎀 ~ >,.,<#0710
-debug.getmetatable("String").__add = function(a, b)
-    if isstring(a) and isstring(b) then
-        return a .. b
-    end
+local stringMeta = debug.getmetatable("String")
+
+stringMeta.__add = function(left, right)
+    if left == nil then error("attempt to concatenate nil value (left)") end
+    if right == nil then error("attempt to concatenate nil value (right)") end
+    return tostring(left) .. tostring(right)
+end
+
+stringMeta.__mul = function(left, right)
+    if isnumber(left) then return right:rep(left) end
+    if isnumber(right) then return left:rep(right) end
+    error("can't multiply string by non-number (" .. type(left) .. " * " .. type(right) .. ")")
+end
+
+stringMeta.__sub = function(left, right)
+    if isnumber(left) then return right:sub(1 + left) end
+    if isnumber(right) then return left:sub(1, left:len() - right) end
+    error("can't subtraction string by non-number (" .. type(left) .. " * " .. type(right) .. ")")
 end
 
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
