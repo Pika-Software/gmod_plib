@@ -16,7 +16,7 @@ end
 stringMeta.__sub = function(left, right)
     if isnumber(left) then return right:sub(1 + left) end
     if isnumber(right) then return left:sub(1, left:len() - right) end
-    error("can't subtraction string by non-number (" .. type(left) .. " * " .. type(right) .. ")")
+    error("can't subtraction string by non-number (" .. type(left) .. " - " .. type(right) .. ")")
 end
 
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
