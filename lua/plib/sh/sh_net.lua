@@ -37,8 +37,8 @@ concommand.Add("plib_" .. (SERVER and "sv" or "cl") .. "find_netpool", function(
     PLib:Log("Debug/NetPoolSearch", "Results:")
     for id = 1, 4096 do
         local strpool = util.NetworkIDToString(id)
-        if strpool and strpool:find(findpatt) then
-            local func = net.Receivers[strpool]
+        if strpool and strpool:lower():find(findpatt) then
+            local func = net.Receivers[strpool] or net.Receivers[strpool:lower()]
             local info = "[NOT IN RECEIVERS]:-1"
             if func then
                 info = debug.getinfo(func)
