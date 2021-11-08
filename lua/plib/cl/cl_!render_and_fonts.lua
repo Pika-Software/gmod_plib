@@ -343,6 +343,8 @@ local string_format = string.format
 local string_len = string.len
 
 local function drawDeveloperHUD()
+    if not PLib:DebugAllowed() then return end
+
     drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
     drawDevFrame("PING: "..developer:Ping(), 1)
     drawDevFrame(os_date("%H:%M"), 2)

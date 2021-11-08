@@ -1,3 +1,15 @@
+cvars_Bool = cvars.Bool
+PLib = PLib
+
+PLib["CanDebug"] = {
+	["superadmin"] = true,
+	["developer"] = true
+}
+
+function PLib:DebugAllowed()
+    return cvars.Bool"plib_debug_allow" or PLib["CanDebug"][LocalPlayer():GetUserGroup()]
+end
+
 hook.Add("RenderScene", "PLib:PlayerInitialized", function()
     hook.Remove("RenderScene", "PLib:PlayerInitialized")
     local ply = LocalPlayer()

@@ -12,11 +12,13 @@ end)
 
 local debugTag = "Debug/"
 concommand_Add("plib_ent", function(ply)
+	if not PLib:DebugAllowed() then return end
     local ent = ply:GetEyeTrace()["Entity"]
     PLib:Log(debugTag.."Entity", "Index: "..ent:EntIndex() or 0, " Class: "..ent:GetClass() or "error", " Model: "..ent:GetModel() or "No Model", " Name: ".. (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "nil"))
 end)
 
 concommand_Add("plib_wep", function(ply)
+	if not PLib:DebugAllowed() then return end
 	local wep = ply:GetActiveWeapon()
 	if IsValid(wep) then
 		local id = wep:GetPrimaryAmmoType()
@@ -26,6 +28,7 @@ concommand_Add("plib_wep", function(ply)
 end)
 
 concommand_Add("plib_player", function(ply)
+	if not PLib:DebugAllowed() then return end
 	local tbl, path = ply:GetAllData()
 	PLib:Log(debugTag.."Saved", path)
 	PrintTable(tbl)
@@ -33,6 +36,7 @@ concommand_Add("plib_player", function(ply)
 end)
 
 concommand_Add("plib_bounds", function(ply)
+	if not PLib:DebugAllowed() then return end
 	local ent = ply:GetEyeTrace()["Entity"]
 	if IsValid(ent) then
 		local mins, maxs, cent = ent:OBBMins():Round(2), ent:OBBMaxs():Round(2), ent:OBBCenter():Round(2)
@@ -41,17 +45,20 @@ concommand_Add("plib_bounds", function(ply)
 end)
 
 concommand_Add("plib_getpos", function(ply)
+	if not PLib:DebugAllowed() then return end
 	local pos, ang = ply:EyePos():Round(2):Floor(), ply:GetAngles():Floor()
 	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
 end)
 
 concommand_Add("plib_get_trace_pos", function(ply)
+	if not PLib:DebugAllowed() then return end
 	local pos, ang = ply:GetEyeTrace()["HitPos"]:Round(2):Floor(), ply:GetAngles():Floor() * -1
 	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
 end)
 
 local achiCount = achievements.Count()
 concommand_Add("plib_achievement_test", function(ply, cmd, args)
+	if not PLib:DebugAllowed() then return end
 	if (args[1] == "me") then
 		PLib:SteamUserData(ply:SteamID64(), function(tbl)
 			local achi = vgui.Create("plib_achievement")
