@@ -54,6 +54,6 @@ hook.Add("PLib:GameLoaded", "PLib:GlueLib", function()
 end)
 
 concommand.Add("plib_modules_reload", function()
-	PLib:LoadModules("plib/modules")
-	PLib:Log(nil, "Modules reloaded!")
+    PLib:LoadModules("plib/modules")
+    PLib:Log(nil, "Modules reloaded!")
 end)

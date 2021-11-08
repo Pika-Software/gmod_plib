@@ -93,7 +93,7 @@ end
 function PLib:NumTableToList(tbl)
     local str = ""
     for i = 1, #tbl do
-        str = str..tbl[i]..((i < #tbl) and ", " or "")     
+        str = str..tbl[i]..((i < #tbl) and ", " or "")
     end
 
     return str
@@ -161,14 +161,14 @@ concommand.Add("plib_info", function(ply)
     local self = PLib
     local cols = self["_C"]
     local sCol = self:SideColor()
-    
+
     self:Log("Info", self:Translate("plib.title"), "\n",
     sCol, "["..self:Translate("plib.version").."] ", cols["print"], self["Version"], "\n",
     sCol, "["..self:Translate("plib.creators").."] ", cols["text"], table.concat(self["Developers"], ", ") .. "\n",
     sCol, "["..self:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
-    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))    
+    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
 concommand.Add("plib_modules", function()
-	PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
+    PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
 end)

@@ -134,71 +134,71 @@ PLib:ReBuildFonts()
 
 local mat_white = Material("vgui/white")
 function draw.SimpleLinearGradient(x, y, w, h, startColor, endColor, horizontal)
-	draw.LinearGradient(x, y, w, h, { {offset = 0, color = startColor}, {offset = 1, color = endColor} }, horizontal)
+    draw.LinearGradient(x, y, w, h, { {offset = 0, color = startColor}, {offset = 1, color = endColor} }, horizontal)
 end
 
 local MATERIAL_QUADS = MATERIAL_QUADS
 function draw.LinearGradient(x, y, w, h, stops, horizontal)
-	if #stops == 0 then
-		return
-	elseif #stops == 1 then
-		surface_SetDrawColor(stops[1].color)
-		surface_DrawRect(x, y, w, h)
-		return
-	end
+    if #stops == 0 then
+        return
+    elseif #stops == 1 then
+        surface_SetDrawColor(stops[1].color)
+        surface_DrawRect(x, y, w, h)
+        return
+    end
 
-	table_SortByMember(stops, "offset", true)
+    table_SortByMember(stops, "offset", true)
 
-	render_SetMaterial(mat_white)
-	mesh_Begin(MATERIAL_QUADS, #stops - 1)
-	for i = 1, #stops - 1 do
-		local offset1 = math_Clamp(stops[i].offset, 0, 1)
-		local offset2 = math_Clamp(stops[i + 1].offset, 0, 1)
-		if offset1 == offset2 then continue end
+    render_SetMaterial(mat_white)
+    mesh_Begin(MATERIAL_QUADS, #stops - 1)
+    for i = 1, #stops - 1 do
+        local offset1 = math_Clamp(stops[i].offset, 0, 1)
+        local offset2 = math_Clamp(stops[i + 1].offset, 0, 1)
+        if offset1 == offset2 then continue end
 
-		local deltaX1, deltaY1, deltaX2, deltaY2
+        local deltaX1, deltaY1, deltaX2, deltaY2
 
-		local color1 = stops[i].color
-		local color2 = stops[i + 1].color
+        local color1 = stops[i].color
+        local color2 = stops[i + 1].color
 
-		local r1, g1, b1, a1 = color1.r, color1.g, color1.b, color1.a
-		local r2, g2, b2, a2
-		local r3, g3, b3, a3 = color2.r, color2.g, color2.b, color2.a
-		local r4, g4, b4, a4
+        local r1, g1, b1, a1 = color1.r, color1.g, color1.b, color1.a
+        local r2, g2, b2, a2
+        local r3, g3, b3, a3 = color2.r, color2.g, color2.b, color2.a
+        local r4, g4, b4, a4
 
-		if horizontal then
-			r2, g2, b2, a2 = r3, g3, b3, a3
-			r4, g4, b4, a4 = r1, g1, b1, a1
-			deltaX1 = offset1 * w
-			deltaY1 = 0
-			deltaX2 = offset2 * w
-			deltaY2 = h
-		else
-			r2, g2, b2, a2 = r1, g1, b1, a1
-			r4, g4, b4, a4 = r3, g3, b3, a3
-			deltaX1 = 0
-			deltaY1 = offset1 * h
-			deltaX2 = w
-			deltaY2 = offset2 * h
-		end
+        if horizontal then
+            r2, g2, b2, a2 = r3, g3, b3, a3
+            r4, g4, b4, a4 = r1, g1, b1, a1
+            deltaX1 = offset1 * w
+            deltaY1 = 0
+            deltaX2 = offset2 * w
+            deltaY2 = h
+        else
+            r2, g2, b2, a2 = r1, g1, b1, a1
+            r4, g4, b4, a4 = r3, g3, b3, a3
+            deltaX1 = 0
+            deltaY1 = offset1 * h
+            deltaX2 = w
+            deltaY2 = offset2 * h
+        end
 
-		mesh_Color(r1, g1, b1, a1)
-		mesh_Position(Vector(x + deltaX1, y + deltaY1))
-		mesh_AdvanceVertex()
+        mesh_Color(r1, g1, b1, a1)
+        mesh_Position(Vector(x + deltaX1, y + deltaY1))
+        mesh_AdvanceVertex()
 
-		mesh_Color(r2, g2, b2, a2)
-		mesh_Position(Vector(x + deltaX2, y + deltaY1))
-		mesh_AdvanceVertex()
+        mesh_Color(r2, g2, b2, a2)
+        mesh_Position(Vector(x + deltaX2, y + deltaY1))
+        mesh_AdvanceVertex()
 
-		mesh_Color(r3, g3, b3, a3)
-		mesh_Position(Vector(x + deltaX2, y + deltaY2))
-		mesh_AdvanceVertex()
+        mesh_Color(r3, g3, b3, a3)
+        mesh_Position(Vector(x + deltaX2, y + deltaY2))
+        mesh_AdvanceVertex()
 
-		mesh_Color(r4, g4, b4, a4)
-		mesh_Position(Vector(x + deltaX1, y + deltaY2))
-		mesh_AdvanceVertex()
-	end
-	mesh_End()
+        mesh_Color(r4, g4, b4, a4)
+        mesh_Position(Vector(x + deltaX1, y + deltaY2))
+        mesh_AdvanceVertex()
+    end
+    mesh_End()
 end
 
 local w, h = 0, 0
@@ -208,7 +208,7 @@ end
 
 local function ScreenSizeChanged()
     w, h = ScrW(), ScrH()
-    
+
     PLib:UpdateLogo()
 
     hook.Run("PLib:ResolutionChanged", w, h)
@@ -254,7 +254,7 @@ function PLib:UpdateLogo(path)
                 logo = mat
                 logo_w, logo_h = self:MaterialSize(mat)
                 ssw, ssh = (w - logo_w)/2, (h - logo_h)/2
-                
+
                 if self["Debug"] then
                     self:Log(nil, "Logo updated!")
                 end
@@ -378,7 +378,7 @@ local function devGetEntData()
     if (developer == nil) then return end
     if (developer:Alive() == false) then
         devEntData = nil
-        return 
+        return
     end
 
     local startPos = developer:EyePos()
@@ -395,9 +395,9 @@ local function devGetEntData()
         if (tr["HitPos"] == startPos) then
             table_insert(devEntData, "Name: Void")
             devEnt = ent
-            return 
+            return
         end
-    
+
         table_insert(devEntData, "Name: "..PLib:TranslateText(ent:IsPlayer() and ent:Nick() or (ent["PrintName"] or "World")))
         table_insert(devEntData, "Model: "..ent:GetModel())
         table_insert(devEntData, "ClassName: "..ent:GetClass())
@@ -412,7 +412,7 @@ local function devGetEntData()
             if ent:IsPlayer() then
                 table_insert(devEntData, "UserID: "..ent:UserID())
             end
-        
+
             local ent_info = {}
             local maxLen = 0
             for key, value in pairs(ent:GetTable()) do
@@ -435,7 +435,7 @@ local function devGetEntData()
                 end
 
                 table_insert(devEntData, separator)
-        
+
                 for num, text in ipairs(ent_info) do
                     table_insert(devEntData, text)
                 end
@@ -470,39 +470,39 @@ hook.Add("PLib:Debug", "PLib:DeveloperHUD", toggleDevHUD)
 function PLib:ReplaceDefaultFont(new, sizeMult, underline)
     if system_IsLinux() then
         surface_CreateFont("DermaDefault", {
-            font		= new or "DejaVu Sans",
-            size		= 14 * (sizeMult or 1),
-            weight		= 500,
-            extended	= true
+            font        = new or "DejaVu Sans",
+            size        = 14 * (sizeMult or 1),
+            weight        = 500,
+            extended    = true
         })
-    
+
         surface_CreateFont("DermaDefaultBold", {
-            font		= new or "DejaVu Sans",
-            size		= 14 * (sizeMult or 1),
-            weight		= 800,
-            extended	= true
+            font        = new or "DejaVu Sans",
+            size        = 14 * (sizeMult or 1),
+            weight        = 800,
+            extended    = true
         })
     else
         surface_CreateFont("DermaDefault", {
-            font		= new or "Tahoma",
-            size		= 13 * (sizeMult or 1),
-            weight		= 500,
-            extended	= true
+            font        = new or "Tahoma",
+            size        = 13 * (sizeMult or 1),
+            weight        = 500,
+            extended    = true
         })
-    
+
         surface_CreateFont("DermaDefaultBold", {
-            font		= new or "Tahoma",
-            size		= 13 * (sizeMult or 1),
-            weight		= 800,
-            extended	= true
+            font        = new or "Tahoma",
+            size        = 13 * (sizeMult or 1),
+            weight        = 800,
+            extended    = true
         })
     end
 
     surface_CreateFont("DermaLarge", {
-        font		= new or "Roboto",
-        size		= 32 * (sizeMult or 1),
-        weight		= 500,
-        extended	= true
+        font        = new or "Roboto",
+        size        = 32 * (sizeMult or 1),
+        weight        = 500,
+        extended    = true
     })
 
     self:SpawnMenuReload()

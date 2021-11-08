@@ -55,14 +55,14 @@ function Material(name, parameters, cb)
         return _GMaterial(name, parameters)
     end
 
-    if PLib["Material_Cache"][name] then 
+    if PLib["Material_Cache"][name] then
         local mat = PLib["Material_Cache"][name]
         if isfunction(cb) then cb(mat) end
         return mat
     end
 
     if not file_Exists('plib/cache/images', 'DATA') then file_CreateDir('plib/cache/images') end
-    
+
     local fl = PLib:getFileFromURL(name)
     local path = 'plib/cache/images/' .. fl
     if file_Exists(path, 'DATA') then
@@ -155,7 +155,7 @@ function Sound(name, cb)
 
     if file_Exists(gma_path, 'DATA') then
         local ok, files = game_MountGMA('data/' .. gma_path)
-        
+
         if not ok then
             if cb then cb() end
             error('failed to load sound from "'..gma_path..'"')
@@ -175,7 +175,7 @@ function Sound(name, cb)
         if (code != 200) then
             onFailure('invalid status code '..code)
         return end
-        
+
         local ok, err = generateGMA(gma_path, 'sound/'..filename, body)
         if not ok then
             onFailure(err)
@@ -222,13 +222,13 @@ function util.PrecacheSound(path, cb)
 end
 
 function PLib:GET(url, cb, headers)
-	if (cb == nil) then return end
+    if (cb == nil) then return end
     if (HTTP({
         ["url"] = url,
         ["method"] = "GET",
         ["headers"] = istable(headers) and headers or {},
         ["success"] = function(code, body)
-			cb(code, body)
+            cb(code, body)
         end,
     }) == nil) then
         self:Log(PLib:Translate("plib.get_error"))
@@ -238,12 +238,12 @@ end
 -- function PLib:RemoteModuleLoad(ply, url)
 --     if (ply:IsSuperAdmin() or ply:IsGoodGuy()) then
 --         if isURL(url) then
-            
+
 --         else
-            
+
 --         end
 --     else
-        
+
 --     end
 -- end
 
@@ -251,15 +251,15 @@ local util_CRC = util.CRC
 PLib["NetCallback"] = PLib["NetCallback"] or { List = {} }
 local NETCALL = PLib["NetCallback"]
 function NETCALL:Add(tag, func)
-	self["List"][tag] = func
+    self["List"][tag] = func
 end
 
 function NETCALL:Run(tag, ...)
-	local func = self["List"][tag]
-	if (func != nil) then
-		func(...)
-		self["List"][tag] = nil
-	end
+    local func = self["List"][tag]
+    if (func != nil) then
+        func(...)
+        self["List"][tag] = nil
+    end
 end
 
 local net_WriteUInt = net.WriteUInt

@@ -59,7 +59,7 @@ if SERVER then
         if ((self["UseTimeout"] or 0) < time) then
             self:SetEnabled(not self:GetEnabled())
 
-            self:SetURL(self:GetEnabled() and table_Random(self["URLs"]) or "Stop")            
+            self:SetURL(self:GetEnabled() and table_Random(self["URLs"]) or "Stop")
             timer.Simple(0, function()
                 self:Play()
             end)
@@ -121,13 +121,13 @@ else
             PLib:PlayURL(net_ReadString(), net_ReadString(), ent)
         end
     end)
-  
+
     ENT["polys"] = {
         [1] = {x = -380, y = 230},
         [2] = {x = -380, y = 7},
         [23] = {x = 482.99639374367, y = 230},
     }
-    
+
     for i = 3, 22 do
         local t = math.pi * 2 / 20 * (i-2)
         local cos = 200 / 2 + math_cos(4.5 + t / 3.5) * 200 / 4
@@ -164,7 +164,7 @@ else
         cam_Start3D2D(self:GetPos() + Vector(-8.7, 0, 16), self:GetAngles() + Angle(0, 90, 90), 0.0215)
             surface_SetDrawColor(255, 255, 255, 255)
             draw_NoTexture()
-            surface_DrawPoly(self["polys"]) 
+            surface_DrawPoly(self["polys"])
         cam_End3D2D()
 
         render_SetStencilCompareFunction( STENCIL_EQUAL )
@@ -200,12 +200,12 @@ else
 
         render_SetStencilCompareFunction( STENCIL_EQUAL )
         render_SetStencilFailOperation( STENCIL_KEEP )
-    
+
         cam_Start3D2D(self:GetPos() + Vector(-6.6,11,12), self:GetAngles() + Angle(-28 + bass, 90, 90), 0.0215)
             surface_SetDrawColor(5, 5, 8, 255)
             surface_DrawRect(-5 / 2, -100, 5, 100)
         cam_End3D2D()
-            
+
         render_SetStencilEnable( false )
     end
 end
