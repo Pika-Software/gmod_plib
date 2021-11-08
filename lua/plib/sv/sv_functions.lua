@@ -182,17 +182,3 @@ function ENTITY:GetMass()
 	
 	return self["PLib.Mass"]
 end
-
--- Created to run shared concommands as a server for host players
-concommand.Add("plib_svrun", function(ply, cmd, args, argStr)
-	if game.SinglePlayer() or ply:IsListenServerHost() then
-		cmd = args[1]
-		if not cmd or cmd == "" then return end
-		if IsConCommandBlocked(argStr) then
-			PLib:Log("svrun", "The arguments contain a blocked command! Create an alias in the config files if you want to use it.")
-			PLib:Log("svrun", "https://wiki.facepunch.com/gmod/Blocked_ConCommands")
-			return
-		end
-		game.ConsoleCommand(argStr .. '\n')
-	end
-end)
