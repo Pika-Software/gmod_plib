@@ -1,23 +1,24 @@
--- Magic by KlΞn_list 🎀 ~ >,.,<#0710 & PrikolMen#3372
+-- string_meta by KlΞn_list 🎀 ~ >,.,<#0710
 local tostring = tostring
 local isstring = isstring
 
 local string_meta = debug.getmetatable("String")
-string_meta["__add"] = function(a, b)
-    return a .. tostring(b)
+string_meta["__add"] = function(left, right)
+    if (left == nil) then error("attempt to concatenate nil value (left)") end
+    if (right == nil) then error("attempt to concatenate nil value (right)") end
+    return tostring(left) .. tostring(right)
 end
 
-string_meta["__mul"] = function(a, b)
-    if isnumber(b) then
-        local output = ""
-        for i = 1, b do
-            output = output .. a
-        end
+string_meta["__mul"] = function(left, right)
+    if isnumber(left) then return right:rep(left) end
+    if isnumber(right) then return left:rep(right) end
+    error("can't multiply string by non-number (" .. type(left) .. " * " .. type(right) .. ")")
+end
 
-        return output
-    end
-
-    return a + b
+string_meta["__sub"] = function(left, right)
+    if isnumber(left) then return right:sub(1 + left) end
+    if isnumber(right) then return left:sub(1, left:len() - right) end
+    error("can't subtraction string by non-number (" .. type(left) .. " - " .. type(right) .. ")")
 end
 
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
@@ -29,7 +30,6 @@ hook.Add("InitPostEntity", "PLib:GameLoaded", function()
 end)
 
 local cvars_Bool = cvars.Bool
-local isstring = isstring
 local print = print
 
 function string.isvalid(str)
@@ -94,7 +94,7 @@ end
 function PLib:NumTableToList(tbl)
     local str = ""
     for i = 1, #tbl do
-        str = str..tbl[i]..((i < #tbl) and ", " or "")     
+        str = str..tbl[i]..((i < #tbl) and ", " or "")
     end
 
     return str
@@ -162,14 +162,14 @@ concommand.Add("plib_info", function(ply)
     local self = PLib
     local cols = self["_C"]
     local sCol = self:SideColor()
-    
+
     self:Log("Info", self:Translate("plib.title"), "\n",
     sCol, "["..self:Translate("plib.version").."] ", cols["print"], self["Version"], "\n",
     sCol, "["..self:Translate("plib.creators").."] ", cols["text"], table.concat(self["Developers"], ", ") .. "\n",
     sCol, "["..self:Translate("plib.ugg").."] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
-    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))    
+    sCol, "["..self:Translate("plib.commands").."] ", cols["text"], self:NumTableToList(self:Commands()))
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
 concommand.Add("plib_modules", function()
-	PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
+    PLib:Log(nil, "Modules: ", table.ToString(PLib["Modules"], nil, true))
 end)

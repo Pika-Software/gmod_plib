@@ -58,7 +58,7 @@ local function NetCheck(ply, id, timeout)
     end
 
     if (ply["PLibNetSecure"]["Warns"] > maxWarns + math_random(1, 10)) then
-        ply["NET::BLOCK"] = true    
+        ply["NET::BLOCK"] = true
     end
 
     local curTime = CurTime()

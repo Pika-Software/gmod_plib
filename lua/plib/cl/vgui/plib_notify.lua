@@ -46,12 +46,12 @@ function PANEL:Init()
     self["Alpha"] = 255
     self["IconW"], self["IconH"] = 0, 0
     for num, pnl in ipairs(PLib["Notifications"]) do
-		if not IsValid(pnl) or (math.floor(CurTime() - pnl["created"]) > pnl["halfLifetime"]) then
-			self["ID"] = num
-			PLib["Notifications"][num] = self
-			return
-		end
-	end
+        if not IsValid(pnl) or (math.floor(CurTime() - pnl["created"]) > pnl["halfLifetime"]) then
+            self["ID"] = num
+            PLib["Notifications"][num] = self
+            return
+        end
+    end
 
     self["ID"] = table.insert(PLib["Notifications"], self)
 end
@@ -74,7 +74,7 @@ function PANEL:Setup(title, msg, color, lifetime, animSpeed)
         self["bgColor"] = bg
         self["descColor"] = self:GetDescColor()
     end
-    
+
     self["created"] = CurTime()
     self["lifetime"] = (lifetime or 5)
     self["halfLifetime"] = self["lifetime"] / 2
@@ -90,12 +90,12 @@ function PANEL:Setup(title, msg, color, lifetime, animSpeed)
     end
 
     self["lifetime"] = self["lifetime"] or lifetime
-    
+
     local tw, th = getFontSize(self["title"], "DermaLarge")
     local mw, mh = getFontSize(self["msg"], "DermaDefault")
     self["wSize"] = math.max(tw, mw) + 25
     self["hSize"] = 15 + mh + 10 + th + 5
-    
+
     self["xPos"] = self["wSize"] + 5
     self["yPos"] = scrh - (self["hSize"] + 5)
 

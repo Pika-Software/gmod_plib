@@ -182,7 +182,7 @@ function PLAYER:SaveAchievement(id)
 
         self:SetData("Achievements", achievements)
         dprint("Saved achievement ", id, ", for ", (self:Nick() or self:Name()))
-        
+
         return true
     end
 
@@ -196,7 +196,7 @@ function PLAYER:GiveAchievement(tag)
             dprint(string_format("%s already have achievement, %s (Clientside: %s)", (self:Nick() or self:Name()), PLib:TranslateText(tbl[1]), tbl[3]))
             return false
         end
-        
+
         if CLIENT then
             if (tbl[3] != true) then
                 return false
@@ -227,13 +227,13 @@ function PLAYER:IsGoodGuy()
 end
 
 if (PLAYER["Nickname"] == nil) then
-	PLAYER["Nickname"] = PLAYER["Nick"]
+    PLAYER["Nickname"] = PLAYER["Nick"]
 
-	function PLAYER:Nick()
-		return self:GetNWString("Nickname", self:Nickname())
-	end
-	
-	PLAYER["Name"] = PLAYER["Nick"]
+    function PLAYER:Nick()
+        return self:GetNWString("Nickname", self:Nickname())
+    end
+
+    PLAYER["Name"] = PLAYER["Nick"]
 end
 
 local LocalPlayer = LocalPlayer
@@ -272,7 +272,7 @@ local flexes = {
 
 function PLAYER:MouthMoveAnimation()
     if self:IsSpeaking() then
-		local model = self:GetModel()
+        local model = self:GetModel()
         if (validStr(model) == true) then
             local flCount = self:GetFlexNum()
             if (flCount > 0) then
@@ -304,14 +304,14 @@ function PLAYER:MouthMoveAnimation()
                 end
             end
         end
-	elseif (self["LastVoiceVolume"] != nil) then
+    elseif (self["LastVoiceVolume"] != nil) then
         local flexes = ModelFlexes[self:GetModel()]
-		if (flexes != nil) then
-			for i = 1, #flexes do
-				self:SetFlexWeight(flexes[i][1], 0)
-			end
-		end
+        if (flexes != nil) then
+            for i = 1, #flexes do
+                self:SetFlexWeight(flexes[i][1], 0)
+            end
+        end
 
-		self["LastVoiceVolume"] = nil
-	end
+        self["LastVoiceVolume"] = nil
+    end
 end

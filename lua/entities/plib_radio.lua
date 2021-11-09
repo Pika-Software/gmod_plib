@@ -68,7 +68,7 @@ if SERVER then
         if ((self["UseTimeout"] or 0) < time) then
             self:SetEnabled(not self:GetEnabled())
 
-            self:SetURL(self:GetEnabled() and table_Random(self["URLs"]) or "Stop")            
+            self:SetURL(self:GetEnabled() and table_Random(self["URLs"]) or "Stop")
             timer.Simple(0, function()
                 self:Play()
             end)

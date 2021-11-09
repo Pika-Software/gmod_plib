@@ -12,6 +12,7 @@ end)
 
 local debugTag = "Debug/"
 concommand_Add("plib_ent", function(ply)
+    if not PLib:DebugAllowed() then return end
     local ent = ply:GetEyeTrace()["Entity"]
 	PLib:Log(debugTag.."Entity", string.format("%s\n	Index: %s\n	Name: %s\n	Class: %s\n	Model: %s", ent, ent:EntIndex(), (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "none"), ent:GetClass(), ent:GetModel() or "No Model"))
 end)
@@ -51,104 +52,105 @@ end)
 
 local achiCount = achievements.Count()
 concommand_Add("plib_achievement_test", function(ply, cmd, args)
-	if (args[1] == "me") then
-		PLib:SteamUserData(ply:SteamID64(), function(tbl)
-			local achi = vgui.Create("plib_achievement")
-			achi["Title"] = tbl["personaname"]
-			achi["Image"] = Material(tbl["avatarfull"], PLib["MatPresets"]["Pic"])
-		end)
+    if not PLib:DebugAllowed() then return end
+    if (args[1] == "me") then
+        PLib:SteamUserData(ply:SteamID64(), function(tbl)
+            local achi = vgui.Create("plib_achievement")
+            achi["Title"] = tbl["personaname"]
+            achi["Image"] = Material(tbl["avatarfull"], PLib["MatPresets"]["Pic"])
+        end)
 
-		return 
-	end
-	
-	if (args[1] == "all") then
-		for i = 1, achiCount do
-			RunConsoleCommand(cmd, i)
-		end
+        return
+    end
 
-		return 
-	end
+    if (args[1] == "all") then
+        for i = 1, achiCount do
+            RunConsoleCommand(cmd, i)
+        end
 
-	local achi = vgui.Create("plib_achievement")
-	timer.Simple(0, function()
-		if IsValid(ply) and IsValid(achi) then
-			ply:GotAchievement(achi["Title"])
-		end
-	end)
+        return
+    end
 
-	if (args[1] != nil) then
-		local num = tonumber(args[1])
-		if (num != nil) then
-			num = num - 1
-			if (num > -1) and (num <= (achiCount + 1)) then
-				achi["Title"] = PLib:GetAchievementName(num)
-				achi["Image"] = PLib:GetStandardAchievementIcon(num)
-				return
-			end
-		end
+    local achi = vgui.Create("plib_achievement")
+    timer.Simple(0, function()
+        if IsValid(ply) and IsValid(achi) then
+            ply:GotAchievement(achi["Title"])
+        end
+    end)
 
-		if isstring(args[1]) then
-			achi["Title"] = args[1]
-			if string.isvalid(args[2]) then
-				achi["Image"] = Material(args[2], PLib["MatPresets"]["Pic"])
-			end
+    if (args[1] != nil) then
+        local num = tonumber(args[1])
+        if (num != nil) then
+            num = num - 1
+            if (num > -1) and (num <= (achiCount + 1)) then
+                achi["Title"] = PLib:GetAchievementName(num)
+                achi["Image"] = PLib:GetStandardAchievementIcon(num)
+                return
+            end
+        end
 
-			return
-		end
-	end
+        if isstring(args[1]) then
+            achi["Title"] = args[1]
+            if string.isvalid(args[2]) then
+                achi["Image"] = Material(args[2], PLib["MatPresets"]["Pic"])
+            end
 
-	achi["Title"] = "Test Achievement"
+            return
+        end
+    end
+
+    achi["Title"] = "Test Achievement"
 end)
 
 local blacklist = {
-	["DMenuBar"] = true,
-	["DMenu"] = true,
-	["SpawnMenu"] = true,
-	["ContextMenu"] = true,
-	["ControlPanel"] = true,
-	["CGMODMouseInput"] = true,
-	["Panel"] = true,
-	['xlib_Panel'] = true,
-	['CGMODMouseInput'] = true,
+    ["DMenuBar"] = true,
+    ["DMenu"] = true,
+    ["SpawnMenu"] = true,
+    ["ContextMenu"] = true,
+    ["ControlPanel"] = true,
+    ["CGMODMouseInput"] = true,
+    ["Panel"] = true,
+    ['xlib_Panel'] = true,
+    ['CGMODMouseInput'] = true,
 }
 
 local whitelist = {
-	"scoreboard",
-	"menu",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"playx",
-	"gcompute",
+    "scoreboard",
+    "menu",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "playx",
+    "gcompute",
 }
 
 concommand_Add("vgui_cleanup", function()
-	local sum = 0
-	for _, pnl in ipairs(vgui_GetWorldPanel():GetChildren()) do
-		if not IsValid(pnl) then continue end
-		-- local hit_blacklist = false
-		local name = pnl:GetName()
-		local class = pnl:GetClassName()
+    local sum = 0
+    for _, pnl in ipairs(vgui_GetWorldPanel():GetChildren()) do
+        if not IsValid(pnl) then continue end
+        -- local hit_blacklist = false
+        local name = pnl:GetName()
+        local class = pnl:GetClassName()
 
-		if --[[blacklist[class] or ]] blacklist[name] then continue end
+        if --[[blacklist[class] or ]] blacklist[name] then continue end
 
-		-- for i = 1, #whitelist do
-		-- 	if name:lower():match(whitelist[i]:lower()) then
-		-- 		hit_blacklist = true
-		-- 		continue
-		-- 	end
-		-- end
+        -- for i = 1, #whitelist do
+        --     if name:lower():match(whitelist[i]:lower()) then
+        --         hit_blacklist = true
+        --         continue
+        --     end
+        -- end
 
-		-- if hit_blacklist then continue end
-		PLib:Log(debugTag.."VGUI", "Removed " .. tostring(pnl))
-		pnl:Remove()
-		sum = sum + 1
-	end
+        -- if hit_blacklist then continue end
+        PLib:Log(debugTag.."VGUI", "Removed " .. tostring(pnl))
+        pnl:Remove()
+        sum = sum + 1
+    end
 
     PLib:Log(debugTag.."VGUI", "Total panels removed: " .. sum)
 end)
 
 concommand_Add("clentmodels_cleanup", function(ply)
-	PLib:CleanUpClientSideEnts()
+    PLib:CleanUpClientSideEnts()
 end)

@@ -19,7 +19,7 @@ function PLib:FastDL_Folder(folder, name, compress)
     for i = 1, #files do
         self:FastDL_File(folder.."/"..files[i], name, compress)
     end
-    
+
     for i = 1, #folders do
         self:FastDL_Folder(folder.."/"..folders[i], name, compress)
     end

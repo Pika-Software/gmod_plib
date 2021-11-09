@@ -43,21 +43,21 @@ hook.Add("UpdateAnimation", "PLib:UpdateAnimation", function(ply)
 end)
 
 hook.Add("PlayerFootstep", "PLib:PlayerFootstepsInWater", function(ply, pos, foot, sound, volume, filter)
-	local waterLvl = ply:WaterLevel() 
-	if (waterLvl > 0) then
-		if waterLvl == 1 then
-			if CLIENT then
-				ply:FireBullets({
-					Src = Vector(pos[1], pos[2], ply:EyePos()[3]),
-					Dir = Vector(0, 0, -1),
-					Damage = 0,
-					Tracer = 0,
-				})
-			end
-			
-			return true
-		end
-	elseif ply:Crouching() then
+    local waterLvl = ply:WaterLevel()
+    if (waterLvl > 0) then
+        if waterLvl == 1 then
+            if CLIENT then
+                ply:FireBullets({
+                    Src = Vector(pos[1], pos[2], ply:EyePos()[3]),
+                    Dir = Vector(0, 0, -1),
+                    Damage = 0,
+                    Tracer = 0,
+                })
+            end
+
+            return true
+        end
+    elseif ply:Crouching() then
         return true
     end
 end)
@@ -65,15 +65,15 @@ end)
 -- hook.Add( "PostDrawTranslucentRenderables", "BadPingDisplayDrawIcons", function( bDepth, bSkybox )
 --     -- If we are drawing in the skybox, bail
 --     if ( bSkybox ) then return end
-    
+
 --     for i, ply in ipairs(BadPing.PlayersTable) do
 --         if !IsValid( ply ) or ( ply == LocalPlayer() and !ply:ShouldDrawLocalPlayer() ) then return end
-        
+
 --         local pos = ply:GetPos() + Vector(0,0,80) + Vector(0,0, math.abs(BadPing.SpriteFloat) )
 --         local dist = EyePos():DistToSqr( pos )
 --         local fade = 220
 --         local maxdist = GetConVar( "badping_cl_icon_distance" ):GetFloat()
-        
+
 --         if not ( dist >= (maxdist^2) ) then --( dist >= (BadPing.IconFadeMin + 255*BadPing.IconFadeLength)^2 )
 --             --print( "rendering" )
 --             --if dist >= BadPing.IconFadeMin^2 then
@@ -86,7 +86,7 @@ end)
 --                 surface.SetMaterial( BadPing.SpriteMat )
 --                 surface.DrawTexturedRect( 0,0,256,256 )
 --             cam.End3D2D()]]
---             render.SetMaterial( BadPing.SpriteMat ) 
+--             render.SetMaterial( BadPing.SpriteMat )
 --             render.DrawSprite( pos, 18, 18, Color( 255, 255, 255, fade ) )
 --         end
 --     end

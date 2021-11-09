@@ -21,7 +21,7 @@ local function checkNetStart(name, timeout)
                 nets[name] = false
                 return false
             end
-        
+
             if (SysTime() - lastNet) < timeout then
                 nets[name] = {SysTime(), lastNet[2] + 1}
                 return false
@@ -29,14 +29,14 @@ local function checkNetStart(name, timeout)
         end
 
         lastNet = {SysTime(), 0}
-	end
+    end
 
     return true
 end
 
 function net.Start(name, unreliable, timeout, tag)
     if (checkNetStart(tag or name, timeout) == false) then
-        Error("Too frequent requests to server!") 
+        Error("Too frequent requests to server!")
     end
 
     net_Start(name, unreliable)

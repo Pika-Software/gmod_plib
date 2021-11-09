@@ -46,7 +46,7 @@ if CLIENT then
     end
 end
 
-hook.Add("LanguageChanged", "PLib:Phrases", function(_, lang)    
+hook.Add("LanguageChanged", "PLib:Phrases", function(_, lang)
     local tbl = PLib["phrases"][lang]
     if (tbl != nil) then
         for tag, text in pairs(tbl) do
@@ -73,17 +73,17 @@ local space = " "
 local tag = "#"
 
 function PLib:TranslateText(name)
-	local tbl = string_Split(name, space)
-	local output = ""
-	for i = 1, #tbl do
-		local str = tbl[i]
+    local tbl = string_Split(name, space)
+    local output = ""
+    for i = 1, #tbl do
+        local str = tbl[i]
 
-		if (string_StartWith(str, tag) == true) then
-			str = string_sub(str, 2, #str)
-		end
+        if (string_StartWith(str, tag) == true) then
+            str = string_sub(str, 2, #str)
+        end
 
-		output = output .. self:Translate(str) .. space
-	end
+        output = output .. self:Translate(str) .. space
+    end
 
-	return output
+    return output
 end
