@@ -80,11 +80,18 @@ function PLib:URLSoundThink()
                             pos = pos + target:OBBCenter()
                         end
 
+                        local state = channel:GetState()
+
+                        if (state == 0) and target["AudioEnded"] then
+                            target:AudioEnded(channel, tag)
+                            continue
+                        end
+
                         if (LocalPlayer():GetPos():DistToSqr(pos) < tbl[3]) then
-                            if (channel:GetState() == 2) then
+                            if (state == 2) then
                                 channel:Play()
                             end
-                        elseif (channel:GetState() == 1) then
+                        elseif (state == 1) then
                             channel:Pause()
                         end
 

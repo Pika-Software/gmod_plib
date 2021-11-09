@@ -77,6 +77,22 @@ if SERVER then
         end
     end
 
+    net.Receive("PLib.Radio", function(len, ply)
+        local time = CurTime()
+        if !IsValid(ply) or (ply["PLib.Radio"] or 0) > time then return end
+        ply["PLib.Radio"] = time + 10
+
+        local ent = net.ReadEntity()
+        if IsValid(ent) and (ent:GetClass() == "plib_radio") and ((ent["PLib.Radio"] or 0) < time) then
+            ent["PLib.Radio"] = time + 5
+
+            ent:SetURL(ent:GetEnabled() and table_Random(ent["URLs"]) or "Stop")
+            timer.Simple(0, function()
+                ent:Play()
+            end)
+        end
+    end)
+
     function ENT:OnRemove()
     end
 
@@ -118,6 +134,14 @@ else
             PLib:PlayURL(net_ReadString(), net_ReadString(), ent, ent:GetFDist(), ent:GetSDist())
         end
     end)
+
+    function ENT:AudioEnded(channel, tag)
+        PLib:RemoveURLSound(tag)
+
+        net.Start("PLib.Radio")
+            net.WriteEntity(self)
+        net.SendToServer()
+    end
 
     ENT["FFT"] = {}
     ENT["FFT2"] = {}

@@ -60,14 +60,9 @@ end)
 
 -- Just add this in your cfg/autoexec.cfg
 -- alias "plib_shutdown" "quit"
--- alias "plib_restart" "_restart"
 
 function PLib:Shutdown()
     game.ConsoleCommand("plib_shutdown\n")
-end
-
-function PLib:Restart()
-    game.ConsoleCommand("plib_restart\n")
 end
 
 concommand.Add("plib_shutdown", function(ply)
@@ -79,6 +74,10 @@ concommand.Add("plib_shutdown", function(ply)
         PLib:Shutdown()
     end
 end)
+
+function PLib:Restart()
+    game.ConsoleCommand("_restart\n")
+end
 
 concommand.Add("plib_restart", function(ply)
     if IsValid(ply) then

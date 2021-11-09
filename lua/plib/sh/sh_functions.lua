@@ -539,12 +539,11 @@ function ENTITY:TeamObject(ply)
 end
 
 function ENTITY:IsDoor()
-    local class = self:GetClass()
-    if validStr(class) and class:match("door") then
+    if self:GetClass():find("door") then
         return true
     end
 
-    return IsValid(self:GetNWEntity("OriginalDoor", nil)) or false
+    return IsValid(self:GetNWEntity("OriginalDoor", false))
 end
 
 function ENTITY:GetSize()
@@ -718,8 +717,7 @@ function table.Max(tbl)
     return max
 end
 
--- table.Shuffle dupl?
-/*function table.shuffle(tbl)
+function table.shuffle(tbl)
     local size = #tbl
     for i = size, 1, -1 do
         local rand = math.random(size)
@@ -727,7 +725,7 @@ end
     end
 
     return tbl
-end*/
+end
 
 function table.Lookup(tbl, key, default)
     local fragments = string_Split(key, ".")
@@ -752,10 +750,8 @@ function math.power2(n)
     return math_pow(2, math_ceil(math_log(n) / math_log(2)))
 end
 
--- math.Remap dupl?
-/*function math.Map(int, from1, to1, from2, to2)
-    return (int - from1) / (to1 - from1) * (to2 - from2) + from2;
-end*/
+-- math.Remap dupl
+math["Map"] = math["Remap"]
 
 function math.striving_for(value, valueTo, delay)
     return value + (valueTo - value) / delay
