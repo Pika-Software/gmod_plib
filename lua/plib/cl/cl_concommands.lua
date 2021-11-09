@@ -18,6 +18,7 @@ concommand_Add("plib_ent", function(ply)
 end)
 
 concommand_Add("plib_wep", function(ply)
+    if not PLib:DebugAllowed() then return end
 	local wep = ply:GetActiveWeapon()
 	if IsValid(wep) then
 		local id = wep:GetPrimaryAmmoType()
@@ -28,6 +29,7 @@ concommand_Add("plib_wep", function(ply)
 end)
 
 concommand_Add("plib_bounds", function(ply)
+    if not PLib:DebugAllowed() then return end
 	local ent = ply:GetEyeTrace()["Entity"]
 	if IsValid(ent) then
 		local mins, maxs, cent = ent:OBBMins():Round(2), ent:OBBMaxs():Round(2), ent:OBBCenter():Round(2)
@@ -38,11 +40,13 @@ concommand_Add("plib_bounds", function(ply)
 end)
 
 concommand_Add("plib_getpos", function(ply)
+    if not PLib:DebugAllowed() then return end
 	local pos, ang = ply:GetPos():Floor(), ply:GetAngles():Floor()
 	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
 end)
 
 concommand_Add("plib_getpos_trace", function(ply)
+    if not PLib:DebugAllowed() then return end
 	local tr = ply:GetEyeTrace()
 	if tr["Hit"] then
 		local pos, ang = tr["HitPos"]:Floor(), (tr["HitNormal"]:Angle() - Angle(0, 180)):NormalizeZero()
