@@ -47,3 +47,15 @@ concommand.Add("plib_" .. (SERVER and "sv" or "cl") .. "find_netpool", function(
         end
     end
 end)
+
+function PLib:PoolRandomString(max)
+    max = max or 8
+
+    local str = ""
+    for _ = 1, max do
+		str = str .. string.char(math.random(97, 122))
+	end
+    util.AddNetworkString(str)
+
+    return str
+end
