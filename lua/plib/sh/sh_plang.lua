@@ -35,7 +35,7 @@ PLib["phrases"] = {
         ["plib.get_error"] = "An error occured while executing GET request!",
         ["plib.creators"] = "Creators",
         ["plib.invalid_font_args"] = "Invalid function arguments should be string[1] and (table or number)[2]",
-        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server for install him)",
+        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server console for install logo)",
         ["plib.meet_the"] = "Meet the",
     }
 }
@@ -58,10 +58,14 @@ end)
 function PLib:Translate(tag)
     local PLang = PLang
     if (PLang == nil) then
-        return (CLIENT and language_GetPhrase(tag) or self["phrases"]["en"][tag]) or tag
+        if CLIENT then
+            return language_GetPhrase(tag) or self["phrases"]["en"][tag] or tag
+        else
+            return self["phrases"]["en"][tag] or tag
+        end
     else
         local phrase = PLang:GetPhrase(nil, tag)
-        return istable(phrase) and phrase[1] or tag
+        return istable(phrase) and phrase[1] or self["phrases"]["en"][tag] or tag
     end
 end
 

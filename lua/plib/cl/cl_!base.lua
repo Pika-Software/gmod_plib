@@ -34,3 +34,14 @@ end)
 hook.Add("NetworkEntityCreated", "PLib:NetworkEntityCreated", function(ent)
 	hook.Run("EntityCreated", ent)
 end)
+
+-- ScreenProcent by DefaultOS#5913
+local screenProcent = (ScrW() < ScrH() and ScrW() or ScrH()) / 100
+local function UpdateScreenProcent()
+	screenProcent = (ScrW() < ScrH() and ScrW() or ScrH()) / 100
+end
+
+hook.Add("OnScreenSizeChanged", "PLib:ScreenProcent", UpdateScreenProcent)
+
+function PLib.ScreenProcent() return screenProcent end
+function PLib.GetDesiredSize(proc) return screenProcent * proc end

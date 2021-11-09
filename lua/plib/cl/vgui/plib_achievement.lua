@@ -6,11 +6,11 @@ local surface_SetMaterial = surface.SetMaterial
 local surface_GetTextSize = surface.GetTextSize
 local draw_LinearGradient = draw.LinearGradient
 local surface_PlaySound = surface.PlaySound
+local getDesiredSize = PLib.GetDesiredSize
 local surface_DrawRect = surface.DrawRect
 local surface_SetFont = surface.SetFont
 local draw_DrawText = draw.DrawText
 local table_remove = table.remove
-local ScreenScale = ScreenScale
 local cam_Start2D = cam.Start2D
 local math_floor = math.floor
 local math_Clamp = math.Clamp
@@ -26,8 +26,9 @@ local ScrH = ScrH
 
 -- w 240 - ss 80
 -- h 96	 - ss 32
-local aw, ah, maxOnScreen = 240, 93
+local aw, ah, maxOnScreen = getDesiredSize(22), getDesiredSize(8)
 local function ScreenInit()
+	aw, ah = getDesiredSize(22), getDesiredSize(8)
 	maxOnScreen = math_floor(ScrH()/ah)
 end
 
@@ -57,7 +58,7 @@ function PANEL:Init()
 	self["TextW"] = 32
 	self["Slot"] = 0
 
-	self:SetPaintedManually(false)
+	self:SetPaintedManually(true)
 	self:NoClipping(true)
 	self:TextChanged()
 
@@ -123,7 +124,7 @@ end
 function PANEL:PerformLayout()
 	if (self["Slot"] > maxOnScreen) then return end
 	PLib:Draw2D(function(w, h)
-		self:SetSize(aw + self["TextW"]/2, ah)
+		self:SetSize(aw + self["TextW"]/2, ah + 1)
 		self:SetPos(w - aw - self["TextW"]/2, h - (ah * self["Offset"] * self["Slot"]))
 	end)
 end

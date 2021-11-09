@@ -13,7 +13,7 @@ PLib["URL_Sound_List"] = PLib["URL_Sound_List"] or {}
 PLib["DefaultSoundURL"] = "https://radio.pika-soft.ru/stream"
 PLib["MaxURLSoundDist"] = 200
 PLib["MaxURLSoundDist^"] = math.pow(PLib["MaxURLSoundDist"], 2) * 20
-function PLib:PlayURL(tag, url, target, flags, callback)
+function PLib:PlayURL(tag, url, target, fadeDist, dist, flags, callback)
     if (tag == nil) then
         tag = "PLib"
         dprint("PlayURL", "No TAG, installed by default: PLib")
@@ -36,7 +36,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
             soundChannel:Stop()
             dprint("PlayURL", "SoundChannel already created! Recreating...")
         end
-    end 
+    end
 
     sound_PlayURL(url, (IsValid(target) and "3d " or "")..((isstring(flags)) and flags or ""), function(channel, errorID, errorName)
         if IsValid(channel) then
@@ -50,7 +50,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
                     pos = pos + target:OBBCenter()
                 end
 
-                channel:Set3DFadeDistance(self["MaxURLSoundDist"] / 2, 0)
+                channel:Set3DFadeDistance((isnumber(fadeDist) and fadeDist or self["MaxURLSoundDist"]), 0)
                 channel:SetPos(pos)
 
                 target[tag] = channel
@@ -58,7 +58,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
 
             channel:Play()
             timer.Simple(0, function()
-                self["URL_Sound_List"][tag] = {channel, IsValid(target) and target or false}
+                self["URL_Sound_List"][tag] = {channel, (IsValid(target) and target or false), (isnumber(dist) and (math.pow(dist, 2) * 20) or self["MaxURLSoundDist^"])}
                 dprint("PlayURL", string_format("SoundChannel, %s created!", tag))
             end)
         else
@@ -80,7 +80,7 @@ function PLib:URLSoundThink()
                             pos = pos + target:OBBCenter()
                         end
 
-                        if (LocalPlayer():GetPos():DistToSqr(pos) < self["MaxURLSoundDist^"]) then
+                        if (LocalPlayer():GetPos():DistToSqr(pos) < tbl[3]) then
                             if (channel:GetState() == 2) then
                                 channel:Play()
                             end

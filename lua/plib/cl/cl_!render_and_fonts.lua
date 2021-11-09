@@ -8,6 +8,7 @@ local surface_SetTexture = surface.SetTexture
 local mesh_AdvanceVertex = mesh.AdvanceVertex
 local table_SortByMember = table.SortByMember
 local render_SetMaterial = render.SetMaterial
+local getDesiredSize = PLib["GetDesiredSize"]
 local surface_DrawRect = surface.DrawRect
 local draw_SimpleText = draw.SimpleText
 local system_IsLinux = system.IsLinux
@@ -15,7 +16,6 @@ local mesh_Position = mesh.Position
 local validStr = string["isvalid"]
 local table_insert = table.insert
 local hook_Remove = hook.Remove
-local ScreenScale = ScreenScale
 local color_white = color_white
 local math_Clamp = math.Clamp
 local math_Round = math.Round
@@ -42,7 +42,7 @@ PLib["Fonts"] = {
     {
         ["name"] = "Main1",
         ["font"] = "Roboto",
-        ["size"] = 6,
+        ["size"] = 1.7,
     },
 }
 
@@ -76,7 +76,7 @@ function PLib:FontInit(name, font, size, tbl)
 
     surface_CreateFont(title, {
         font = font,
-        size = ScreenScale(size),
+        size = getDesiredSize(size),
         extended = isbool(tbl["extended"]) and tbl["extended"] or true,
         additive = isbool(tbl["additive"]) and tbl["additive"] or false,
         weight = isnumber(tbl["weight"]) and tbl["weight"] or 500,
@@ -328,11 +328,14 @@ function PLib:DebugEntityDraw(ent)
 end
 
 local dy = colors["dy"]
-
-local function drawDevFrame(text, num)
-    local x = 85 * num
-    draw_RoundedBox(5, 5 + x, 5, 80, 30, greyBG)
-    draw_SimpleText(text, devHFont, 45 + x, 20, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+function PLib.DrawCenteredList(lst, y)
+    local len = #lst
+    for num, tbl in ipairs(lst) do
+        if !istable(tbl) then tbl = {tbl} end
+        local x = (w / 2 - 90 * len / 2) + (5 + 90 * (num - 1))
+        draw_RoundedBox(5, x, y - 35, 80, 30, tbl[3] or greyBG)
+        draw_SimpleText(tbl[1] or "None", devHFont, (40 + x), y - 20, tbl[2] or color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
 end
 
 local developer
@@ -343,10 +346,12 @@ local string_format = string.format
 local string_len = string.len
 
 local function drawDeveloperHUD()
-    drawDevFrame("FPS: "..math_floor(1 / FrameTime()), 0)
-    drawDevFrame("PING: "..developer:Ping(), 1)
-    drawDevFrame(os_date("%H:%M"), 2)
-    drawDevFrame("Speed: "..math_floor(developer:Speed()), 3)
+    PLib.DrawCenteredList({
+        "FPS: "..math_floor(1 / FrameTime()),
+        "PING: "..developer:Ping(),
+        os_date("%H:%M"),
+        "Speed: "..math_floor(developer:Speed()),
+    }, getDesiredSize(4))
 
     if (devEntData == nil) then return end
     if IsValid(devEnt) then

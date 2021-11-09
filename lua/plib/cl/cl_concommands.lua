@@ -13,41 +13,40 @@ end)
 local debugTag = "Debug/"
 concommand_Add("plib_ent", function(ply)
     local ent = ply:GetEyeTrace()["Entity"]
-    PLib:Log(debugTag.."Entity", "Index: "..ent:EntIndex() or 0, " Class: "..ent:GetClass() or "error", " Model: "..ent:GetModel() or "No Model", " Name: ".. (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "nil"))
+	PLib:Log(debugTag.."Entity", string.format("%s\n	Index: %s\n	Name: %s\n	Class: %s\n	Model: %s", ent, ent:EntIndex(), (ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "none"), ent:GetClass(), ent:GetModel() or "No Model"))
 end)
 
 concommand_Add("plib_wep", function(ply)
 	local wep = ply:GetActiveWeapon()
 	if IsValid(wep) then
 		local id = wep:GetPrimaryAmmoType()
-		PLib:Log(debugTag.."Weapon", string.format("Index: %s Name: %s Class: %s Model: %s", (wep:EntIndex() or 0), (wep["PrintName"] or wep["TrueName"] or (wep["GetName"] and wep:GetName()) or "nil"), (wep:GetClass() or "error"), (wep:GetModel() or "No Model")))
-		PLib:Log(debugTag.."Ammo", "In Weapon: ", wep:Clip1().."/"..wep:GetMaxClip1(),", In Inventory: ", ply:GetAmmoCount(id), ", Type: ", game.GetAmmoName(id), " [ID: ", id, ", Damage: ", game.GetAmmoPlayerDamage(id), "]")
+		PLib:Log(debugTag.."Weapon", string.format("%s", tostring(wep)))
+		PLib:Log("Info", string.format("\n	Index: %s\n	Name: %s\n	Class: %s\n	Model: %s", (wep:EntIndex() or 0), (wep["PrintName"] or wep["TrueName"] or (wep["GetName"] and wep:GetName()) or "nil"), (wep:GetClass() or "error"), (wep:GetModel() or "No Model")))
+		PLib:Log("Ammo", string.format("\n	In Weapon: %s/%s\n	In Inventory: %s\n	[ID: %s, Name: %s, Damage: %s]", wep:Clip1(), wep:GetMaxClip1(), ply:GetAmmoCount(id), id, game.GetAmmoName(id), game.GetAmmoPlayerDamage(id)))
 	end
-end)
-
-concommand_Add("plib_player", function(ply)
-	local tbl, path = ply:GetAllData()
-	PLib:Log(debugTag.."Saved", path)
-	PrintTable(tbl)
-	Msg("\n")
 end)
 
 concommand_Add("plib_bounds", function(ply)
 	local ent = ply:GetEyeTrace()["Entity"]
 	if IsValid(ent) then
 		local mins, maxs, cent = ent:OBBMins():Round(2), ent:OBBMaxs():Round(2), ent:OBBCenter():Round(2)
-		PLib:Log(debugTag.."Bounds", "MINS, MAXS, CENTER:\nlocal mins = Vector(", mins[1], ", ", mins[2], ", ", mins[3], ")", "\nlocal maxs = Vector(", maxs[1], ", ", maxs[2], ", ", maxs[3], ")", "\ncenter = Vector(", cent[1], ", ", cent[2], ", ", cent[3], ")\n")
+		PLib:Log(debugTag.."Bounds", string.format("%s\nlocal mins, maxs = Vector(%s, %s, %s), Vector(%s, %s, %s)\nlocal center = Vector(%s, %s, %s)", tostring(ent), mins[1], mins[2], mins[3], maxs[1], maxs[2], maxs[3], cent[1], cent[2], cent[3]))
+	else
+		PLib:Log(debugTag.."Bounds", "There is no Entity!")
 	end
 end)
 
 concommand_Add("plib_getpos", function(ply)
-	local pos, ang = ply:EyePos():Round(2):Floor(), ply:GetAngles():Floor()
+	local pos, ang = ply:GetPos():Floor(), ply:GetAngles():Floor()
 	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
 end)
 
-concommand_Add("plib_get_trace_pos", function(ply)
-	local pos, ang = ply:GetEyeTrace()["HitPos"]:Round(2):Floor(), ply:GetAngles():Floor() * -1
-	PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
+concommand_Add("plib_getpos_trace", function(ply)
+	local tr = ply:GetEyeTrace()
+	if tr["Hit"] then
+		local pos, ang = tr["HitPos"]:Floor(), (tr["HitNormal"]:Angle() - Angle(0, 180)):NormalizeZero()
+		PLib:Log(debugTag.."(Pos, Ang)", string.format("\nVector(%s, %s, %s)\nAngle(%s, %s, %s)", pos[1], pos[2], pos[3], ang[1], ang[2], ang[3]))
+	end
 end)
 
 local achiCount = achievements.Count()

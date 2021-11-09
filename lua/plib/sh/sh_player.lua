@@ -121,6 +121,30 @@ function PLAYER:SetData(key, value)
     end
 end
 
+local function printUserData(ply)
+    local tbl, path = ply:GetAllData()
+    PLib:Log("Debug/Database", path, " / ", ply)
+    PrintTable(tbl)
+    Msg("\n")
+end
+
+concommand.Add("plib_get_player_data", function(ply, cmd, args)
+    if IsValid(ply) and SERVER then return end
+    
+    if CLIENT and (#args == 0) then
+        printUserData(ply)
+        return
+    end
+
+    for _, ply in ipairs(player.GetAll()) do
+        for _, nick in ipairs(args) do
+            if (ply:Nick():find(nick)) or (CLIENT and (nick == "self") and (ply == LocalPlayer())) then
+                printUserData(ply)
+            end
+        end
+    end
+end)
+
 -- Yeah fuck rubat again :>
 if SERVER then
     util.AddNetworkString("PLib.ConCommand")

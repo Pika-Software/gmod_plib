@@ -32,7 +32,7 @@ function PLib:ServerLogoUpdate(url)
         end)
     else
         hook.Remove("PLib:PlayerInitialized", "PLib:Logo")
-        self:Log(nil, "#plib.invalid_logo_url")
+        self:Log(nil, self:Translate("plib.invalid_logo_url"))
     end
 end
 
@@ -54,4 +54,36 @@ end)
 concommand.Add("plib_modules_reload", function()
 	PLib:LoadModules("plib/modules")
 	PLib:Log(nil, "Modules reloaded!")
+end)
+
+-- Just add this in your cfg/autoexec.cfg
+-- alias "plib_shutdown" "quit"
+-- alias "plib_restart" "_restart"
+
+function PLib:Shutdown()
+    game.ConsoleCommand("plib_shutdown\n")
+end
+
+function PLib:Restart()
+    game.ConsoleCommand("plib_restart\n")
+end
+
+concommand.Add("plib_shutdown", function(ply)
+    if IsValid(ply) then
+        if ply:IsSuperAdmin() then
+            PLib:Shutdown()
+        end
+    else
+        PLib:Shutdown()
+    end
+end)
+
+concommand.Add("plib_restart", function(ply)
+    if IsValid(ply) then
+        if ply:IsSuperAdmin() then
+            PLib:Restart()
+        end
+    else
+        PLib:Restart()
+    end
 end)

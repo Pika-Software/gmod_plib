@@ -10,10 +10,14 @@ function ENT:Initialize()
         self:PhysicsInit(SOLID_VPHYSICS)
         self:SetMoveType(MOVETYPE_NONE)
         self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-
-        if (self["SetUnbreakable"] != nil) then
-            self:SetUnbreakable(true)
-        end
+        
+        hook.Add("PLib:Loaded", self, function()
+            if IsValid(self) then
+                if (self["SetUnbreakable"] != nil) then
+                    self:SetUnbreakable(true)
+                end  
+            end
+        end)
     else
         self["Sec"] = 0
         self["Mins"] = 0

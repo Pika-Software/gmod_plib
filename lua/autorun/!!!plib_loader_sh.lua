@@ -15,10 +15,12 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 2.9,
+    ["Version"] = 3.0,
     ["Developers"] = {
+        "KlΞn_list 🎀 ~ >,.,<#0710",
         "_ᐱℕᏩĒŁØҜҜ_#8486",
         "PrikolMen#3372",
+        "DefaultOS#5913",
         "Retro#1593",
     },
     ["ModuleInitName"] = "_plib_module.lua",
@@ -64,13 +66,11 @@ PLib["GoodGuys"] = {
     ["76561198049442792"] = true, -- Komi-sar
     ["76561198377497545"] = true, -- Kactus
     ["76561198256780625"] = true, -- Angel
-    ["76561198199724378"] = true, -- DrDos
     ["76561198884350315"] = true, -- Retro
     ["76561198068100168"] = true, -- Fer
     ["76561198233049188"] = true, -- Клён
     ["76561198323873998"] = true, -- Асыч
     ["76561198147878214"] = true, -- Карп
-    ["76561198287965045"] = true, -- лёлик
 }   -- <3
 
 -- SafeInclude by Retro#1593
@@ -197,3 +197,4 @@ end
 
 PLib:SH("plib", "sh_loading_manager.lua")
 PLib["Loaded"] = true
+hook.Run("PLib:Loaded")

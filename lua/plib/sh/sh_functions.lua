@@ -420,6 +420,20 @@ function VECTOR:Floor()
     return self
 end
 
+function VECTOR:abs()
+	self[1] = math_abs(self[1])
+	self[2] = math_abs(self[2])
+	self[3] = math_abs(self[3])
+    return self
+end
+
+function VECTOR:NormalizeZero()
+	self[1] = (self[1] == 0) and 0 or self[1]
+	self[2] = (self[2] == 0) and 0 or self[2]
+	self[3] = (self[3] == 0) and 0 or self[3]
+    return self
+end
+
 function VECTOR:Middle()
 	return (self[1] + self[2] + self[3])/3
 end
@@ -437,6 +451,20 @@ function ANGLE:Floor()
 	self[1] = math_floor(self[1])
 	self[2] = math_floor(self[2])
 	self[3] = math_floor(self[3])
+    return self
+end
+
+function ANGLE:abs()
+	self[1] = math_abs(self[1])
+	self[2] = math_abs(self[2])
+	self[3] = math_abs(self[3])
+    return self
+end
+
+function ANGLE:NormalizeZero()
+	self[1] = (self[1] == 0) and 0 or self[1]
+	self[2] = (self[2] == 0) and 0 or self[2]
+	self[3] = (self[3] == 0) and 0 or self[3]
     return self
 end
 
@@ -854,10 +882,117 @@ PLib:CreateTriggerEntity("plib_achievement_button", {
     end,
 }, false, true)
 
+local plib = PLib
+function PLib:CreateInfoBanner(class, url, mins, maxs)
+	self:CreateTriggerEntity(class, {
+		["URL"] = (url or "http://pika-soft.ru/"),
+		["Mins"] = (mins or Vector(-18, 0, -15)),
+		["Maxs"] = (maxs or Vector(18, 2, 55)),
+		["UpdatePos"] = function(self)
+			local mins, maxs = self:OBBMins(), self:OBBMaxs()
+			self["pnlPos"] = Vector(maxs[1], 1, maxs[3]) + self:GetPos()
+			self["pnlAng"] = Angle(0, 180, 90) + self:GetAngles()
+			self["pnlSize"] = {(maxs[1] - mins[1]) * 10 + 18, (maxs[3] - mins[3]) * 10}
+
+			local pnl = self["pnl"]
+			if IsValid(pnl) then
+				if (pnl["Opened"] == false) then
+					pnl:SetSize(self["pnlSize"][1], self["pnlSize"][2])
+					pnl:SetPos(0, 0)
+				else
+					pnl:SetSize(math.min(ScrW(), self["pnlSize"][1] * 1.5), math.min(ScrH(), self["pnlSize"][2] * 1.5))
+					pnl:Center()
+				end
+		
+				function pnl:Think()
+				end
+			end
+		end,
+		["Toggle"] = function(self, bool)
+			local pnl = self["pnl"]
+			if IsValid(pnl) then
+				pnl["Opened"] = (bool == true) and true or false
+				self:UpdatePos()
+
+				if (bool == true) then
+					pnl:SetPaintedManually(false)
+					GAMEMODE:ShowMouse()
+					
+					local ent = self
+					function pnl:Think()
+						if IsValid(ent) then
+							if (ent:GetPos():DistToSqr(LocalPlayer():EyePos()) > 10000) then
+								ent:Toggle()
+								return 
+							end
+
+							if input.IsButtonDown(KEY_ESCAPE) then
+								gui.HideGameUI()
+								ent:Toggle()
+							end
+						end
+					end
+				else
+					pnl:SetPaintedManually(true)
+					GAMEMODE:HideMouse()
+				end
+			end
+		end,
+		["UpdateVGUI"] = function(self)
+			local pnl = self["pnl"]
+			if IsValid(pnl) then
+				pnl:Remove()
+			end
+
+			self["pnl"] = vgui.Create("DHTML")
+			if IsValid(self["pnl"]) then
+				self["pnl"]:OpenURL(self["URL"])
+				self:Toggle()
+				self:UpdatePos()
+			end
+		end,
+		["Draw"] = function(self)
+			local pnl = self["pnl"]
+			if IsValid(pnl) and (pnl["Opened"] == false) then
+				cam.Start3D2D(self["pnlPos"], self["pnlAng"], 0.1)
+					pnl:PaintManual()
+				cam.End3D2D()
+			end
+		end,
+		["Init"] = function(self)
+			self:SetNoDraw(false)
+
+			if CLIENT then
+				self:UpdateVGUI()
+
+				hook.Add("PLib:PlayerInitialized", self, function(self)
+					if not IsValid(self) then return end
+					self:Init()
+				end)
+			end
+		end,
+		["Timeout"] = 0,
+		["Think"] = function(self)
+			if CLIENT and (self["Timeout"] < CurTime()) then
+				self["Timeout"] = CurTime() + 15 * 60
+
+				self:UpdateVGUI()
+			end
+		end,
+		["Use"] = function(self, ply)
+			if IsValid(ply) and ply:IsPlayer() and !ply:IsBot() then
+				ply:SendLua("local ent = Entity(" .. self:EntIndex() .. ");if IsValid(ent) then ent:Toggle(true);end")
+			end
+		end,
+	}, false, true)
+end
+
 local steamworks_DownloadUGC = steamworks and steamworks.DownloadUGC
 PLib["WorkshopDownloaded"] = PLib["WorkshopDownloaded"] or {}
 
 function PLib:WorkshopDownload(id, cb)
+	dprint("Workshop", "Trying download addon, id: ", id)
+
 	local saved = PLib["WorkshopDownloaded"][id]
 	if (saved == nil) then
 		if CLIENT then
@@ -865,6 +1000,8 @@ function PLib:WorkshopDownload(id, cb)
 		end
 
 		steamworks_DownloadUGC(id, function(path)
+			dprint("Workshop", string.format("Addon downloaded, id: %s (%s)", id, path))
+
 			if CLIENT then
 				notification.Kill("plib.workshop_download_#" .. id)
 			end
@@ -873,47 +1010,93 @@ function PLib:WorkshopDownload(id, cb)
 			if isfunction(cb) then
 				cb(path)
 			end
-
-			dprint("Workshop", "Install try download workshop addon, id: ", id)
 		end)
 	else
+		dprint("Workshop", "Addon already downloaded, id: ", id)
+		
 		if isfunction(cb) then
 			cb(saved)
 		end
 
 		return saved
 	end
-
-	dprint("Workshop", "Install try download workshop addon, id: ", id)
 end
 
 PLib["WorkshopInstalled"] = PLib["WorkshopInstalled"] or {}
 local game_MountGMA = game.MountGMA
 
 function PLib:WorkshopInstall(id, cb)
-	local saved = PLib["WorkshopDownloaded"][id]
+	dprint("Workshop", "Trying install addon, id: ", id)
+
+	local saved = PLib["WorkshopInstalled"][id]
 	if (saved == nil) then
 		self:WorkshopDownload(id, function(path)
 			local ok, files = game_MountGMA(path)
 
 			local outputTbl = {path, files}
-			if (ok == true) then
+			if ok then
 				PLib["WorkshopInstalled"][id] = outputTbl
+				dprint("Workshop", "Addon installed successfully, id: ", id)
+			else
+				dprint("Workshop", "Addon installation failed, id: ", id)
 			end
 
 			if isfunction(cb) then
 				cb(ok, path, files)
 			end
 
-			return (ok == true) and outputTbl or false
+			return (ok and outputTbl or false)
 		end)
 	else
+		dprint("Workshop", "Addon already installed, id: ", id)
+
 		if isfunction(cb) then
 			cb(true, saved[1], saved[2])
 		end	
 
 		return saved
 	end
+end
+
+local string_GetExtensionFromFilename = string.GetExtensionFromFilename
+local string_GetPathFromFilename = string.GetPathFromFilename
+
+function PLib:IsValidLuaFile(fl)
+    local path = string_GetPathFromFilename(fl)
+    return (string_GetExtensionFromFilename(fl) == 'lua') and ((path == 'lua/autorun/') or (path == 'lua/autorun/client/'))
+end
+
+PLib:Precache_G("player_manager.AddValidHands", player_manager.AddValidHands)
+PLib:Precache_G("player_manager.AddValidModel", player_manager.AddValidModel)
+
+-- PlayerModel Export by Retro#1593
+function PLib:ExportPM(files)
+    local mdls, hands = {}, {}
+    function player_manager.AddValidHands(name, model, skin, bodygroups)
+        table.insert(hands, {name = name, model = model, skin = skin, bodygroups = bodygroups})
+    end
+
+    function player_manager.AddValidModel(name, model)
+        table.insert(mdls, {name = name, model = model})
+    end
+
+    for _, fl in ipairs(files) do
+        if not self:IsValidLuaFile(fl) then continue end
+
+        local path = fl:sub(5)
+        local lua = file.Read(path, 'LUA')
+        if not lua then continue end
+
+		local ok, err = pcall(RunString, lua, path)
+		if (ok == true) then
+			PLib:Log("Error", err)
+		end
+    end
+
+    player_manager.AddValidHands = self:Get_G("player_manager.AddValidHands")
+    player_manager.AddValidModel = self:Get_G("player_manager.AddValidModel")
+
+    return mdls, hands
 end
 
 function PLib:TryInstallWorkshop(id, cb, num)

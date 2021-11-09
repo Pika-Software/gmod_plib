@@ -1,8 +1,23 @@
--- Magic by KlΞn_list 🎀 ~ >,.,<#0710
-debug.getmetatable("String").__add = function(a, b)
-    if isstring(a) and isstring(b) then
-        return a .. b
+-- Magic by KlΞn_list 🎀 ~ >,.,<#0710 & PrikolMen#3372
+local tostring = tostring
+local isstring = isstring
+
+local string_meta = debug.getmetatable("String")
+string_meta["__add"] = function(a, b)
+    return a .. tostring(b)
+end
+
+string_meta["__mul"] = function(a, b)
+    if isnumber(b) then
+        local output = ""
+        for i = 1, b do
+            output = output .. a
+        end
+
+        return output
     end
+
+    return a + b
 end
 
 hook.Add("InitPostEntity", "PLib:GameLoaded", function()
