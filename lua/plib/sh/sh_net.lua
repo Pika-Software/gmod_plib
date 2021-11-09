@@ -1,4 +1,4 @@
-local net_dbg = CreateConVar("plib_" .. (SERVER and "svdbg" or "cldbg") .. "_receive", "0", "Enable/disable output for incoming messages")
+local receive_dbg = CreateConVar("plib_" .. (SERVER and "svdbg" or "cldbg") .. "_receive", "0", "Enable/disable output for incoming messages")
 
 local messages_logtime = {}
 local nextlogtime = 0.3
@@ -16,7 +16,7 @@ function net.Incoming(len, client)
     -- Removes 2 bytes of ReadHeader from length
     len = len - 16
 
-    if net_dbg:GetBool() and (SERVER or PLib:DebugAllowed()) and CurTime() > (messages_logtime[poolstr] or 0) then
+    if receive_dbg:GetBool() and (SERVER or PLib:DebugAllowed()) and CurTime() > (messages_logtime[poolstr] or 0) then
         messages_logtime[poolstr] = CurTime() + nextlogtime
         if IsValid(client) then
             PLib:Log("Debug/NetIncoming", string.format("%s(%s)<I%i:P%i> send `%s`, length %i bits (%i bytes)", client:Nick(), client:SteamID(), client:EntIndex(), client:UserID(), poolstr, len, len * 0.125))

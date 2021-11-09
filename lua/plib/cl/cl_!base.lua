@@ -7,7 +7,7 @@ PLib["CanDebug"] = {
 }
 
 function PLib:DebugAllowed()
-    return cvars_Bool"plib_debug_allow" or PLib["CanDebug"][LocalPlayer():GetUserGroup()]
+    return cvars_Bool("plib_debug_allow") or PLib["CanDebug"][LocalPlayer():GetUserGroup()]
 end
 
 hook.Add("RenderScene", "PLib:PlayerInitialized", function()
