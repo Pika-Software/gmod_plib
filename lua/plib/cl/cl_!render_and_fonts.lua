@@ -346,11 +346,13 @@ local string_format = string.format
 local string_len = string.len
 
 local function drawDeveloperHUD()
+    if not PLib:DebugAllowed() then return end
+
     PLib.DrawCenteredList({
         "FPS: "..math_floor(1 / FrameTime()),
         "PING: "..developer:Ping(),
         os_date("%H:%M"),
-        "Speed: "..math_floor(developer:Speed()),
+        "Speed: "..math_floor(developer:GetRawSpeed()),
     }, getDesiredSize(4))
 
     if (devEntData == nil) then return end
