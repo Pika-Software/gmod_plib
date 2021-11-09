@@ -1,74 +1,125 @@
-local util_PrecacheModel = util.PrecacheModel
-local ents_FindInSphere = ents.FindInSphere
-local util_TableToJSON = util.TableToJSON
-local util_JSONToTable = util.JSONToTable
-local weapons_Register = weapons.Register
-local scripted_ents_Register = scripted_ents.Register
-local util_Decompress = util.Decompress
-local util_QuickTrace = util.QuickTrace
-local player_GetAll = player.GetAll
-local util_Compress = util.Compress
-local net_WriteUInt = net.WriteUInt
-local net_WriteData = net.WriteData
 local FindMetaTable = FindMetaTable
-local validStr = string["isvalid"]
-local net_ReadUInt = net.ReadUInt
-local net_ReadData = net.ReadData
-local table_insert = table.insert
-local table_remove = table.remove
-local string_lower = string.lower
+local table_concat = table.concat
 local file_Exists = file.Exists
-local math_random = math.random
-local table_Merge = table.Merge
-local dprint = PLib["dprint"]
+local string_lower = string.lower
+local util_PrecacheModel = util.PrecacheModel
+local string_GetPathFromFilename = string.GetPathFromFilename
+local string_GetExtensionFromFilename = string.GetExtensionFromFilename
+local isvector = isvector
+local LerpVector = LerpVector
+local isangle = isangle
+local LerpAngle = LerpAngle
+local isnumber = isnumber
+local Lerp = Lerp
+local IsColor = IsColor
+local Color = Color
+local table_insert = table.insert
+local ipairs = ipairs
+local file_Read = file.Read
+local pcall = pcall
+local math_Clamp = math.Clamp
+local tonumber = tonumber
+local PLib = PLib
+local string_match = string.match
+local string_format = string.format
+local file_Find = file.Find
+local string_EndsWith = string.EndsWith
+local string_sub = string.sub
+local GetGlobalString = GetGlobalString
+local SetGlobalString = SetGlobalString
+local isstring = isstring
+local timer_Simple = timer.Simple
+local achievements_Count = CLIENT and achievements.Count
+local achievements_GetName = CLIENT and achievements.GetName
+local Material = Material
+local pairs = pairs
+local table_remove = table.remove
+local player_GetAll = player.GetAll
+local ents_FindInSphere = ents.FindInSphere
+local IsValid = IsValid
 local isfunction = isfunction
+local player_GetHumans = player.GetHumans
+local math_random = math.random
+local Vector = Vector
+local table_insert = table_insert
+local WorldToLocal = WorldToLocal
+local Angle = Angle
+local validStr = validStr
+local util_QuickTrace = util.QuickTrace
+local ents_FindInBox = ents.FindInBox
+local math_max = math.max
+local math_abs = math.abs
 local math_Round = math.Round
 local math_floor = math.floor
-local math_abs = math.abs
+local string_Split = string.Split
+local math_pow = math.pow
+local math_ceil = math.ceil
+local math_log = math.log
+local select = select
+local assert = assert
+local string_byte = string.byte
+local string_len = string.len
+local math_fmod = math.fmod
 local tostring = tostring
-local tonumber = tonumber
-local IsValid = IsValid
-local CurTime = CurTime
-local Vector = Vector
-local ipairs = ipairs
+local surface_SetFont = CLIENT and surface.SetFont
+local surface_GetTextSize = CLIENT and surface.GetTextSize
+local string_find = string.find
+local string_ToTable = string.ToTable
+local game_GetAmmoName = game.GetAmmoName
+local engine_GetAddons = engine.GetAddons
+local ents_CreateClientside = CLIENT and ents.CreateClientside
+local util_Compress = util.Compress
+local util_TableToJSON = util.TableToJSON
+local net_WriteUInt = net.WriteUInt
+local net_WriteData = net.WriteData
+local net_ReadUInt = net.ReadUInt
+local util_JSONToTable = util.JSONToTable
+local util_Decompress = util.Decompress
+local net_ReadData = net.ReadData
+local module = module
+local type = type
+
+--[[-------------------------------------------------------------------------
+    Used local variables
+---------------------------------------------------------------------------]]
+
+local PrechangedModels = {}
+local BoneCache = {}
+
+local ENTITY = FindMetaTable("Entity")
+local VECTOR = FindMetaTable("Vector")
+local ANGLE = FindMetaTable("Angle")
+local COLOR = FindMetaTable("Color")
+local IMATERIAL = FindMetaTable("IMaterial")
+
+--[[-------------------------------------------------------------------------
+    Other
+---------------------------------------------------------------------------]]
+
+function PLib.string(...)
+    return table_concat({...}, " ")
+end
 
 function PLib.OneTeam(ply1, ply2)
     return ply1:Team() == ply2:Team()
 end
 
-function PLib.HasModel(path)
-    return file_Exists(string_lower(path), "GAME")
+function PLib.HasModel(fpath)
+    return file_Exists(string_lower(fpath), "GAME")
 end
 
-PLib["GetMap"] = game["GetMap"]
-function PLib:GetMapList()
-    local tbl = {}
-    local maps = file.Find("maps/*", "GAME")
-    for i = 1, #maps do
-        local map = maps[i]
-        if string.EndsWith(map, ".bsp") then
-            table_insert(tbl, string.sub(map, 0, #map - 4))
-        end
+function PLib.Model(model)
+    if (PrechangedModels[model] == nil) then
+        util_PrecacheModel(model)
+        PrechangedModels[model] = true
     end
 
-    return tbl
+    return model
 end
 
-local table_concat = table.concat
-function PLib.string(...)
-    return table_concat({...}, " ")
-end
-
-function PLib:GetServerName()
-    return GetGlobalString("ServerName", SERVER and self:GetHostName() or "Garry's Mod")
-end
-
-function PLib:SetServerName(str)
-    local old = self:GetServerName()
-    SetGlobalString("ServerName", isstring(str) and str or old)
-    timer.Simple(0, function()
-        self:Log(nil, string.format("Server name changed from '%s' to '%s'!", old, self:GetServerName()))
-    end)
+function PLib:IsValidLuaFile(f)
+    local fpath = string_GetPathFromFilename(f)
+    return (string_GetExtensionFromFilename(f) == "lua") and ((fpath == "lua/autorun/") or (fpath == "lua/autorun/client/"))
 end
 
 function PLib.GetBonePos(ent, bone)
@@ -83,121 +134,6 @@ function PLib.GetBonePos(ent, bone)
     return pos
 end
 
-function PLib:GetAchievement(tag)
-    return self["Achievements"][tag]
-end
-
-function PLib:GetAchievementName(tag)
-    local achi = self:GetAchievement(tag)
-    if (achi != nil) then
-        return PLib:TranslateText(achi[1])
-    elseif CLIENT and (isnumber(tag) and tag <= achievements.Count()) then
-        return PLib:TranslateText(achievements.GetName(tag))
-    else
-        return PLib:TranslateText(tag or "")
-    end
-end
-
-function PLib:EditAchievement(tag, title, icon)
-    local tbl = self:GetAchievement(tag)
-    if (tbl != nil) then
-        tbl[1] = title and PLib:TranslateText(title) or tbl[1]
-        tbl[2] = icon and Material(icon, PLib["MatPresets"]["Pic"]) or tbl[2]
-        self["Achievements"][tag] = tbl
-    end
-end
-
-function PLib:RemoveAchievement(tag)
-    local num = 1
-    for id, tbl in pairs(self["Achievements"]) do
-        if (id == tag) then
-            return table_remove(self["Achievements"], num)
-        end
-
-        num = num + 1
-    end
-
-    return false
-end
-
-PLib:Precache_G("Color", Color)
-local _GColor = PLib:Get_G("Color")
-
-function Color(hex, g, b, a)
-    if validStr(hex) and (g == nil) and (b == nil) and (a == nil) then
-        local hex = hex:gsub("#", "")
-        if (hex:len() == 3) then
-            return _GColor((tonumber("0x"..hex:sub(1, 1)) * 17), (tonumber("0x"..hex:sub(2, 2)) * 17), (tonumber("0x"..hex:sub(3, 3)) * 17))
-        else
-            return _GColor(tonumber("0x"..hex:sub(1, 2)), tonumber("0x"..hex:sub(3, 4)), tonumber("0x"..hex:sub(5, 6)))
-        end
-    end
-
-    return _GColor(hex, g, b, a)
-end
-
-local PrechangedModels = {}
-function PLib.Model(model)
-    if (PrechangedModels[model] == nil) then
-        util_PrecacheModel(model)
-        PrechangedModels[model] = true
-    end
-
-    return model
-end
-
-function player.inRange(pos, range)
-    range = range ^ 2
-
-    local output = {}
-    for i, ply in ipairs(player_GetAll()) do
-        if ply:GetPos():DistToSqr(pos) <= range then
-            table_insert(output, ply)
-        end
-    end
-
-    return output
-end
-
-function player.findNearest(pos, radius, filter)
-    local plys = {}
-    for num, ply in ipairs((radius == nil) and player_GetAll() or ents_FindInSphere(pos, radius)) do
-        if IsValid(ply) and ply:IsPlayer() and (!filter or !isfunction(filter) or filter(ply)) then
-            table_insert(plys, {pos:Distance(ply:GetPos()), ply})
-        end
-    end
-
-    local output = {}
-    for _, tbl in ipairs(plys) do
-        if !output or (tbl[1] < output[1]) then
-            output = tbl
-        end
-    end
-
-    return output
-end
-
-local player_GetHumans = player.GetHumans
-local player_GetAll = player.GetAll
-
-function player.Random(no_bots)
-    local players = no_bots and player_GetHumans() or player_GetAll()
-    return players[math_random(1, #players)]
-end
-
-local game_GetAmmoName = game.GetAmmoName
-function game.AmmoList()
-    local last = game_GetAmmoName(1)
-    local output = {last}
-
-    while (last != nil) do
-        last = game_GetAmmoName(table_insert(output, last))
-    end
-
-    return output
-end
-
-local Lerp = Lerp
 function PLib.Lerp(frac, a, b)
     if isvector(a) then
         return LerpVector(frac, a, b)
@@ -206,7 +142,7 @@ function PLib.Lerp(frac, a, b)
     elseif isnumber(a) then
         return Lerp(frac, a, b)
     elseif IsColor(a) then
-        local col = Color(0,0,0,0)
+        local col = Color(0, 0, 0, 0)
         col["r"] = Lerp(frac, a["r"], b["r"])
         col["g"] = Lerp(frac, a["g"], b["g"])
         col["b"] = Lerp(frac, a["b"], b["b"])
@@ -216,21 +152,8 @@ function PLib.Lerp(frac, a, b)
     end
 end
 
-function engine.GetAddon(id)
-    local addons = engine.GetAddons()
-    for i = 1, #addons do
-        local addon = addons[i]
-        if (addon["wsid"] == id) then
-            return addon
-        end
-    end
-
-    return false
-end
-
-local ENTITY = FindMetaTable("Entity")
 function PLib.EyeAngles(ply)
-    local attach_id, ang = ply:LookupAttachment('eyes')
+    local attach_id, ang = ply:LookupAttachment("eyes")
 
     if attach_id then
         local attach = ply:GetAttachment(attach_id)
@@ -243,7 +166,7 @@ function PLib.EyeAngles(ply)
 end
 
 function PLib.EyePos(ply)
-    local attach_id, attach, pos = ply:LookupAttachment('eyes'), false
+    local attach_id, attach, pos = ply:LookupAttachment("eyes"), false
 
     if attach_id then
         attach = ply:GetAttachment(attach_id)
@@ -279,8 +202,286 @@ function PLib.EyePos(ply)
     return ENTITY.EyePos(ply)
 end
 
+PLib:Precache_G("player_manager.AddValidHands", player_manager.AddValidHands)
+PLib:Precache_G("player_manager.AddValidModel", player_manager.AddValidModel)
+
+-- PlayerModel export by Retro#1593
+function PLib:ExportPM(files)
+    local mdls, hands = {}, {}
+    function player_manager.AddValidHands(name, model, skin, bodygroups)
+        table_insert(hands, {name = name, model = model, skin = skin, bodygroups = bodygroups})
+    end
+
+    function player_manager.AddValidModel(name, model)
+        table_insert(mdls, {name = name, model = model})
+    end
+
+    for _, fl in ipairs(files) do
+        if not self:IsValidLuaFile(fl) then continue end
+
+        local path = fl:sub(5)
+        local lua = file_Read(path, 'LUA')
+        if not lua then continue end
+
+		local ok, err = pcall(RunString, lua, path)
+		if (ok == true) then
+			PLib:Log("Error", err)
+		end
+    end
+
+    player_manager.AddValidHands = self:Get_G("player_manager.AddValidHands")
+    player_manager.AddValidModel = self:Get_G("player_manager.AddValidModel")
+
+    return mdls, hands
+end
+
+--[[-------------------------------------------------------------------------
+    Convert operations
+---------------------------------------------------------------------------]]
+
+-- arguments can be only 0-255
+function PLib.Vec4ToInt(a, b, c, d)
+	local int = 0
+    int = int + pbit.lshift(math_Clamp(tonumber(a), 0, 255), 24)
+    int = int + pbit.lshift(math_Clamp(tonumber(b), 0, 255), 16)
+	int = int + pbit.lshift(math_Clamp(tonumber(c), 0, 255), 8)
+	int = int + math_Clamp(tonumber(d), 0, 255)
+	return int
+end
+
+function PLib.Vec4FromInt(i)
+    return pbit.rshift(pbit.band(i, 0xFF000000), 24),
+    pbit.rshift(pbit.band(i, 0x00FF0000), 16),
+    pbit.rshift(pbit.band(i, 0x0000FF00), 8),
+    pbit.band(i, 0x000000FF)
+end
+
+function PLib.IPAddressToInt(ip)
+    return PLib.Vec4ToInt(string_match(ip, "(%d+)%.(%d+)%.(%d+)%.(%d+)"))
+end
+
+function PLib.IPAddressFromInt(i)
+    return string_format("%d.%d.%d.%d", PLib.Vec4FromInt(i))
+end
+
+--[[-------------------------------------------------------------------------
+    Server info
+---------------------------------------------------------------------------]]
+
+PLib["GetMap"] = game["GetMap"]
+
+function PLib:GetMapList()
+    local tbl, maps = {}, file_Find("maps/*", "GAME")
+
+    for i = 1, #maps do
+        local map = maps[i]
+        if string_EndsWith(map, ".bsp") then
+            table_insert(tbl, string_sub(map, 0, #map - 4))
+        end
+    end
+
+    return tbl
+end
+
+function PLib:GetServerName()
+    return GetGlobalString("ServerName", SERVER and self:GetHostName() or "Garry's Mod")
+end
+
+function PLib:SetServerName(str)
+    local old = self:GetServerName()
+    SetGlobalString("ServerName", isstring(str) and str or old)
+    timer_Simple(0, function()
+        self:Log(nil, string_format("Server name changed from '%s' to '%s'!", old, self:GetServerName()))
+    end)
+end
+
+--[[-------------------------------------------------------------------------
+    Achievements
+---------------------------------------------------------------------------]]
+
+function PLib:GetAchievement(tag)
+    return self["Achievements"][tag]
+end
+
+function PLib:GetAchievementName(tag)
+    local achi = self:GetAchievement(tag)
+    if (achi != nil) then
+        return PLib:TranslateText(achi[1])
+    elseif CLIENT and (isnumber(tag) and tag <= achievements_Count()) then
+        return PLib:TranslateText(achievements_GetName(tag))
+    else
+        return PLib:TranslateText(tag or "")
+    end
+end
+
+function PLib:EditAchievement(tag, title, icon)
+    local tbl = self:GetAchievement(tag)
+    if (tbl != nil) then
+        tbl[1] = title and PLib:TranslateText(title) or tbl[1]
+        tbl[2] = icon and Material(icon, PLib["MatPresets"]["Pic"]) or tbl[2]
+        self["Achievements"][tag] = tbl
+    end
+end
+
+function PLib:RemoveAchievement(tag)
+    local num = 1
+    for id, tbl in pairs(self["Achievements"]) do
+        if (id == tag) then
+            return table_remove(self["Achievements"], num)
+        end
+
+        num = num + 1
+    end
+
+    return false
+end
+
+--[[-------------------------------------------------------------------------
+    Find / Get
+---------------------------------------------------------------------------]]
+
+function player.FindInRange(pos, range)
+    range = range ^ 2
+
+    local output = {}
+    for i, ply in ipairs(player_GetAll()) do
+        if ply:GetPos():DistToSqr(pos) <= range then
+            table_insert(output, ply)
+        end
+    end
+
+    return output
+end
+
+function player.FindNearest(pos, radius, filter)
+    local plys = {}
+    for num, ply in ipairs((radius == nil) and player_GetAll() or ents_FindInSphere(pos, radius)) do
+        if IsValid(ply) and ply:IsPlayer() and (!filter or !isfunction(filter) or filter(ply)) then
+            table_insert(plys, {pos:Distance(ply:GetPos()), ply})
+        end
+    end
+
+    local output = {}
+    for _, tbl in ipairs(plys) do
+        if !output or (tbl[1] < output[1]) then
+            output = tbl
+        end
+    end
+
+    return output
+end
+
+function player.Random(no_bots)
+    local players = no_bots and player_GetHumans() or player_GetAll()
+    return players[math_random(1, #players)]
+end
+
+function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
+    local result = {}
+
+    if (pos == nil) then
+        if IsValid(ent) then
+            pos = ent:GetPos()
+        else
+            return result
+        end
+    end
+
+    if (size == nil) then
+        if IsValid(ent) then
+            size = ent:CubicDistance()
+        else
+            return result
+        end
+    end
+
+    if IsValid(ent) then
+        for _, tEnt in ipairs(ents_FindInSphere(pos, size)) do
+            if IsValid(tEnt) and tEnt != ent then
+                local mn, mx = tEnt:GetCollisionBounds()
+                if (ent:WorldToLocal(tEnt:LocalToWorld(tEnt:OBBCenter())):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(mn)):WithinAABox(mins, maxs)
+                or ent:WorldToLocal(tEnt:LocalToWorld(mx)):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mn[1],mn[2],mx[3]))):WithinAABox(mins, maxs)
+                or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mx[1],mx[2],mn[3]))):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:GetPos()):WithinAABox(mins, maxs)) then
+                    table_insert(result, tEnt)
+                end
+            end
+        end
+    else
+        for _, eTarget in ipairs(ents_FindInSphere(pos, size))do
+            if WorldToLocal(eTarget:GetPos(), eTarget:GetAngles(), pos, ang):WithinAABox(mins, maxs) then
+                table_insert(result, eTarget)
+            elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles() - Angle(0,180,0), pos, ang):WithinAABox(mins, maxs) then
+                table_insert(result, eTarget)
+            elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles()*(-1), pos, ang):WithinAABox(mins, maxs) then
+                table_insert(result, eTarget)
+            end
+
+        end
+    end
+
+    return result
+end
+
+--[[-------------------------------------------------------------------------
+    Color improvements
+---------------------------------------------------------------------------]]
+
+PLib:Precache_G("Color", Color)
+local _GColor = PLib:Get_G("Color")
+
+function Color(hex, g, b, a)
+    if (g == nil) and (b == nil) and (a == nil) then
+        if validStr(hex) then
+            local hex = hex:gsub("#", "")
+            if (hex:len() == 3) then
+                return _GColor((tonumber("0x"..hex:sub(1, 1)) * 17), (tonumber("0x"..hex:sub(2, 2)) * 17), (tonumber("0x"..hex:sub(3, 3)) * 17))
+            else
+                return _GColor(tonumber("0x"..hex:sub(1, 2)), tonumber("0x"..hex:sub(3, 4)), tonumber("0x"..hex:sub(5, 6)))
+            end
+        elseif isnumber(hex) then
+            return _GColor(PLib.Vec4FromInt(hex))
+        end
+    end
+
+    return _GColor(hex, g, b, a)
+end
+
+function COLOR:Lerp(frac, b)
+    self["r"] = Lerp(frac, b["r"], self["r"])
+    self["g"] = Lerp(frac, b["g"], self["g"])
+    self["b"] = Lerp(frac, b["b"], self["b"])
+    self["a"] = Lerp(frac, b["a"] or 255, self["a"] or 255)
+
+    return self
+end
+
+function COLOR:SetAlpha(alpha)
+    self["a"] = alpha
+    return self
+end
+
+function COLOR:ToInt()
+    return PLib.Vec4ToInt(self["r"], self["g"], self["b"], self["a"])
+end
+
+function COLOR:FromInt(i)
+    self["r"], self["g"], self["b"], self["a"] = PLib.Vec4FromInt(i)
+end
+
+--[[-------------------------------------------------------------------------
+    IMaterial improvements
+---------------------------------------------------------------------------]]
+
+function IMATERIAL:GetSize()
+    return self:GetInt("$realwidth"), self:GetInt("$realheight")
+end
+
+--[[-------------------------------------------------------------------------
+    Entity improvements
+---------------------------------------------------------------------------]]
+
 function ENTITY:GetDownTrace(filter)
-    return util_QuickTrace(self:EyePos(), Vector(0, 0, -1)*50000, filter or {self})
+    return util_QuickTrace(self:EyePos(), Vector(0, 0, -1) * 50000, filter or { self })
 end
 
 function ENTITY:StandingOnGround()
@@ -295,7 +496,7 @@ function ENTITY:StandingOnGround()
 end
 
 function ENTITY:InBox(mins, maxs)
-    local ent_list = ents.FindInBox(mins, maxs)
+    local ent_list = ents_FindInBox(mins, maxs)
     for i = 1, #ent_list do
         if (self == ent_list[i]) then
             return true
@@ -308,22 +509,21 @@ end
 function ENTITY:GetHorizontalSpeed()
     local vel = self:GetVelocity()
 
-    return Vector(vel[1], vel[2], 0):Length() or 0
+    return Vector(vel["x"], vel["y"], 0):Length() or 0
 end
 
 function ENTITY:GetVerticalSpeed()
-    return self:GetVelocity()[3]
+    return self:GetVelocity()["z"]
 end
 
-local math_max = math.max
 function ENTITY:GetWight()
     local mins, maxs = self:GetCollisionBounds()
-    return math_max(maxs[1] - mins[1], maxs[2] - mins[2])
+    return math_max(maxs["x"] - mins["x"], maxs["y"] - mins["y"])
 end
 
 function ENTITY:GetHight()
     local mins, maxs = self:GetCollisionBounds()
-    return maxs[3] - mins[3]
+    return maxs["z"] - mins["z"]
 end
 
 function ENTITY:TeamObject(ply)
@@ -351,8 +551,8 @@ function ENTITY:GetSize()
     if (self["PLib.Size"] == nil) then
         -- 1 pika unit == 10 unit
         local mins, maxs = self:GetCollisionBounds()
-        local facets = (maxs - mins)*0.1 -- Units to pika units
-        self["PLib.Size"] = (facets[1] * facets[2] * facets[3])
+        local facets = (maxs - mins) * 0.1 -- Units to pika units
+        self["PLib.Size"] = (facets["x"] * facets["y"] * facets["z"])
     end
 
     return self["PLib.Size"]
@@ -380,12 +580,12 @@ function ENTITY:GetRawSpeed()
     return self:GetVelocity():Length()
 end
 
-function ENTITY:IsDoor()
+ -- duplicated func
+/*function ENTITY:IsDoor()
     local class = self:GetClass()
     return ((class != nil) and class:match("door") or false)
-end
+end*/
 
-local BoneCache = {}
 function ENTITY:GetBoneByTag(tag)
     local model = self:GetModel()
     if not BoneCache[model] then
@@ -395,8 +595,8 @@ function ENTITY:GetBoneByTag(tag)
             local name = self:GetBoneName(id)
             if !name or name == "" then continue end
             if string_lower(name):match(string_lower(tag)) then
-                BoneCache[model] = id;
-                break;
+                BoneCache[model] = id
+                break
             end
         end
     end
@@ -404,93 +604,79 @@ function ENTITY:GetBoneByTag(tag)
     return BoneCache[model] or false
 end
 
-local VECTOR = FindMetaTable("Vector")
+--[[-------------------------------------------------------------------------
+    Vector improvements
+---------------------------------------------------------------------------]]
+
 function VECTOR:Round(dec)
-    return Vector(math_Round(self[1], dec or 0), math_Round(self[2], dec or 0), math_Round(self[3], dec or 0))
+    return Vector(math_Round(self["x"], dec or 0), math_Round(self["y"], dec or 0), math_Round(self["z"], dec or 0))
 end
 
 function VECTOR:InBox(vec1, vec2)
-    return self[1] >= vec1[1] and self[1] <= vec2[1] and self[2] >= vec1[2] and self[2] <= vec2[2] and self[3] >= vec1[3] and self[3] <= vec2[3]
+    return self["x"] >= vec1["x"] and self["x"] <= vec2["x"] and self["y"] >= vec1["y"] and self["y"] <= vec2["y"] and self["z"] >= vec1["z"] and self["z"] <= vec2["z"]
 end
 
 function VECTOR:Floor()
-    self[1] = math_floor(self[1])
-    self[2] = math_floor(self[2])
-    self[3] = math_floor(self[3])
+    self["x"] = math_floor(self["x"])
+    self["y"] = math_floor(self["y"])
+    self["z"] = math_floor(self["z"])
     return self
 end
 
-function VECTOR:abs()
-	self[1] = math_abs(self[1])
-	self[2] = math_abs(self[2])
-	self[3] = math_abs(self[3])
+function VECTOR:Abs()
+	self["x"] = math_abs(self["x"])
+	self["y"] = math_abs(self["y"])
+	self["z"] = math_abs(self["z"])
     return self
 end
 
 function VECTOR:NormalizeZero()
-	self[1] = (self[1] == 0) and 0 or self[1]
-	self[2] = (self[2] == 0) and 0 or self[2]
-	self[3] = (self[3] == 0) and 0 or self[3]
+	self["x"] = (self["x"] == 0) and 0 or self["x"]
+	self["y"] = (self["y"] == 0) and 0 or self["y"]
+	self["z"] = (self["z"] == 0) and 0 or self["z"]
     return self
 end
 
 function VECTOR:Middle()
-    return (self[1] + self[2] + self[3])/3
+    return (self["x"] + self["y"] + self["z"]) / 3
 end
 
 function VECTOR:Lerp(frac, b)
     return LerpVector(frac, self, b)
 end
 
-local ANGLE = FindMetaTable("Angle")
+--[[-------------------------------------------------------------------------
+    Angle improvements
+---------------------------------------------------------------------------]]
+
 function ANGLE:Lerp(frac, b)
     return LerpAngle(frac, self, b)
 end
 
 function ANGLE:Floor()
-    self[1] = math_floor(self[1])
-    self[2] = math_floor(self[2])
-    self[3] = math_floor(self[3])
+    self["p"] = math_floor(self["p"])
+    self["y"] = math_floor(self["y"])
+    self["r"] = math_floor(self["r"])
     return self
 end
 
 function ANGLE:abs()
-	self[1] = math_abs(self[1])
-	self[2] = math_abs(self[2])
-	self[3] = math_abs(self[3])
+	self["p"] = math_abs(self["p"])
+	self["y"] = math_abs(self["y"])
+	self["r"] = math_abs(self["r"])
     return self
 end
 
 function ANGLE:NormalizeZero()
-	self[1] = (self[1] == 0) and 0 or self[1]
-	self[2] = (self[2] == 0) and 0 or self[2]
-	self[3] = (self[3] == 0) and 0 or self[3]
+	self["p"] = (self["p"] == 0) and 0 or self["p"]
+	self["y"] = (self["y"] == 0) and 0 or self["y"]
+	self["r"] = (self["r"] == 0) and 0 or self["r"]
     return self
 end
 
-local COLOR = FindMetaTable("Color")
-function COLOR:Lerp(frac, b)
-    self["r"] = Lerp(frac, b["r"], self["r"])
-    self["g"] = Lerp(frac, b["g"], self["g"])
-    self["b"] = Lerp(frac, b["b"], self["b"])
-    self["a"] = Lerp(frac, b["a"] or 255, self["a"] or 255)
-
-    return self
-end
-
-function COLOR:SetAlpha(alpha)
-    self["a"] = alpha
-    return self
-end
-
-local IMaterial = FindMetaTable("IMaterial")
-function IMaterial:GetSize()
-    return self:GetInt("$realwidth"), self:GetInt("$realheight")
-end
-
-function PLib:MaterialSize(mat)
-    return mat:GetInt("$realwidth"), mat:GetInt("$realheight")
-end
+--[[-------------------------------------------------------------------------
+    table module improvements
+---------------------------------------------------------------------------]]
 
 function table.Sub(tbl, offset, len)
     local newTbl = {}
@@ -532,88 +718,19 @@ function table.Max(tbl)
     return max
 end
 
-function math.power2(n)
-    return math.pow(2, math.ceil(math.log(n) / math.log(2)))
-end
-
-function math.Map(int, from1, to1, from2, to2)
-    return (int - from1) / (to1 - from1) * (to2 - from2) + from2;
-end
-
-function math.striving_for(value, valueTo, delay)
-    return value + (valueTo-value)/delay
-end
-
-function math.average(...)
-    local amount = select('#', ...)
-    assert(amount > 1, 'At least two numbers are required!')
-    local total = 0
-
-    for i = 1, amount do
-        total = total + select(i, ...)
-    end
-
-    return total / amount
-end
-
-function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
-    local result = {}
-
-    if (pos == nil) then
-        if IsValid(ent) then
-            pos = ent:GetPos()
-        else
-            return result
-        end
-    end
-
-    if (size == nil) then
-        if IsValid(ent) then
-            size = ent:CubicDistance()
-        else
-            return result
-        end
-    end
-
-    if IsValid(ent) then
-        for _, tEnt in ipairs(ents.FindInSphere(pos, size)) do
-            if IsValid(tEnt) and tEnt != ent then
-                local mn, mx = tEnt:GetCollisionBounds()
-                if (ent:WorldToLocal(tEnt:LocalToWorld(tEnt:OBBCenter())):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(mn)):WithinAABox(mins, maxs)
-                or ent:WorldToLocal(tEnt:LocalToWorld(mx)):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mn[1],mn[2],mx[3]))):WithinAABox(mins, maxs)
-                or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mx[1],mx[2],mn[3]))):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:GetPos()):WithinAABox(mins, maxs)) then
-                    table_insert(result, tEnt)
-                end
-            end
-        end
-    else
-        for _, eTarget in ipairs(ents.FindInSphere(pos, size))do
-            if WorldToLocal(eTarget:GetPos(), eTarget:GetAngles(), pos, ang):WithinAABox(mins, maxs) then
-                table_insert(result, eTarget)
-            elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles() - Angle(0,180,0), pos, ang):WithinAABox(mins, maxs) then
-                table_insert(result, eTarget)
-            elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles()*(-1), pos, ang):WithinAABox(mins, maxs) then
-                table_insert(result, eTarget)
-            end
-
-        end
-    end
-
-      return result
-end
-
-function table.shuffle(tbl)
+-- table.Shuffle dupl?
+/*function table.shuffle(tbl)
     local size = #tbl
     for i = size, 1, -1 do
-        local rand = math_random(size)
+        local rand = math.random(size)
         tbl[i], tbl[rand] = tbl[rand], tbl[i]
     end
 
     return tbl
-end
+end*/
 
 function table.Lookup(tbl, key, default)
-    local fragments = string.Split(key, '.')
+    local fragments = string_Split(key, ".")
     local value = tbl
 
     for _, fragment in ipairs(fragments) do
@@ -627,20 +744,59 @@ function table.Lookup(tbl, key, default)
     return value
 end
 
-function string.hash( str )
-    local bytes = {string.byte(str, 0, string.len(str))}
+--[[-------------------------------------------------------------------------
+    math module improvements
+---------------------------------------------------------------------------]]
+
+function math.power2(n)
+    return math_pow(2, math_ceil(math_log(n) / math_log(2)))
+end
+
+-- math.Remap dupl?
+/*function math.Map(int, from1, to1, from2, to2)
+    return (int - from1) / (to1 - from1) * (to2 - from2) + from2;
+end*/
+
+function math.striving_for(value, valueTo, delay)
+    return value + (valueTo - value) / delay
+end
+
+function math.average(...)
+    local amount = select("#", ...)
+    assert(amount > 1, "At least two numbers are required!")
+    local total = 0
+
+    for i = 1, amount do
+        total = total + select(i, ...)
+    end
+
+    return total / amount
+end
+
+function math.Clamp(inval, minval, maxval)
+    if inval < minval then return minval end
+    if inval > maxval then return maxval end
+    return inval
+end
+
+--[[-------------------------------------------------------------------------
+    string module improvements
+---------------------------------------------------------------------------]]
+
+function string.Hash(str)
+    local bytes = {string_byte(str, 0, string_len(str))}
     local hash = 0
 
-    for _, v in ipairs( bytes ) do
-        hash = math.fmod( v + ((hash*32) - hash ), 0x07FFFFFF )
+    for _, v in ipairs(bytes) do
+        hash = math_fmod(v + ((hash * 32) - hash), 0x07FFFFFF)
     end
 
     return hash
 end
 
 function string.FormatSeconds(sec)
-    local hours = math.floor(sec / 3600)
-    local minutes = math.floor((sec % 3600) / 60)
+    local hours = math_floor(sec / 3600)
+    local minutes = math_floor((sec % 3600) / 60)
     local seconds = sec % 60
 
     if minutes < 10 then
@@ -652,27 +808,27 @@ function string.FormatSeconds(sec)
     end
 
     if hours > 0 then
-        return string.format("%s:%s:%s", hours, minutes, seconds)
+        return string_format("%s:%s:%s", hours, minutes, seconds)
     else
-        return string.format("%s:%s", minutes, seconds)
+        return string_format("%s:%s", minutes, seconds)
     end
 end
 
-function string.reduce(str, font, width)
-    surface.SetFont( font )
+function string.Reduce(str, font, width)
+    surface_SetFont( font )
 
-    local tw, th = surface.GetTextSize(str)
+    local tw, th = surface_GetTextSize(str)
     while tw > width do
-        str = string.sub(str, 1, string.len(str) - 1)
-        tw, th = surface.GetTextSize(str)
+        str = string_sub(str, 1, string_len(str) - 1)
+        tw, th = surface_GetTextSize(str)
     end
 
     return str
 end
 
-function string.findFromTable(str, tbl)
+function string.FindFromTable(str, tbl)
     for _, v in ipairs(tbl) do
-        if string.find(str, v) then
+        if string_find(str, v) then
             return true
         end
     end
@@ -680,10 +836,10 @@ function string.findFromTable(str, tbl)
     return false
 end
 
-function string.charCount(str, chr)
+function string.СharCount(str, chr)
     if !str or !chr then return end
     local count = 0
-    for _, char in ipairs(string.ToTable(str)) do
+    for _, char in ipairs(string_ToTable(str)) do
         if char == chr then
             count = count + 1
         end
@@ -692,437 +848,19 @@ function string.charCount(str, chr)
     return count
 end
 
-if CLIENT then
-    hook.Add("PostGamemodeLoaded", "PLib:IsSandbox_Check", function()
-        if GAMEMODE["IsSandboxDerived"] then
-            PLib["isSandbox"] = true
-            hook.Run("PLib:IsSandbox")
-        else
-            PLib["isSandbox"] = false
-        end
-    end)
+--[[-------------------------------------------------------------------------
+    game module improvements
+---------------------------------------------------------------------------]]
 
-    function PLib:SpawnMenuReload()
-        if not self["isSandbox"] or not hook.Run("SpawnMenuEnabled") then return end
+function game.AmmoList()
+    local last = game_GetAmmoName(1)
+    local output = {last}
 
-        -- If we have an old spawn menu remove it.
-        if IsValid(g_SpawnMenu) then
-            g_SpawnMenu:Remove()
-            g_SpawnMenu = nil
-        end
-
-        hook.Run("PreReloadToolsMenu")
-
-        -- Start Fresh
-        spawnmenu.ClearToolMenus()
-
-        -- Add defaults for the gamemode. In sandbox these defaults
-        -- are the Main/Postprocessing/Options tabs.
-        -- They're added first in sandbox so they're always first
-        hook.Run("AddGamemodeToolMenuTabs")
-
-        -- Use this hook to add your custom tools
-        -- This ensures that the default tabs are always
-        -- first.
-        hook.Run("AddToolMenuTabs")
-
-        -- Use this hook to add your custom tools
-        -- We add the gamemode tool menu categories first
-        -- to ensure they're always at the top.
-        hook.Run("AddGamemodeToolMenuCategories")
-        hook.Run("AddToolMenuCategories")
-
-        -- Add the tabs to the tool menu before trying
-        -- to populate them with tools.
-        hook.Run("PopulateToolMenu")
-
-        g_SpawnMenu = vgui.Create("SpawnMenu")
-
-        if IsValid(g_SpawnMenu) then
-            g_SpawnMenu:SetVisible( false )
-            hook.Run("SpawnMenuCreated", g_SpawnMenu)
-        end
-
-        CreateContextMenu()
-
-        hook.Run("PostReloadToolsMenu")
-    end
-end
-
-function PLib:CreateWeapon(class, data)
-    if validStr(class) and istable(data) then
-        local SWEP = {}
-        SWEP["PrintName"] = "PLib Weapon"
-        SWEP["Primary"]     = {}
-        SWEP["Secondary"]     = {}
-        SWEP["WorldModel"]    = ""
-        SWEP["ViewModel"]    = "models/weapons/c_arms.mdl"
-        SWEP["Category"]    = "PLib"
-        SWEP["HoldType"]    = "normal"
-        SWEP["Spawnable"]    = true
-        SWEP["UseHands"]    = true
-
-        function SWEP:Initialize()
-            self:SetWeaponHoldType(self["HoldType"])
-        end
-
-        weapons_Register(table_Merge(SWEP, data), class)
-        dprint("SWEP", "Weapon Created -> ", class)
-
-        if CLIENT then
-            self:SpawnMenuReload()
-        end
-    end
-end
-
-function PLib:CreateEntity(class, data, clear)
-    if validStr(class) and istable(data) then
-        local ENT = {}
-        if not clear then
-            ENT["Base"] = "base_anim"
-            ENT["Model"] = "models/props_c17/oildrum001_explosive.mdl"
-            ENT["Category"]    = "PLib"
-            ENT["PrintName"] = "PLib Entity"
-            ENT["Spawnable"] = true
-
-            function ENT:Initialize()
-                if SERVER then
-                    self:SetModel(self["Model"])
-                    self:PhysicsInit(SOLID_VPHYSICS)
-                end
-            end
-        end
-
-        scripted_ents_Register(table_Merge(ENT, data), class)
-        dprint("ENT", "Entity Created -> ", class)
-
-        if CLIENT then
-            self:SpawnMenuReload()
-        end
-    end
-end
-
-function PLib:CreateTriggerEntity(class, data, trigger, use)
-    local ENT = {}
-    ENT["Type"] = "anim"
-    ENT["PrintName"] = "PLib Trigger"
-    ENT["Mins"] = Vector(-25, -25, -25)
-    ENT["Maxs"] = Vector(25, 25, 25)
-
-    function ENT:Init()
+    while (last != nil) do
+        last = game_GetAmmoName(table_insert(output, last))
     end
 
-    function ENT:SetSize(mins, maxs)
-        self["Mins"], self["Maxs"] = mins, maxs
-    end
-
-    function ENT:SetupBox(mins, maxs)
-        OrderVectors(mins, maxs)
-        self:SetCollisionBounds(mins, maxs)
-        self["Mins"], self["Maxs"] = mins, maxs
-    end
-
-    function ENT:Initialize()
-        self:SetCollisionGroup((use != nil) and COLLISION_GROUP_DEBRIS or COLLISION_GROUP_IN_VEHICLE)
-        self:SetMoveType(MOVETYPE_NONE)
-        self:SetSolid(SOLID_BBOX)
-        self:DrawShadow(false)
-        self:SetNoDraw(true)
-
-        if SERVER then
-            self:SetTrigger((trigger == true) and trigger or false)
-            if (use != nil) then
-                self:SetUseType(isnumber(use) and use or SIMPLE_USE)
-            end
-        end
-
-        self:SetupBox(self["Mins"], self["Maxs"])
-        self:Init()
-    end
-
-    if CLIENT then
-        local plib = self
-        function ENT:Draw()
-            plib:DebugEntityDraw(self)
-        end
-    end
-
-    self:CreateEntity(class, table_Merge(ENT, data or {}), true)
-end
-
-PLib:CreateTriggerEntity("plib_achievement_trigger", {
-    ["Init"] = function(self)
-        self:SetNoDraw(false)
-    end,
-    ["SetAchievement"] = function(self, tag)
-        self["Achievement"] = tag
-    end,
-    ["StartTouch"] = function(self, ply)
-        local tag = self["Achievement"]
-        if isstring(tag) and IsValid(ply) and ply:IsPlayer() and (ply[tag] == nil) then
-            ply:GiveAchievement(tag)
-            ply[tag] = true
-        end
-    end,
-}, true)
-
-PLib:CreateTriggerEntity("plib_achievement_button", {
-    ["SetAchievement"] = function(self, tag)
-        self["Achievement"] = tag
-    end,
-    ["Init"] = function(self)
-        self:SetNoDraw(false)
-    end,
-    ["Use"] = function(self, ply)
-        local tag = self["Achievement"]
-        if isstring(tag) and IsValid(ply) and ply:IsPlayer() and (ply[tag] == nil) then
-            ply:GiveAchievement(tag)
-            ply[tag] = true
-        end
-    end,
-}, false, true)
-
-local plib = PLib
-function PLib:CreateInfoBanner(class, url, mins, maxs)
-	self:CreateTriggerEntity(class, {
-		["URL"] = (url or "http://pika-soft.ru/"),
-		["Mins"] = (mins or Vector(-18, 0, -15)),
-		["Maxs"] = (maxs or Vector(18, 2, 55)),
-		["UpdatePos"] = function(self)
-			local mins, maxs = self:OBBMins(), self:OBBMaxs()
-			self["pnlPos"] = Vector(maxs[1], 1, maxs[3]) + self:GetPos()
-			self["pnlAng"] = Angle(0, 180, 90) + self:GetAngles()
-			self["pnlSize"] = {(maxs[1] - mins[1]) * 10 + 18, (maxs[3] - mins[3]) * 10}
-
-			local pnl = self["pnl"]
-			if IsValid(pnl) then
-				if (pnl["Opened"] == false) then
-					pnl:SetSize(self["pnlSize"][1], self["pnlSize"][2])
-					pnl:SetPos(0, 0)
-				else
-					pnl:SetSize(math.min(ScrW(), self["pnlSize"][1] * 1.5), math.min(ScrH(), self["pnlSize"][2] * 1.5))
-					pnl:Center()
-				end
-		
-				function pnl:Think()
-				end
-			end
-		end,
-		["Toggle"] = function(self, bool)
-			local pnl = self["pnl"]
-			if IsValid(pnl) then
-				pnl["Opened"] = (bool == true) and true or false
-				self:UpdatePos()
-
-				if (bool == true) then
-					pnl:SetPaintedManually(false)
-					GAMEMODE:ShowMouse()
-					
-					local ent = self
-					function pnl:Think()
-						if IsValid(ent) then
-							if (ent:GetPos():DistToSqr(LocalPlayer():EyePos()) > 10000) then
-								ent:Toggle()
-								return 
-							end
-
-							if input.IsButtonDown(KEY_ESCAPE) then
-								gui.HideGameUI()
-								ent:Toggle()
-							end
-						end
-					end
-				else
-					pnl:SetPaintedManually(true)
-					GAMEMODE:HideMouse()
-				end
-			end
-		end,
-		["UpdateVGUI"] = function(self)
-			local pnl = self["pnl"]
-			if IsValid(pnl) then
-				pnl:Remove()
-			end
-
-			self["pnl"] = vgui.Create("DHTML")
-			if IsValid(self["pnl"]) then
-				self["pnl"]:OpenURL(self["URL"])
-				self:Toggle()
-				self:UpdatePos()
-			end
-		end,
-		["Draw"] = function(self)
-			local pnl = self["pnl"]
-			if IsValid(pnl) and (pnl["Opened"] == false) then
-				cam.Start3D2D(self["pnlPos"], self["pnlAng"], 0.1)
-					pnl:PaintManual()
-				cam.End3D2D()
-			end
-		end,
-		["Init"] = function(self)
-			self:SetNoDraw(false)
-
-			if CLIENT then
-				self:UpdateVGUI()
-
-				hook.Add("PLib:PlayerInitialized", self, function(self)
-					if not IsValid(self) then return end
-					self:Init()
-				end)
-			end
-		end,
-		["Timeout"] = 0,
-		["Think"] = function(self)
-			if CLIENT and (self["Timeout"] < CurTime()) then
-				self["Timeout"] = CurTime() + 15 * 60
-
-				self:UpdateVGUI()
-			end
-		end,
-		["Use"] = function(self, ply)
-			if IsValid(ply) and ply:IsPlayer() and !ply:IsBot() then
-				ply:SendLua("local ent = Entity(" .. self:EntIndex() .. ");if IsValid(ent) then ent:Toggle(true);end")
-			end
-		end,
-	}, false, true)
-end
-
-local steamworks_DownloadUGC = steamworks and steamworks.DownloadUGC
-PLib["WorkshopDownloaded"] = PLib["WorkshopDownloaded"] or {}
-
-function PLib:WorkshopDownload(id, cb)
-	dprint("Workshop", "Trying download addon, id: ", id)
-
-	local saved = PLib["WorkshopDownloaded"][id]
-	if (saved == nil) then
-		if CLIENT then
-			notification.AddProgress("plib.workshop_download_#" .. id, "[PLib] Downloading: " .. id)
-		end
-
-		steamworks_DownloadUGC(id, function(path)
-			dprint("Workshop", string.format("Addon downloaded, id: %s (%s)", id, path))
-
-			if CLIENT then
-				notification.Kill("plib.workshop_download_#" .. id)
-			end
-
-			PLib["WorkshopDownloaded"][id] = path
-			if isfunction(cb) then
-				cb(path)
-			end
-		end)
-	else
-		dprint("Workshop", "Addon already downloaded, id: ", id)
-		
-		if isfunction(cb) then
-			cb(saved)
-		end
-
-		return saved
-	end
-end
-
-PLib["WorkshopInstalled"] = PLib["WorkshopInstalled"] or {}
-local game_MountGMA = game.MountGMA
-
-function PLib:WorkshopInstall(id, cb)
-	dprint("Workshop", "Trying install addon, id: ", id)
-
-	local saved = PLib["WorkshopInstalled"][id]
-	if (saved == nil) then
-		self:WorkshopDownload(id, function(path)
-			local ok, files = game_MountGMA(path)
-
-			local outputTbl = {path, files}
-			if ok then
-				PLib["WorkshopInstalled"][id] = outputTbl
-				dprint("Workshop", "Addon installed successfully, id: ", id)
-			else
-				dprint("Workshop", "Addon installation failed, id: ", id)
-			end
-
-			if isfunction(cb) then
-				cb(ok, path, files)
-			end
-
-			return (ok and outputTbl or false)
-		end)
-	else
-		dprint("Workshop", "Addon already installed, id: ", id)
-
-		if isfunction(cb) then
-			cb(true, saved[1], saved[2])
-		end	
-
-        return saved
-    end
-end
-
-local string_GetExtensionFromFilename = string.GetExtensionFromFilename
-local string_GetPathFromFilename = string.GetPathFromFilename
-
-function PLib:IsValidLuaFile(fl)
-    local path = string_GetPathFromFilename(fl)
-    return (string_GetExtensionFromFilename(fl) == 'lua') and ((path == 'lua/autorun/') or (path == 'lua/autorun/client/'))
-end
-
-PLib:Precache_G("player_manager.AddValidHands", player_manager.AddValidHands)
-PLib:Precache_G("player_manager.AddValidModel", player_manager.AddValidModel)
-
--- PlayerModel Export by Retro#1593
-function PLib:ExportPM(files)
-    local mdls, hands = {}, {}
-    function player_manager.AddValidHands(name, model, skin, bodygroups)
-        table.insert(hands, {name = name, model = model, skin = skin, bodygroups = bodygroups})
-    end
-
-    function player_manager.AddValidModel(name, model)
-        table.insert(mdls, {name = name, model = model})
-    end
-
-    for _, fl in ipairs(files) do
-        if not self:IsValidLuaFile(fl) then continue end
-
-        local path = fl:sub(5)
-        local lua = file.Read(path, 'LUA')
-        if not lua then continue end
-
-		local ok, err = pcall(RunString, lua, path)
-		if (ok == true) then
-			PLib:Log("Error", err)
-		end
-    end
-
-    player_manager.AddValidHands = self:Get_G("player_manager.AddValidHands")
-    player_manager.AddValidModel = self:Get_G("player_manager.AddValidModel")
-
-    return mdls, hands
-end
-
-function PLib:TryInstallWorkshop(id, cb, num)
-    self:WorkshopInstall(id, function(ok, path, files)
-        if (ok == false) then
-            local num = num + 1
-            timer.Simple(10, function()
-                self:TryInstallWorkshop(id, cb, num)
-            end)
-
-            dprint("Workshop", "Install try #", num)
-        elseif isfunction(cb) then
-            cb(path, files)
-        end
-    end)
-end
-
-PLib:Precache_G("ents.Create", ents.Create)
-local ents_Create = PLib:Get_G("ents.Create")
-
-function ents.Create(class)
-    if SERVER then
-        return ents_Create(class)
-    else
-        return ents.CreateClientside(class)
-    end
+    return output
 end
 
 PLib:Precache_G("game.CleanUpMap", game.CleanUpMap)
@@ -1136,12 +874,47 @@ function game.CleanUpMap(dontSendToClients, extraFilters, cleanupClientside)
     return game_CleanUpMap(dontSendToClients, extraFilters)
 end
 
--- Net Compressed tables by DefaultOS#5913
+--[[-------------------------------------------------------------------------
+    engine module improvements
+---------------------------------------------------------------------------]]
+
+function engine.GetAddon(id)
+    local addons = engine_GetAddons()
+    for i = 1, #addons do
+        local addon = addons[i]
+        if (addon["wsid"] == id) then
+            return addon
+        end
+    end
+
+    return false
+end
+
+--[[-------------------------------------------------------------------------
+    ents module improvements
+---------------------------------------------------------------------------]]
+
+PLib:Precache_G("ents.Create", ents.Create)
+local ents_Create = PLib:Get_G("ents.Create")
+
+function ents.Create(class)
+    if SERVER then
+        return ents_Create(class)
+    else
+        return ents_CreateClientside(class)
+    end
+end
+
+--[[-------------------------------------------------------------------------
+    net module improvements
+---------------------------------------------------------------------------]]
+
+-- net compressed tables by DefaultOS#5913
 function net.WriteCompressTable(tbl)
     if (tbl == nil) then return end
     local data = util_Compress(util_TableToJSON(tbl))
-    net_WriteUInt(#data,16)
-    net_WriteData(data,#data)
+    net_WriteUInt(#data, 16)
+    net_WriteData(data, #data)
 end
 
 function net.ReadCompressTable()
@@ -1149,6 +922,84 @@ function net.ReadCompressTable()
     return util_JSONToTable(util_Decompress(net_ReadData(len)))
 end
 
+--[[-------------------------------------------------------------------------
+    Normal bitwise library without overflowing
+    By kaeza (https://gist.github.com/kaeza/8ee7e921c98951b4686d)
+---------------------------------------------------------------------------]]
+
+do
+    module("pbit", package.seeall)
+
+    local function tobittable_r(x, ...)
+        if (x or 0) == 0 then return ... end
+        return tobittable_r(math_floor(x / 2), x % 2, ...)
+    end
+
+    local function tobittable(x)
+        assert(type(x) == "number", "argument must be a number")
+        if x == 0 then return { 0 } end
+        return { tobittable_r(x) }
+    end
+
+    local function makeop(cond)
+        local function oper(x, y, ...)
+            if not y then return x end
+            x, y = tobittable(x), tobittable(y)
+            local xl, yl = #x, #y
+            local t, tl = {}, math_max(xl, yl)
+            for i = 0, tl - 1 do
+                local b1, b2 = x[xl - i], y[yl - i]
+                if not (b1 or b2) then break end
+                t[tl - i] = (cond((b1 or 0) ~= 0, (b2 or 0) ~= 0) and 1 or 0)
+            end
+            return oper(tonumber(table_concat(t), 2), ...)
+        end
+        return oper
+    end
+
+    band = makeop(function(a, b) return a and b end)
+    bor = makeop(function(a, b) return a or b end)
+    bxor = makeop(function(a, b) return a ~= b end)
+
+    function bnot(x, bits)
+        return bxor(x, (2 ^ (bits or math_floor(math_log(x, 2)))) - 1)
+    end
+
+    function lshift(x, bits)
+        return math_floor(x) * (2 ^ bits)
+    end
+
+    function rshift(x, bits)
+        return math_floor(math_floor(x) / (2 ^ bits))
+    end
+
+    function tobin(x, bits)
+        local r = table_concat(tobittable(x))
+        return ("0"):rep((bits or 1) + 1 - #r) .. r
+    end
+
+    function frombin(x)
+        return tonumber(x:match("^0*(.*)"), 2)
+    end
+
+    function bset(x, bitn)
+        return bor(x, 2 ^ bitn)
+    end
+
+    function bunset(x, bitn)
+        return band(x, bnot(2 ^ bitn, math_ceil(math_log(x, 2))))
+    end
+
+    function bisset(x, bitn, ...)
+        if not bitn then return end
+        return rshift(x, bitn) % 2 == 1, bisset(x, ...)
+    end
+end
+
+--[[-------------------------------------------------------------------------
+    not yet
+---------------------------------------------------------------------------]]
+
 function PLib:ObfuscateLua(code)
-    -- not yet
+    return code
 end

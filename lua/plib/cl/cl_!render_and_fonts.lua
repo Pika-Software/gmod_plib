@@ -252,7 +252,7 @@ function PLib:UpdateLogo(path)
         if (path != nil) then
             Material(path, PLib["MatPresets"]["Pic"], function(mat)
                 logo = mat
-                logo_w, logo_h = self:MaterialSize(mat)
+                logo_w, logo_h = mat:GetSize()
                 ssw, ssh = (w - logo_w)/2, (h - logo_h)/2
 
                 if self["Debug"] then

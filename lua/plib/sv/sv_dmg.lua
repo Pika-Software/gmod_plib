@@ -1,4 +1,5 @@
--- Fixes for prop_vehicle_prisoner_pod (bullets only)
+-- Fixes for prop_vehicle_prisoner_pod damage taking (bullets only)
+-- Explosive damage only works if is located in front of prop_vehicle_prisoner_pod (wtf?)
 
 hook.Add("EntityTakeDamage", "PLib:ApplyDamageForce", function(ent, cdmg)
     if not IsValid(ent) then return end
@@ -10,7 +11,7 @@ end)
 
 hook.Add("OnFireBulletCallback", "PLib:PrisonerTakeDamage", function(attk, tr, cdmg)
     local ent = tr["Entity"]
-    if ent:IsValid() and ent:GetClass() == "prop_vehicle_prisoner_pod" then
+    if ent ~= NULL then
         hook.Run("EntityTakeDamage", ent, cdmg)
     end
 end)
