@@ -2,6 +2,8 @@ local ents_FindByClass = ents.FindByClass
 local isURL = string["isURL"]
 local IsValid = IsValid
 
+CreateConVar("plib_debug_allow", "1", {FCVAR_LUA_SERVER, FCVAR_ARCHIVE}, "Allow the display of debugging information and the use of debugging commands for clients")
+
 function PLib:AreaPortalFix(ent)
     if (self["MapCleaning"] == false) and IsValid(ent) and self["DoorClasses"][ent:GetClass()] then
         local name = ent:GetName()
@@ -32,7 +34,7 @@ function PLib:ServerLogoUpdate(url)
         end)
     else
         hook.Remove("PLib:PlayerInitialized", "PLib:Logo")
-        self:Log(nil, "#plib.invalid_logo_url")
+        self:Log(nil, self:Translate("plib.invalid_logo_url"))
     end
 end
 
@@ -54,4 +56,35 @@ end)
 concommand.Add("plib_modules_reload", function()
 	PLib:LoadModules("plib/modules")
 	PLib:Log(nil, "Modules reloaded!")
+end)
+
+-- Just add this in your cfg/autoexec.cfg
+-- alias "plib_shutdown" "quit"
+
+function PLib:Shutdown()
+    game.ConsoleCommand("plib_shutdown\n")
+end
+
+concommand.Add("plib_shutdown", function(ply)
+    if IsValid(ply) then
+        if ply:IsSuperAdmin() then
+            PLib:Shutdown()
+        end
+    else
+        PLib:Shutdown()
+    end
+end)
+
+function PLib:Restart()
+    game.ConsoleCommand("_restart\n")
+end
+
+concommand.Add("plib_restart", function(ply)
+    if IsValid(ply) then
+        if ply:IsSuperAdmin() then
+            PLib:Restart()
+        end
+    else
+        PLib:Restart()
+    end
 end)

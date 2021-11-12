@@ -10,10 +10,14 @@ function ENT:Initialize()
         self:PhysicsInit(SOLID_VPHYSICS)
         self:SetMoveType(MOVETYPE_NONE)
         self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-
-        if (self["SetUnbreakable"] != nil) then
-            self:SetUnbreakable(true)
-        end
+        
+        hook.Add("PLib:Loaded", self, function()
+            if IsValid(self) then
+                if (self["SetUnbreakable"] != nil) then
+                    self:SetUnbreakable(true)
+                end  
+            end
+        end)
     else
         self["Sec"] = 0
         self["Mins"] = 0
@@ -47,8 +51,8 @@ if CLIENT then
             surface_DrawTexturedRectRotated(0, 0, 15, 15, self["Hours"])
 
             surface_SetMaterial(mins)
-        	surface_DrawTexturedRectRotated(0, 0, 15, 15, self["Mins"])
-            
+            surface_DrawTexturedRectRotated(0, 0, 15, 15, self["Mins"])
+
             surface_SetMaterial(secs)
             surface_DrawTexturedRectRotated(0, 0, 15, 15, self["Sec"])
         cam_End3D2D()
@@ -58,7 +62,7 @@ if CLIENT then
         local h = tonumber(os_date("%I"))
         local min = tonumber(os_date("%M"))
         local secs = tonumber(os_date("%S"))
-    
+
         local sz = 180
         self["Sec"] = sz - 6 * secs
         self["Mins"] = sz - (min / 60 * 360 + 6*secs / 60)

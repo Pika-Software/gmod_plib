@@ -35,7 +35,7 @@ PLib["phrases"] = {
         ["plib.get_error"] = "An error occured while executing GET request!",
         ["plib.creators"] = "Creators",
         ["plib.invalid_font_args"] = "Invalid function arguments should be string[1] and (table or number)[2]",
-        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server for install him)",
+        ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server console for install logo)",
         ["plib.meet_the"] = "Meet the",
     }
 }
@@ -46,7 +46,7 @@ if CLIENT then
     end
 end
 
-hook.Add("LanguageChanged", "PLib:Phrases", function(_, lang)    
+hook.Add("LanguageChanged", "PLib:Phrases", function(_, lang)
     local tbl = PLib["phrases"][lang]
     if (tbl != nil) then
         for tag, text in pairs(tbl) do
@@ -58,10 +58,14 @@ end)
 function PLib:Translate(tag)
     local PLang = PLang
     if (PLang == nil) then
-        return (CLIENT and language_GetPhrase(tag) or self["phrases"]["en"][tag]) or tag
+        if CLIENT then
+            return language_GetPhrase(tag) or self["phrases"]["en"][tag] or tag
+        else
+            return self["phrases"]["en"][tag] or tag
+        end
     else
         local phrase = PLang:GetPhrase(nil, tag)
-        return istable(phrase) and phrase[1] or tag
+        return istable(phrase) and phrase[1] or self["phrases"]["en"][tag] or tag
     end
 end
 
@@ -69,17 +73,17 @@ local space = " "
 local tag = "#"
 
 function PLib:TranslateText(name)
-	local tbl = string_Split(name, space)
-	local output = ""
-	for i = 1, #tbl do
-		local str = tbl[i]
+    local tbl = string_Split(name, space)
+    local output = ""
+    for i = 1, #tbl do
+        local str = tbl[i]
 
-		if (string_StartWith(str, tag) == true) then
-			str = string_sub(str, 2, #str)
-		end
+        if (string_StartWith(str, tag) == true) then
+            str = string_sub(str, 2, #str)
+        end
 
-		output = output .. self:Translate(str) .. space
-	end
+        output = output .. self:Translate(str) .. space
+    end
 
-	return output
+    return output
 end

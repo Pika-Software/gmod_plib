@@ -17,7 +17,7 @@ function PLib:VGUILoad(dir, tag)
                     self:Log(tag, "VGUI Include: ", self["_C"]["cl"], string.sub(fl, 0, #fl - 4))
                 end
 
-                if SERVER then 
+                if SERVER then
                     AddCSLuaFile(path)
                 else
                     include(path)
@@ -28,7 +28,7 @@ function PLib:VGUILoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:VGUILoad(dir .. fol, tag)
-    end 
+    end
 end
 
 function PLib:ClientLoad(dir, tag)
@@ -59,7 +59,7 @@ function PLib:SharedLoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:SharedLoad(dir .. fol, tag)
-    end 
+    end
 end
 
 function PLib:ServerLoad(dir, tag)
@@ -74,7 +74,7 @@ function PLib:ServerLoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         self:ServerLoad(dir .. fol, tag)
-    end 
+    end
 end
 
 local file_Exists = file.Exists
@@ -157,7 +157,7 @@ end
 local relationalOperators = {">=", "<=", ">", "<"}
 local function BuildRequiredCheck(str)
     local name, operator1, ver1, operator2, ver2
-    
+
     for _, op in ipairs(relationalOperators) do
         local start = string.find(str, op)
         if (start != nil) then
@@ -177,7 +177,7 @@ local function BuildRequiredCheck(str)
                 local num = math.abs(i)
                 local char = name[num]
                 if (char == " ") or (char == "  ") then
-                    continue 
+                    continue
                 end
 
                 name = string.sub(name, 0, num)
@@ -186,7 +186,7 @@ local function BuildRequiredCheck(str)
             end
 
             operator1 = op
-            
+
             local opStart = start + #op
             local start2 = string.find(str, ",", opStart)
             if (start2 != nil) then
@@ -214,7 +214,74 @@ local function BuildRequiredCheck(str)
         local args = {...}
         local version = args[1]
         return (version ]]..operator1.." "..ver1.." "..((operator2 != nil) and (" and version "..operator2.." "..ver2) or "")..")",
-    "CompileRequiredCheck"), name
+    "CompileRequiredCheck"), name, str
+end
+
+function PLib:ModuleData(dir, folder, isLoad)
+    local moduleConfig = (dir .. folder) .. "/" .. self["ModuleInitName"]
+
+    if file_Exists(moduleConfig, "LUA") then
+        if SERVER and (isLoad == true) then
+            AddCSLuaFile(moduleConfig)
+        end
+
+        local ok, info = SafeInclude(moduleConfig)
+        if ok and istable(info) then
+            if not istable(info) then
+                self:Log(nil, "Module ", self["_C"]["warn"], folder, self["_C"]["text"], " lost the load table, please report this to the creator of the module or try restart game.")
+                return false
+            end
+
+            return self:GetModuleInfo(info, folder)
+        else
+            self:Log(folder, "Error in ", self["_C"]["warn"], moduleConfig, self["_C"]["text"], "!\n", self["_C"]["warn"], info)
+            return false
+        end
+    end
+
+    return true
+end
+
+function PLib:GetModuleLoadTable(path, data)
+    local loadTable = {
+        ["name"] = data["name"],
+        ["path"] = path,
+        ["required"] = data["required"] or {
+            ["PLib_Core"] = (">= 1.0, <="..self["Version"]),
+        },
+        ["version"] = data["version"],
+        ["description"] = data["description"] or {
+            ["summary"] = "",
+            ["detailed"] = "",
+            ["homepage"] = "",
+            ["license"] = "",
+        },
+        ["source"] = data["source"] or {
+            ["url"] = "",
+            ["tag"] = "",
+        },
+    }
+    
+    local init = data["init"]
+    if isfunction(init) then
+        loadTable["init"] = init
+        loadTable["useloader"] = (data["useloader"] == true)
+    else
+        loadTable["useloader"] = (data["useloader"] != false)
+    end
+
+    local postInit = data["postInit"]
+    if isfunction(postInit) then
+        loadTable["postInit"] = postInit
+    end
+
+    return loadTable
+end
+
+function PLib:RequiredModluesAnalize(tbl, func)
+    for _, str in ipairs(tbl) do
+        func(BuildRequiredCheck(str))
+    end
 end
 
 function PLib:LoadModules(path)
@@ -224,105 +291,70 @@ function PLib:LoadModules(path)
     self["Modules"] = {}
 
     for id, folder in ipairs(modules) do
-        local path = modulesDir .. folder
-        local moduleConfig = path .. "/" .. self["ModuleInitName"]
+        local data = self:ModuleData(modulesDir, folder, true)
+        if istable(data) then
+            local name = data["name"]
+            local version = data["version"]
+            local required = data["required"]
 
-        if file_Exists(moduleConfig, "LUA") then
-            if SERVER then
-                AddCSLuaFile(moduleConfig)
-            end
-
-            local ok, info = SafeInclude(moduleConfig)
-            if ok then
-                if not istable(info) then
-                    self:Log(nil, "Module ", self["_C"]["warn"], folder, self["_C"]["text"], " lost the load table, please report this to the creator of the module or try restart game.")
-                    return
-                end
-    
-                local priority = #self["Modules"]
-                local moduleData = self:GetModuleInfo(info, folder)
-
-                local name = moduleData["name"]
-                local version = moduleData["version"]
-                local required = moduleData["required"]
-
-                local required_list, required_count = {}, 0
-                for num, str in ipairs(required) do
-                    local func, name = BuildRequiredCheck(str)
-                    required_list[name] = func
-                    required_count = required_count + 1
-                end
-
+            if (#required != 0) then
+                local haveRequired = {}
                 for num, folder in ipairs(modules) do
                     if (num == id) then continue end
+                    local data = self:ModuleData(modulesDir, folder)
+                    if !istable(data) then continue end
 
-                    local path = modulesDir .. folder
-                    local moduleConfig = path .. "/" .. self["ModuleInitName"]
+                    self:RequiredModluesAnalize(required, function(name, func, str)
+                        if (name == data["name"]) and func(data["version"]) then
+                            table.insert(haveRequired, str)
+                        end
+                    end)
+                end
 
-                    if file_Exists(moduleConfig, "LUA") then
-                        local ok, info = SafeInclude(moduleConfig)
-                        if ok and istable(info) then
-                            local tbl = self:GetModuleInfo(info, folder)
-                            local mName, mVer = tbl["name"], tbl["version"]
-                            if (mName == name) and (mVer > version) then
-                                self:Log(name .. " v" .. version, "Module loading canceled, reason: ", self["_C"]["warn"], "New version detected.")
-                                return
+                if (#haveRequired < #required) then
+                    self:Log(name .. " v" .. version, "Module loading canceled, reason: ", self["_C"]["warn"], "Required modules is missing.")
+                    for _, str in ipairs(required) do
+                        local have = false
+                        for _, str2 in ipairs(haveRequired) do
+                            if (str == str2) then
+                                have = true
                             end
+                        end
 
-                            for rName, func in pairs(required_list) do
-                                if (rName == mName) and func(mVer) then
-                                    required_count = required_count - 1
-                                end
-                            end
+                        if not have then
+                            self:Log(name .. " v" .. version, "Required: ", self["_C"]["module"], str)
                         end
                     end
                 end
 
-                if (required_count > 0) then
-                    self:Log(name .. " v" .. version, "Module loading canceled, reason: ", self["_C"]["warn"], "Required modules missing.")
-                    self:Log(name .. " v" .. version, "Required: ", table.ToString(required, nil, true))
+                return
+            end
+
+            local loadList = {}
+            for num, folder in ipairs(modules) do
+                if (num == id) then continue end
+                local data = self:ModuleData(modulesDir, folder)
+                if !istable(data) then continue end
+
+                if (data["name"] == name) and (data["version"] > version) then
+                    self:Log(name .. " v" .. version, "Module loading canceled, reason: ", self["_C"]["warn"], "New version detected!")
                     return
                 end
-
-                local loadTable = {
-                    ["name"] = name,
-                    ["path"] = path,
-                    ["required"] = required or {
-                        ["PLib_Core"] = (">= 1.0, <="..self["Version"]),
-                    },
-                    ["version"] = version,
-                    ["description"] = moduleData["description"] or {
-                        ["summary"] = "",
-                        ["detailed"] = "",
-                        ["homepage"] = "",
-                        ["license"] = "",
-                    },
-                    ["source"] = moduleData["source"] or {
-                        ["url"] = "",
-                        ["tag"] = "",
-                    },
-                }
                 
-                local init = moduleData["init"]
-                local useloader = moduleData["useloader"]
-
-                if isfunction(init) then
-                    loadTable["init"] = init
-                    loadTable["useloader"] = (useloader == true)
-                else
-                    loadTable["useloader"] = (useloader != false)
-                end
-
-                local postInit = moduleData["postInit"]
-                if isfunction(postInit) then
-                    loadTable["postInit"] = postInit
-                end
-
-                table.insert(self["Modules"], loadTable)
-            else
-                self:Log(folder, "Error in ", self["_C"]["warn"], moduleConfig, self["_C"]["text"], "!\n", self["_C"]["warn"], info)
+                self:RequiredModluesAnalize(required, function(reqName, func)
+                    if (reqName == name) and func(version) then
+                        table.insert(loadList, self:GetModuleLoadTable(modulesDir .. folder, data))
+                    end
+                end)
             end
-        else
+
+            table.insert(self["Modules"], self:GetModuleLoadTable(modulesDir .. folder, data))
+
+            for _, tbl in ipairs(loadList) do
+                table.insert(self["Modules"], tbl)
+            end
+
+        elseif (data == true) then
             table.insert(self["Modules"], {
                 ["name"] = folder,
                 ["path"] = path,
@@ -335,7 +367,7 @@ function PLib:LoadModules(path)
     for id, tbl in ipairs(self["Modules"]) do
         local name = tbl["name"]
         local version = tbl["version"]
-        
+
         local init = tbl["init"]
         if (init != nil) then
             init(self, tbl, modules)
@@ -352,7 +384,7 @@ function PLib:LoadModules(path)
         if (postInit != nil) then
             postInit(self, tbl, modules)
         end
-        
+
         self:Log(nil, "Module Loaded: ", self["_C"]["module"], name)
     end
 end

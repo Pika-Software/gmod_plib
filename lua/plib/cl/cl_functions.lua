@@ -13,7 +13,7 @@ PLib["URL_Sound_List"] = PLib["URL_Sound_List"] or {}
 PLib["DefaultSoundURL"] = "https://radio.pika-soft.ru/stream"
 PLib["MaxURLSoundDist"] = 200
 PLib["MaxURLSoundDist^"] = math.pow(PLib["MaxURLSoundDist"], 2) * 20
-function PLib:PlayURL(tag, url, target, flags, callback)
+function PLib:PlayURL(tag, url, target, fadeDist, dist, flags, callback)
     if (tag == nil) then
         tag = "PLib"
         dprint("PlayURL", "No TAG, installed by default: PLib")
@@ -28,7 +28,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
         url = self["DefaultSoundURL"]
         dprint("PlayURL", "No URL, installed by default: ", self["DefaultSoundURL"])
     end
-    
+
     local tbl = self["URL_Sound_List"][tag]
     if (tbl != nil) then
         local soundChannel = tbl[1]
@@ -36,7 +36,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
             soundChannel:Stop()
             dprint("PlayURL", "SoundChannel already created! Recreating...")
         end
-    end 
+    end
 
     sound_PlayURL(url, (IsValid(target) and "3d " or "")..((isstring(flags)) and flags or ""), function(channel, errorID, errorName)
         if IsValid(channel) then
@@ -50,7 +50,7 @@ function PLib:PlayURL(tag, url, target, flags, callback)
                     pos = pos + target:OBBCenter()
                 end
 
-                channel:Set3DFadeDistance(self["MaxURLSoundDist"] / 2, 0)
+                channel:Set3DFadeDistance((isnumber(fadeDist) and fadeDist or self["MaxURLSoundDist"]), 0)
                 channel:SetPos(pos)
 
                 target[tag] = channel
@@ -58,17 +58,17 @@ function PLib:PlayURL(tag, url, target, flags, callback)
 
             channel:Play()
             timer.Simple(0, function()
-                self["URL_Sound_List"][tag] = {channel, IsValid(target) and target or false}
+                self["URL_Sound_List"][tag] = {channel, (IsValid(target) and target or false), (isnumber(dist) and (math.pow(dist, 2) * 20) or self["MaxURLSoundDist^"])}
                 dprint("PlayURL", string_format("SoundChannel, %s created!", tag))
             end)
         else
             dprint("PlayURL", string_format("Error, %s! [%s]", errorID, errorName))
-        end 
+        end
     end)
 end
 
 function PLib:URLSoundThink()
-    for tag, tbl in pairs(self["URL_Sound_List"]) do 
+    for tag, tbl in pairs(self["URL_Sound_List"]) do
         if (tbl != nil) then
             local channel = tbl[1]
             if IsValid(channel) then
@@ -80,11 +80,18 @@ function PLib:URLSoundThink()
                             pos = pos + target:OBBCenter()
                         end
 
-                        if (LocalPlayer():GetPos():DistToSqr(pos) < self["MaxURLSoundDist^"]) then
-                            if (channel:GetState() == 2) then
+                        local state = channel:GetState()
+
+                        if (state == 0) and target["AudioEnded"] then
+                            target:AudioEnded(channel, tag)
+                            continue
+                        end
+
+                        if (LocalPlayer():GetPos():DistToSqr(pos) < tbl[3]) then
+                            if (state == 2) then
                                 channel:Play()
                             end
-                        elseif (channel:GetState() == 1) then
+                        elseif (state == 1) then
                             channel:Pause()
                         end
 
@@ -146,7 +153,7 @@ function PLib:SoundAnalyze(channel)
     end
 end
     return fft, bass
-end   
+end
 
 function PLib:GetBass(channel)
     local bass, fft = 0, {}
@@ -206,44 +213,44 @@ end
 
 local ents_GetAll = ents.GetAll
 function PLib:CleanUpClientSideEnts(filters)
-	local filterFunc = filters
-	if not isfunction(filterFunc) then
-		local funcStr = [[
-			local args = {...}
-			local ent, filter = args[1], args[2]
-		]]
+    local filterFunc = filters
+    if not isfunction(filterFunc) then
+        local funcStr = [[
+            local args = {...}
+            local ent, filter = args[1], args[2]
+        ]]
 
-		if IsEntity(filters) then
-			funcStr = funcStr .. [[
-				return (ent == filter)
-			]]
-		elseif isstring(filters) then
-			funcStr = funcStr .. [[
-				return (ent:GetClass() == filter)
-			]]
-		elseif istable(filters) and not table.IsEmpty(filters) then
-			funcStr = funcStr .. [[
-				local class = ent:GetClass()
-				for num, value in ipairs(filter) do
-					if (ent == value) or (class == value) then
-						return true
-					end
-				end
-				
-				return false
-			]]
-		else
-			funcStr = "return true"
-		end
+        if IsEntity(filters) then
+            funcStr = funcStr .. [[
+                return (ent == filter)
+            ]]
+        elseif isstring(filters) then
+            funcStr = funcStr .. [[
+                return (ent:GetClass() == filter)
+            ]]
+        elseif istable(filters) and not table.IsEmpty(filters) then
+            funcStr = funcStr .. [[
+                local class = ent:GetClass()
+                for num, value in ipairs(filter) do
+                    if (ent == value) or (class == value) then
+                        return true
+                    end
+                end
 
-		filterFunc = CompileString(funcStr, "CleanUpClientSideEnts")
-	end
+                return false
+            ]]
+        else
+            funcStr = "return true"
+        end
 
-	for _, ent in ipairs(ents_GetAll()) do
-		if IsValid(ent) and (ent:EntIndex() == -1) and filterFunc(ent, filters) then
-			ent:Remove()
-		end
-	end
+        filterFunc = CompileString(funcStr, "CleanUpClientSideEnts")
+    end
+
+    for _, ent in ipairs(ents_GetAll()) do
+        if IsValid(ent) and (ent:EntIndex() == -1) and filterFunc(ent, filters) then
+            ent:Remove()
+        end
+    end
 
     hook.Run("PLib:PostClientCleanup")
 end
