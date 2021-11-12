@@ -360,14 +360,6 @@ function player.FindNearest(pos, radius, filter)
             table_insert(plys, {pos:Distance(ply:GetPos()), ply})
         end
     end
-
-function player.findNearest(pos, radius, filter)
-	local plys = {}
-	for num, ply in ipairs((radius == nil) and player_GetAll() or ents_FindInSphere(pos, radius)) do
-		if IsValid(ply) and ply:IsPlayer() and (!filter or !isfunction(filter) or filter(ply)) then
-			table_insert(plys, {pos:Distance(ply:GetPos()), ply})
-		end
-	end
 	
 	local output = nil
 	for _, tbl in ipairs(plys) do
@@ -376,7 +368,7 @@ function player.findNearest(pos, radius, filter)
 		end
 	end
 
-    return output
+    return output or {}
 end
 
 function player.Random(no_bots)
