@@ -167,7 +167,7 @@ function player.findNearest(pos, radius, filter)
 		end
 	end
 	
-	local output = {}
+	local output = nil
 	for _, tbl in ipairs(plys) do
 		if !output or (tbl[1] < output[1]) then
 			output = tbl
