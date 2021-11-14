@@ -539,11 +539,7 @@ function ENTITY:TeamObject(ply)
 end
 
 function ENTITY:IsDoor()
-    if self:GetClass():find("door") then
-        return true
-    end
-
-    return IsValid(self:GetNWEntity("OriginalDoor", false))
+    return (self:GetClass() == "prop_door_rotating") or (self:GetClass() == "func_door_rotating") or IsValid(self:GetNWEntity("PLib.DoorEntity", false))
 end
 
 function ENTITY:GetSize()
