@@ -91,6 +91,7 @@ local VECTOR = FindMetaTable("Vector")
 local ANGLE = FindMetaTable("Angle")
 local COLOR = FindMetaTable("Color")
 local IMATERIAL = FindMetaTable("IMaterial")
+local VMATRIX = FindMetaTable("VMatrix")
 
 --[[-------------------------------------------------------------------------
     Other
@@ -469,11 +470,90 @@ function COLOR:FromInt(i)
 end
 
 --[[-------------------------------------------------------------------------
+    Matrix improvements
+---------------------------------------------------------------------------]]
+
+local vec_zero = Vector()
+local ang_zero = Angle()
+local def_scale = Vector(1, 1)
+
+function VMATRIX:Reset()
+    self:Zero()
+    self:SetScale(def_scale)
+    self:SetAngles(ang_zero)
+    self:SetTranslation(vec_zero)
+    self:SetField(1, 1, 1)
+    self:SetField(2, 2, 1)
+    self:SetField(3, 3, 1)
+    self:SetField(4, 4, 1)
+end
+
+--[[-------------------------------------------------------------------------
     IMaterial improvements
 ---------------------------------------------------------------------------]]
 
+function ismaterial(mat)
+    return debug.getmetatable(mat) == IMATERIAL
+end
+
 function IMATERIAL:GetSize()
     return self:GetInt("$realwidth"), self:GetInt("$realheight")
+end
+
+--[[-------------------------------------------------------------------------
+    Small module for material transformation operations
+---------------------------------------------------------------------------]]
+
+do
+    module("pmat_transform", package.seeall)
+
+    local matrix = Matrix()
+    local vec_origin = Vector()
+    local vec_scale = Vector(1, 1)
+    local ang_rotation = Angle()
+
+    function Reset()
+        matrix:Reset()
+    end
+
+    function SetRotationOrigin(rot_x, rot_y)
+        vec_origin.x, vec_origin.y = rot_x, rot_y
+    end
+
+    function SetScale(scale_x, scale_y)
+        vec_scale.x, vec_scale.y = scale_x, scale_y
+        matrix:SetScale(vec_scale)
+    end
+
+    function SetRotation(rot)
+        ang_rotation.y = rot
+        matrix:Translate(vec_origin)
+        matrix:SetAngles(ang_rotation)
+        matrix:Translate(-vec_origin)
+    end
+
+    function Rotate(rot)
+        ang_rotation.y = rot
+        matrix:Translate(vec_origin)
+        matrix:Rotate(ang_rotation)
+        matrix:Translate(-vec_origin)
+    end
+
+    function Apply(mat)
+        assert(ismaterial(mat), "bad argument #1 to 'Apply' (IMaterial expected, got " .. type(x) .. ")")
+        mat:SetMatrix("$basetexturetransform", matrix)
+    end
+
+    function Copy(obj)
+        if ismatrix(obj) then
+            matrix:Set(obj)
+        elseif ismaterial(obj) then
+            local mtx = obj:GetMatrix("$basetexturetransform")
+            if mtx then
+                matrix:Set(mtx)
+            end
+        end
+    end
 end
 
 --[[-------------------------------------------------------------------------
@@ -574,12 +654,6 @@ end
 function ENTITY:GetRawSpeed()
     return self:GetVelocity():Length()
 end
-
- -- duplicated func
-/*function ENTITY:IsDoor()
-    local class = self:GetClass()
-    return ((class != nil) and class:match("door") or false)
-end*/
 
 function ENTITY:GetBoneByTag(tag)
     local model = self:GetModel()
@@ -746,7 +820,6 @@ function math.power2(n)
     return math_pow(2, math_ceil(math_log(n) / math_log(2)))
 end
 
--- math.Remap dupl
 math["Map"] = math["Remap"]
 
 function math.striving_for(value, valueTo, delay)
@@ -928,7 +1001,7 @@ do
     end
 
     local function tobittable(x)
-        assert(type(x) == "number", "argument must be a number")
+        assert(isnumber(x), "bad argument #1 to 'tobittable' (number expected, got " .. type(x) .. ")")
         if x == 0 then return { 0 } end
         return { tobittable_r(x) }
     end

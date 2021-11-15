@@ -1,4 +1,4 @@
--- Fixes for prop_vehicle_prisoner_pod damage taking (bullets only)
+-- Fixes for prop_vehicle_prisoner_pod, worldspawn (and other not Valid but not NULL entities) damage taking (bullets only)
 -- Explosive damage only works if is located in front of prop_vehicle_prisoner_pod (wtf?)
 
 hook.Add("EntityTakeDamage", "PLib:ApplyDamageForce", function(ent, cdmg)
