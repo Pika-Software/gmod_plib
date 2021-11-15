@@ -259,3 +259,18 @@ function PLib.LightLevel(pos)
     local col = render.GetLightColor(pos):ToColor()
     return (col["r"] / 255 + col["g"] / 255 + col["b"] / 255) / 3
 end
+
+--[[-------------------------------------------------------------------------
+    render module improvements
+---------------------------------------------------------------------------]]
+
+function render.ResetStencil()
+	render.SetStencilWriteMask(0xFF)
+	render.SetStencilTestMask(0xFF)
+	render.SetStencilReferenceValue(0)
+	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	render.SetStencilPassOperation(STENCIL_KEEP)
+	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+	render.ClearStencil()
+end

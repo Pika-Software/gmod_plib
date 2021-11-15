@@ -91,6 +91,7 @@ local VECTOR = FindMetaTable("Vector")
 local ANGLE = FindMetaTable("Angle")
 local COLOR = FindMetaTable("Color")
 local IMATERIAL = FindMetaTable("IMaterial")
+local VMATRIX = FindMetaTable("VMatrix")
 
 --[[-------------------------------------------------------------------------
     Other
@@ -466,6 +467,25 @@ end
 
 function COLOR:FromInt(i)
     self["r"], self["g"], self["b"], self["a"] = PLib.Vec4FromInt(i)
+end
+
+--[[-------------------------------------------------------------------------
+    Matrix improvements
+---------------------------------------------------------------------------]]
+
+local vec_zero = Vector()
+local ang_zero = Angle()
+local def_scale = Vector(1, 1)
+
+function VMATRIX:Reset()
+    self:Zero()
+    self:SetScale(def_scale)
+    self:SetAngles(ang_zero)
+    self:SetTranslation(vec_zero)
+    self:SetField(1, 1, 1)
+    self:SetField(2, 2, 1)
+    self:SetField(3, 3, 1)
+    self:SetField(4, 4, 1)
 end
 
 --[[-------------------------------------------------------------------------
@@ -905,21 +925,6 @@ end
 function net.ReadCompressTable()
     local len = net_ReadUInt(16)
     return util_JSONToTable(util_Decompress(net_ReadData(len)))
-end
-
---[[-------------------------------------------------------------------------
-    render module improvements
----------------------------------------------------------------------------]]
-
-function render.ResetStencil()
-	render.SetStencilWriteMask(0xFF)
-	render.SetStencilTestMask(0xFF)
-	render.SetStencilReferenceValue(0)
-	render.SetStencilCompareFunction(STENCIL_ALWAYS)
-	render.SetStencilPassOperation(STENCIL_KEEP)
-	render.SetStencilFailOperation(STENCIL_KEEP)
-	render.SetStencilZFailOperation(STENCIL_KEEP)
-	render.ClearStencil()
 end
 
 --[[-------------------------------------------------------------------------
