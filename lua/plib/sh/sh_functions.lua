@@ -915,6 +915,21 @@ function net.ReadCompressTable()
 end
 
 --[[-------------------------------------------------------------------------
+    render module improvements
+---------------------------------------------------------------------------]]
+
+function render.ResetStencil()
+	render.SetStencilWriteMask(0xFF)
+	render.SetStencilTestMask(0xFF)
+	render.SetStencilReferenceValue(0)
+	render.SetStencilCompareFunction(STENCIL_ALWAYS)
+	render.SetStencilPassOperation(STENCIL_KEEP)
+	render.SetStencilFailOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+	render.ClearStencil()
+end
+
+--[[-------------------------------------------------------------------------
     Normal bitwise library without overflowing
     By kaeza (https://gist.github.com/kaeza/8ee7e921c98951b4686d)
 ---------------------------------------------------------------------------]]
