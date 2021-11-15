@@ -274,3 +274,32 @@ function render.ResetStencil()
 	render.SetStencilZFailOperation(STENCIL_KEEP)
 	render.ClearStencil()
 end
+
+--[[-------------------------------------------------------------------------
+    draw module improvements
+---------------------------------------------------------------------------]]
+
+local mat_grad = Material("gui/gradient")
+local mat_grad_down = Material("gui/gradient_down")
+local mat_grad_up = Material("gui/gradient_up")
+local mat_grad_center = Material("gui/center_gradient")
+
+function draw.GradientSimple(x, y, w, h)
+    surface.SetMaterial(mat_grad)
+    surface.DrawRect(x, y, w, h)
+end
+
+function draw.GradientDown(x, y, w, h)
+    surface.SetMaterial(mat_grad_down)
+    surface.DrawRect(x, y, w, h)
+end
+
+function draw.GradientUp(x, y, w, h)
+    surface.SetMaterial(mat_grad_up)
+    surface.DrawRect(x, y, w, h)
+end
+
+function draw.GradientCenter(x, y, w, h)
+    surface.SetMaterial(mat_grad_center)
+    surface.DrawRect(x, y, w, h)
+end
