@@ -575,12 +575,6 @@ function ENTITY:GetRawSpeed()
     return self:GetVelocity():Length()
 end
 
- -- duplicated func
-/*function ENTITY:IsDoor()
-    local class = self:GetClass()
-    return ((class != nil) and class:match("door") or false)
-end*/
-
 function ENTITY:GetBoneByTag(tag)
     local model = self:GetModel()
     if not BoneCache[model] then
@@ -746,7 +740,6 @@ function math.power2(n)
     return math_pow(2, math_ceil(math_log(n) / math_log(2)))
 end
 
--- math.Remap dupl
 math["Map"] = math["Remap"]
 
 function math.striving_for(value, valueTo, delay)
