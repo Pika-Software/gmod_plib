@@ -5,7 +5,6 @@ local tostring = tostring
 local IsValid = IsValid
 local ipairs = ipairs
 
-concommand_Add("spawnmenu_reload", PLib["SpawnMenuReload"])
 concommand_Add("plib_logo_update", function()
     PLib:UpdateLogo()
 end)
