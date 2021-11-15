@@ -936,7 +936,7 @@ do
     end
 
     local function tobittable(x)
-        assert(type(x) == "number", "argument must be a number")
+        assert(isnumber(x), "bad argument #1 to 'tobittable' (number expected, got " .. type(x) .. ")")
         if x == 0 then return { 0 } end
         return { tobittable_r(x) }
     end
