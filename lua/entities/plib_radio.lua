@@ -17,9 +17,8 @@ end
 function ENT:Initialize()
     if SERVER then
         self:SetModel("models/props_lab/citizenradio.mdl")
+        self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
         self:PhysicsInit(SOLID_VPHYSICS)
-        self:SetMoveType(MOVETYPE_NONE)
-        self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
         self:SetUseType(SIMPLE_USE)
 
         hook.Add("PLib:Loaded", self, function()
@@ -68,7 +67,7 @@ if SERVER then
         if ((self["UseTimeout"] or 0) < time) then
             self:SetEnabled(not self:GetEnabled())
 
-            self:SetURL(self:GetEnabled() and table_Random(self["URLs"]) or "Stop")
+            self:SetURL(self:GetEnabled() and table_Random(self["URLs"] or {"https://radio.pika-soft.ru/stream"}) or "Stop")
             timer.Simple(0, function()
                 self:Play()
             end)
