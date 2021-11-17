@@ -25,7 +25,7 @@ function PLib:FastDL_Folder(folder, name, compress)
     end
 end
 
-function PLib:SteamWorkshop(map) -- game.GetMap()
+function PLib:SteamWorkshop(addmaps)
     local addons = engine_GetAddons()
     local st = SysTime()
 
@@ -38,24 +38,13 @@ function PLib:SteamWorkshop(map) -- game.GetMap()
             if !addon["downloaded"] or !addon["mounted"] then continue end
 
             local wsid = addon["wsid"]
-            if addon["tags"]:match("map") then
-                if (map == nil) then
+            if addon["tags"]:find(",map,") then
+                if addmaps then
                     resource_AddWorkshop(wsid)
                     Msg("   + Map: "..addon["title"].." ("..wsid..")\n")
                     count = count + 1
                 else
-                    local ok, files = game_MountGMA(addon["file"])
-                    if not ok then continue end
-                    for _, fl in ipairs(files) do
-                        if (string_sub(fl, #fl-3, #fl) == ".bsp") then
-                            if (string_sub(fl, 6, #fl - 4) == map) then
-                                resource_AddWorkshop(wsid)
-                                Msg("   + Map: "..addon["title"].." ("..wsid..")\n")
-                                count = count + 1
-                                break;
-                            end
-                        end
-                    end
+                    Msg("   - Map (ignored): "..addon["title"].." ("..wsid..")\n")
                 end
             else
                 resource_AddWorkshop(wsid)
