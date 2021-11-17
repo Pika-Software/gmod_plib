@@ -231,7 +231,7 @@ end, "PLib")
 local logo_enabled = false
 local col = colors["logo"]
 local function UpdateLogoState(bool)
-    if (bool == false) and (PLib["ServerLogo"] == nil) then
+    if bool == false then
         hook.Remove("HUDPaint", "PLib:DrawLogo")
         logo_enabled = false
         return
