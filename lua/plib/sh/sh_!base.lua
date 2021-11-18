@@ -72,8 +72,8 @@ PLib["DoorClasses"] = {
 }
 
 PLib["MapCleaning"] = false
-hook.Add("PreCleanupMap", "PLib:PreCleanup", function() PLib["MapCleaning"] = true; end)
-hook.Add("PostCleanupMap", "PLib:AfterCleanup", function() PLib["MapCleaning"] = false; end)
+hook.Add("PreCleanupMap", "PLib:PreCleanup", function() PLib["MapCleaning"] = true end)
+hook.Add("PostCleanupMap", "PLib:AfterCleanup", function() PLib["MapCleaning"] = false end)
 
 local concommand_GetTable = concommand.GetTable
 local string_StartWith = string.StartWith
