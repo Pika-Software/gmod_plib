@@ -43,7 +43,7 @@ concommand.Add("plib_" .. (SERVER and "sv" or "cl") .. "find_netpool", function(
                 info = debug.getinfo(func)
                 info = info.source .. ":" .. info.linedefined
             end
-            PLib:Log(id, string.format("%s    %s", strpool, info))
+            PLib:Log(id, string.format("%s\t\t%s", strpool, info))
         end
     end
 end)

@@ -83,10 +83,10 @@ net.Receive("PLib", function(len, ply)
         local id = net.ReadUInt(3)
         local act = acts[id]
         if isfunction(act) then
-            act(ply);
+            act(ply)
         elseif istable(act) then
             if NetCheck(ply, id, act[2]) then
-                act[1](ply);
+                act[1](ply)
             end
         end
     end
