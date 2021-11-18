@@ -31,7 +31,7 @@ function PLib:SteamWorkshop(addmaps)
 
     if #addons > 0 then
         Msg("\n")
-        self:Log(nil, "Started adding addons on Steam Workshop...")
+        self:Log(nil, "Making enabled addons available for client download...")
         local count = 0
 
         for _, addon in ipairs(addons) do
@@ -41,18 +41,18 @@ function PLib:SteamWorkshop(addmaps)
             if addon["tags"]:find(",map,") then
                 if addmaps then
                     resource_AddWorkshop(wsid)
-                    Msg("   + Map: "..addon["title"].." ("..wsid..")\n")
+                    Msg("\t+ Map: "..addon["title"].." ("..wsid..")\n")
                     count = count + 1
                 else
-                    Msg("   - Map (ignored): "..addon["title"].." ("..wsid..")\n")
+                    Msg("\t- Map (ignored): "..addon["title"].." ("..wsid..")\n")
                 end
             else
                 resource_AddWorkshop(wsid)
-                Msg("   + Addon: "..addon["title"].." ("..wsid..")\n")
+                Msg("\t+ Addon: "..addon["title"].." ("..wsid..")\n")
                 count = count + 1
             end
         end
 
-        self:Log(nil, "Total: "..count.." addons. "..string.format("Adding on Steam Workshop completed in %.4f seconds.", SysTime() - st), "\n")
+        self:Log(nil, "Total: "..count.." addons "..string.format("added to client download list in %.4f seconds.", SysTime() - st), "\n")
     end
 end

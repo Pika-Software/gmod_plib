@@ -77,7 +77,11 @@ local acts = {
     end,
     [3] = function()
         local url = net_ReadString()
-        PLib["ServerLogo"] = Material(url, matOptions)
+        if url == "" then
+            PLib["ServerLogo"] = nil
+        else
+            PLib["ServerLogo"] = Material(url, matOptions)
+        end
         RunConsoleCommand("plib_logo_update")
     end,
     [4] = function()
@@ -92,6 +96,6 @@ local acts = {
 net_Receive("PLib", function(len)
     local act = acts[net_ReadUInt(3)]
     if (act != nil) then
-        act();
+        act()
     end
 end)

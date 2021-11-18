@@ -33,6 +33,8 @@ function ENT:Initialize()
         self:SetSDist(500)
     end
 
+    self:AddEFlags(EFL_NO_THINK_FUNCTION)
+
     self["FM_Tag"] = tostring(self).."_radio"
 end
 
@@ -85,7 +87,7 @@ if SERVER then
         if IsValid(ent) and (ent:GetClass() == "plib_radio") and ((ent["PLib.Radio"] or 0) < time) then
             ent["PLib.Radio"] = time + 5
 
-            ent:SetURL(ent:GetEnabled() and table_Random(ent["URLs"]) or "Stop")
+            ent:SetURL(ent:GetEnabled() and istable(ent["URLs"]) and table_Random(ent["URLs"]) or "Stop")
             timer.Simple(0, function()
                 ent:Play()
             end)
@@ -155,7 +157,10 @@ else
             self["Bass"] = math.striving_for(self["Bass"], bass, 100)
         end
 
-        cam_Start3D2D(self:LocalToWorld(Vector(8.45, 1.8, 16)), self:GetAngles() + Angle(0, 90, 90), 0.0215)
+        local ang = self:GetAngles()
+        ang:RotateAroundAxis(ang:Up(), 90)
+        ang:RotateAroundAxis(ang:Forward(), 90)
+        cam_Start3D2D(self:LocalToWorld(Vector(8.45, 1.8, 16)), ang, 0.0215)
             surface_SetDrawColor(5, 5, 8, 255)
             surface_DrawRect(-355, 15, 820, 200, 0)
 
@@ -174,8 +179,10 @@ else
                 surface_DrawRect(-360 + i * 10, 200 - simple2, 10, simple2)
             end
         cam_End3D2D()
+
+        ang:RotateAroundAxis(ang:Up(), 28 - math_min(58, self["Bass"] * 1.5))
     
-        cam_Start3D2D(self:LocalToWorld(Vector(8.45, -9.7, 12)), self:GetAngles() + Angle(-28 + math_min(60, self["Bass"]), 90, 90), 0.0215)
+        cam_Start3D2D(self:LocalToWorld(Vector(8.45, -9.7, 12)), ang, 0.0215)
             surface_SetDrawColor(5, 5, 8, 255)
             surface_DrawRect(0, -100, 5, 60)
         cam_End3D2D()

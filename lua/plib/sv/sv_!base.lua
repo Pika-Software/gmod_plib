@@ -32,8 +32,17 @@ function PLib:ServerLogoUpdate(url)
                 net.WriteString(url)
             net.Send(ply)
         end)
-    else
+        net.Start("PLib")
+            net.WriteUInt(3, 3)
+            net.WriteString(url)
+        net.Broadcast()
+    elseif url == "" then
         hook.Remove("PLib:PlayerInitialized", "PLib:Logo")
+        net.Start("PLib")
+            net.WriteUInt(3, 3)
+            net.WriteString("")
+        net.Broadcast()
+    else
         self:Log(nil, self:Translate("plib.invalid_logo_url"))
     end
 end

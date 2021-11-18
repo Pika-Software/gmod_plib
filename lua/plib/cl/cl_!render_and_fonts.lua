@@ -37,6 +37,8 @@ local ScrW = ScrW
 local ScrH = ScrH
 local Msg = Msg
 
+local isvalid = FindMetaTable("Entity").IsValid
+
 local colors = PLib["_C"]
 PLib["Fonts"] = {
     {
@@ -203,7 +205,7 @@ end
 
 local w, h = 0, 0
 function PLib:Draw2D(func)
-    func(w, h);
+    func(w, h)
 end
 
 local function ScreenSizeChanged()
@@ -228,28 +230,38 @@ cvars.AddChangeCallback("plib_logo_offset", function(name, old, new)
     offset = tonumber(new)
 end, "PLib")
 
+local plib_logo_enabled = CreateClientConVar("plib_logo", "0", true, false, "Displays the logo in the upper right corner. (0/1)", 0, 1)
+
 local logo_enabled = false
 local col = colors["logo"]
 local function UpdateLogoState(bool)
-    if (bool == false) and (PLib["ServerLogo"] == nil) then
+    if bool then
+        logo_enabled = true
+        hook.Add("HUDPaint", "PLib:DrawLogo", function()
+            surface_SetDrawColor(col)
+            surface_SetMaterial(logo)
+            surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
+        end)
+    else
         hook.Remove("HUDPaint", "PLib:DrawLogo")
         logo_enabled = false
         return
     end
-
-    logo_enabled = true
-    hook.Add("HUDPaint", "PLib:DrawLogo", function()
-        surface_SetDrawColor(col)
-        surface_SetMaterial(logo)
-        surface_DrawTexturedRect(w - logo_w - offset, offset, logo_w, logo_h)
-    end)
 end
+
+UpdateLogoState(plib_logo_enabled:GetBool())
+
+cvars.AddChangeCallback("plib_logo", function(name, old, new)
+    UpdateLogoState(plib_logo_enabled:GetBool())
+end, "PLib")
+
+local plib_logo_url = CreateClientConVar("plib_logo_url", "https://i.imgur.com/j5DjzQ1.png", true, false, "Url to your logo :p (Need 1x0.25, example 190x65)")
 
 function PLib:UpdateLogo(path)
     if (self["ServerLogo"] == nil) then
-        local cvarLogo = GetConVar("plib_logo_url"):GetString()
+        local cvarLogo = plib_logo_url:GetString()
         local path = isURL(path) and path or (isURL(cvarLogo) and cvarLogo or "https://i.imgur.com/j5DjzQ1.png")
-        if (path != nil) then
+        if (path ~= nil) then
             Material(path, PLib["MatPresets"]["Pic"], function(mat)
                 logo = mat
                 logo_w, logo_h = mat:GetSize()
@@ -265,20 +277,20 @@ function PLib:UpdateLogo(path)
         logo_w, logo_h = logo:GetSize()
         ssw, ssh = (w - logo_w)/2, (h - logo_h)/2
 
+        if self["Debug"] then
+            self:Log(nil, "Logo updated!")
+        end
+
         timer.Simple(0, function()
-            UpdateLogoState(true)
+            UpdateLogoState(plib_logo_enabled:GetBool())
         end)
     end
 end
 
-PLib:UpdateLogo(CreateClientConVar("plib_logo_url", "https://i.imgur.com/j5DjzQ1.png", true, false, "Url to your logo :p (Need 1x0.25, example 190x65)"):GetString())
-cvars.AddChangeCallback("plib_logo_url", function(name, old, new)
-    PLib:UpdateLogo(new)
-end, "PLib")
+PLib:UpdateLogo(plib_logo_url:GetString())
 
-UpdateLogoState(CreateClientConVar("plib_logo", "0", true, false, "Displays the logo in the upper right corner. (0/1)", 0, 1):GetBool())
-cvars.AddChangeCallback("plib_logo", function(name, old, new)
-    UpdateLogoState(tobool(new))
+cvars.AddChangeCallback("plib_logo_url", function(name, old, new)
+    PLib:UpdateLogo(plib_logo_url:GetString())
 end, "PLib")
 
 function PLib:StandbyScreen()
@@ -296,7 +308,6 @@ local getFontSize = PLib["GetFontSize"]
 local devEntData, devEnt
 local devHFont = "DermaDefault"
 
-local IsValid = IsValid
 local cam_End3D = cam.End3D
 local math_floor = math.floor
 local cam_Start3D = cam.Start3D
@@ -307,6 +318,7 @@ local render_DrawWireframeBox = render.DrawWireframeBox
 local red = Color(255, 0, 0)
 local green = Color(0, 255, 0)
 local blue = Color(0, 0, 255)
+local yellow = Color(255, 221, 30)
 
 function PLib:DebugEntityDraw(ent)
     if (self["Debug"] == true) then
@@ -324,6 +336,12 @@ function PLib:DebugEntityDraw(ent)
         render_DrawLine(centerpos, centerpos + 8 * angle:Forward(), red, true)
         render_DrawLine(centerpos, centerpos + 8 * -angle:Right(), green, true)
         render_DrawLine(centerpos, centerpos + 8 * angle:Up(), blue, true)
+
+        local parent = ent:GetParent()
+        if isvalid(parent) then
+            local pcenter = parent:OBBCenter()
+            render_DrawLine(centerpos, parent:GetPos() + pcenter, yellow, true)  
+        end
     end
 end
 
@@ -356,7 +374,7 @@ local function drawDeveloperHUD()
     }, getDesiredSize(4))
 
     if (devEntData == nil) then return end
-    if IsValid(devEnt) then
+    if isvalid(devEnt) then
         cam_Start3D()
             PLib:DebugEntityDraw(devEnt)
         cam_End3D()
@@ -407,7 +425,12 @@ local function devGetEntData()
         table_insert(devEntData, "Model: "..ent:GetModel())
         table_insert(devEntData, "ClassName: "..ent:GetClass())
 
-        if IsValid(ent) then
+        local parent = ent:GetParent()
+        if isvalid(parent) then
+            table_insert(devEntData, "Parent: "..tostring(parent))
+        end
+
+        if isvalid(ent) then
             local pos = ent:GetPos():Floor()
             local ang = ent:GetAngles():Floor()
             table_insert(devEntData, string_format("Pos: Vector(%s, %s, %s)", pos[1], pos[2], pos[3]))
@@ -422,10 +445,14 @@ local function devGetEntData()
             local maxLen = 0
             for key, value in pairs(ent:GetTable()) do
                 if isfunction(value) or (key == "ClassName") or (key == "PrintName") or (key == "Entity") then continue end
-                if (key == "BaseClass") and istable(value) then value = value["ClassName"]; end
+                if (key == "BaseClass") and istable(value) then value = value["ClassName"] end
                 if (value == "") then continue end
                 local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
-                local len = string_len(text)
+                if text:len() > 85 then
+                    text = text:sub(1, 85) .. "..."
+                end
+                surface.SetFont(devHFont)
+                local len = surface.GetTextSize(text)
                 if (len > maxLen) then
                     maxLen = len
                 end
@@ -434,9 +461,10 @@ local function devGetEntData()
             end
 
             if (#ent_info > 0) then
-                local separator = ""
-                for i = 1, maxLen do
-                    separator = separator.."-"
+                local separator = "—"
+                local separator_len = surface.GetTextSize(separator)
+                for i = 1, math.floor(maxLen / separator_len) do
+                    separator = separator .. "—"
                 end
 
                 table_insert(devEntData, separator)
