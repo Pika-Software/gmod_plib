@@ -1065,7 +1065,7 @@ end
     Game Difficulties (HL2)
 ---------------------------------------------------------------------------]]
 
-PLib["Difficulties"] = {"Easy", "Normal", "Hard"}
+PLib["Difficulties"] = {"plib.difficulty.easy", "plib.difficulty.normal", "plib.difficulty.hard"}
 function PLib:AddGameDifficulty(difficulty)
     assert(type(difficulty) == "string", "bad argument #1 (string expected)")
 
@@ -1082,7 +1082,7 @@ function PLib:AddGameDifficulty(difficulty)
 end
 
 function PLib:GameDifficulty()
-    local difficulty, id = "Unknown", game.GetSkillLevel() or cvars.Number("skill", 2)
+    local difficulty, id = "Normal", game.GetSkillLevel() or cvars.Number("skill", 2)
 
     for num, name in ipairs(self["Difficulties"]) do
         if (num == id) then

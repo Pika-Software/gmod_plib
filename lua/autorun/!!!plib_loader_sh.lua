@@ -15,7 +15,7 @@ local MsgC = MsgC
 
 PLib = PLib or {
     ["_G"] = {},
-    ["Version"] = 3.3,
+    ["Version"] = 3.34,
     ["Developers"] = {
         "KlΞn_list 🎀 ~ >,.,<#0710",
         "_ᐱℕᏩĒŁØҜҜ_#8486",

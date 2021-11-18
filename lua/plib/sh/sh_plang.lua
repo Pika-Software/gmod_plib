@@ -7,11 +7,12 @@ local pairs = pairs
 
 PLib["phrases"] = {
     ["ru"] = {
+        ["plib.name"] = "Название",
         ["plib.title"] = "PLib - Большая GLua библиотека",
         ["plib.version"] = "Версия",
         ["plib.yes"] = "Да",
         ["plib.no"] = "Нет",
-        ["plib.commands"] = "Команды",
+        ["plib.commands"] = "Доступные Команды",
         ["plib.ugg"] = "Ты молодец?",
         ["plib.achievement"] = "Получено достижение!",
         ["plib.earned_achievement"] = " получает достижение ",
@@ -21,8 +22,13 @@ PLib["phrases"] = {
         ["plib.invalid_font_args"] = "Неверные аргументы функции, должно быть строка[1] и (таблица или номер)[2]",
         ["plib.invalid_logo_url"] = "Логотип сервера отсутствует или содержит ошибку в url адресе! (Используйте plib_server_logo на сервере, что бы установить его)",
         ["plib.meet_the"] = "Встречайте,",
+        ["plib.difficulty"] = "Сложность ИГры",
+        ["plib.difficulty.easy"] = "Лёгкая",
+        ["plib.difficulty.normal"] = "Нормальная",
+        ["plib.difficulty.hard"] = "Сложная",
     },
     ["en"] = {
+        ["plib.name"] = "Title",
         ["plib.title"] = "PLib - Powerful GLua Library",
         ["plib.version"] = "Version",
         ["plib.yes"] = "Yes",
@@ -37,6 +43,10 @@ PLib["phrases"] = {
         ["plib.invalid_font_args"] = "Invalid function arguments should be string[1] and (table or number)[2]",
         ["plib.invalid_logo_url"] = "The server logo is missing or contains an error in the url address! (Use plib_server_logo in your server console for install logo)",
         ["plib.meet_the"] = "Meet the",
+        ["plib.difficulty"] = "Game Difficulty",
+        ["plib.difficulty.easy"] = "Easy",
+        ["plib.difficulty.normal"] = "Normal",
+        ["plib.difficulty.hard"] = "Hard",
     }
 }
 
