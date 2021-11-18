@@ -44,7 +44,7 @@ if CLIENT then
     function ENT:Draw()
         self:DrawModel()
 
-        cam_Start3D2D(self:LocalToWorld(Vector( -0.05, -0.05, 3.38)), Angle(0, 0, -90), 1)
+        cam_Start3D2D(self:LocalToWorld(Vector( -0.05, -0.05, 3.38)), self:GetAngles(), 1)
             surface_SetDrawColor(color_white)
 
             surface_SetMaterial(hours)
