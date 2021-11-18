@@ -448,7 +448,11 @@ local function devGetEntData()
                 if (key == "BaseClass") and istable(value) then value = value["ClassName"] end
                 if (value == "") then continue end
                 local text = (key..": "..tostring(istable(value) and ("table <"..#value..">") or value))
-                local len = string_len(text)
+                if text:len() > 85 then
+                    text = text:sub(1, 85) .. "..."
+                end
+                surface.SetFont(devHFont)
+                local len = surface.GetTextSize(text)
                 if (len > maxLen) then
                     maxLen = len
                 end
@@ -457,9 +461,10 @@ local function devGetEntData()
             end
 
             if (#ent_info > 0) then
-                local separator = ""
-                for i = 1, maxLen do
-                    separator = separator.."-"
+                local separator = "—"
+                local separator_len = surface.GetTextSize(separator)
+                for i = 1, math.floor(maxLen / separator_len) do
+                    separator = separator .. "—"
                 end
 
                 table_insert(devEntData, separator)

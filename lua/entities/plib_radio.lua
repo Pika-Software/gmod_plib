@@ -33,6 +33,8 @@ function ENT:Initialize()
         self:SetSDist(500)
     end
 
+    self:AddEFlags(EFL_NO_THINK_FUNCTION)
+
     self["FM_Tag"] = tostring(self).."_radio"
 end
 
