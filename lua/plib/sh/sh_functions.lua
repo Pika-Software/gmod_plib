@@ -560,6 +560,36 @@ end
 	Entity improvements
 ---------------------------------------------------------------------------]]
 
+PLib:Precache_G("ENTITY:GetOwner", ENTITY["GetOwner"])
+local ownerCheckFunctions = {
+	PLib:Get_G("ENTITY:GetOwner")
+}
+
+timer.Simple(0, function()
+	if CPPI then
+		table.insert(ownerCheckFunctions, ENTITY["CPPIGetOwner"])
+	end
+end)
+
+if SERVER then
+	table.insert(ownerCheckFunctions, ENTITY["GetCreator"])
+end
+
+function ENTITY:GetOwner()
+	if SERVER and self:CreatedByMap() then
+		return NULL
+	end
+
+	for _, func in ipairs(ownerCheckFunctions) do
+		local ply = func(self)
+		if IsValid(ply) then
+			return ply
+		end
+	end
+
+	return NULL
+end
+
 function ENTITY:GetDownTrace(filter)
 	return util_QuickTrace(self:EyePos(), Vector(0, 0, -1) * 50000, filter or { self })
 end
