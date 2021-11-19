@@ -157,16 +157,20 @@ function PLib:generateGMA(name, path, data)
 	return ok, err
 end
 
-concommand.Add("plib_info", function(ply)
-	local plib = PLib
-	local cols = plib["_C"]
-	local sCol = plib:SideColor()
+function PLib:Info(ply)
+	local txtCol = self["_C"]["text"]
+	local sCol = self:SideColor()
 
-	plib:Log("Info", plib:Translate("plib.title"), "\n",
-	sCol, "[" .. plib:Translate("plib.version") .. "] ", cols["print"], plib["Version"], "\n",
-	sCol, "[" .. plib:Translate("plib.creators") .. "] ", cols["text"], table.concat(plib["Developers"], ", ") .. "\n",
-	sCol, "[" .. plib:Translate("plib.ugg") .. "] ", cols["text"], PLib:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"), "\n",
-	sCol, "[" .. plib:Translate("plib.commands") .. "] ", cols["text"], plib:NumTableToList(plib:Commands()))
+	self:Log(self:Translate("plib.name"), self:Translate("plib.title"), "\n",
+	sCol, "[" .. self:Translate("plib.version") .. "] ", self["_C"]["print"], self["Version"], "\n",
+	sCol, "[" .. self:Translate("plib.creators") .. "] ", txtCol, table.concat(self["Developers"], ", ") .. "\n",
+	sCol, "[" .. self:Translate("plib.commands") .. "] ", txtCol, self:NumTableToList(self:Commands()), "\n",
+	sCol, "[" .. self:Translate("plib.difficulty") .. "] ", txtCol, self:Translate(select(2, self:GameDifficulty())), "\n",
+	sCol, "[" .. self:Translate("plib.ugg") .. "] ", txtCol, self:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"))
+end
+
+concommand.Add("plib_info", function(ply)
+	PLib:Info(ply)
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
 concommand.Add("plib_modules", function()

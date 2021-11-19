@@ -83,12 +83,46 @@ end, function(cmd, args)
 end, "Server map change (only for superadmins)", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
 local workshop = CreateConVar("plib_workshop", "1", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds all server addons to client download list. (0/1)", 0, 1)
-local shouldAddMaps = CreateConVar("plib_workshop_addmaps", "0", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds to client download list all maps from server collection. (0/1)", 0, 1)
+local shouldAddMaps = CreateConVar("plib_workshop_all_maps", "0", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds to client download list all maps from server collection. (0/1)", 0, 1)
 
 function PLib:CheckWorkshopLoadList()
 	if (workshop:GetBool() == true) then
 		PLib:SteamWorkshop(shouldAddMaps:GetBool())
 	end
+end
+
+function PLib:SetGameDifficulty(difficulty)
+    local name, id = "Normal", 2
+
+    if isstring(difficulty) then
+        for num, diff in ipairs(self["Difficulties"]) do
+            if (diff == difficulty) then
+                id = num; name = diff;
+                break
+            end
+        end
+    elseif isnumber(difficulty) then
+        for num, diff in ipairs(self["Difficulties"]) do
+            if (num == difficulty) then
+                id = num; name = diff;
+                break
+            end
+        end
+    else
+        Error("bad argument #1 (string or number expected)")
+        return
+    end
+
+    local oldID = self:GameDifficulty()
+    if (oldID == id) then
+        return 
+    end
+
+    hook.Run("PLib:GameDifficulty", oldID, id)
+
+    game.SetSkillLevel(id)
+    RunConsoleCommand("skill", id)
+    self:Log(nil, string.format("Game difficulty changed to -> %s (%s)", name, id))
 end
 
 cvars.AddChangeCallback("plib_workshop", function(name, old, new)

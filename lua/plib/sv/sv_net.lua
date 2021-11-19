@@ -1,5 +1,3 @@
-util.AddNetworkString("PLib")
-
 local validStr = string["isvalid"]
 local string_sub = string.sub
 local string_find = string.find

@@ -1060,6 +1060,39 @@ do
 end
 
 --[[-------------------------------------------------------------------------
+	Game Difficulties (HL2)
+---------------------------------------------------------------------------]]
+
+PLib["Difficulties"] = {"plib.difficulty.easy", "plib.difficulty.normal", "plib.difficulty.hard"}
+function PLib:AddGameDifficulty(difficulty)
+	assert(type(difficulty) == "string", "bad argument #1 (string expected)")
+
+	for num, name in ipairs(self["Difficulties"]) do
+		if (name == difficulty) then
+			self:Log(nil, string.format("Game difficulty already exist -> %s (%s)", difficulty, num))
+			return
+		end
+	end
+
+	local id = table.insert(self["Difficulties"], difficulty)
+	self:Log(nil, string.format("Game difficulty created -> %s (%s)", difficulty, id))
+	return id, difficulty
+end
+
+function PLib:GameDifficulty()
+	local difficulty, id = "Normal", game.GetSkillLevel() or cvars.Number("skill", 2)
+
+	for num, name in ipairs(self["Difficulties"]) do
+		if (num == id) then
+			difficulty = name
+			break
+		end
+	end
+
+	return id, difficulty
+end
+
+--[[-------------------------------------------------------------------------
 	not yet
 ---------------------------------------------------------------------------]]
 

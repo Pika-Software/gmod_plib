@@ -5,6 +5,8 @@ local file_Find = file.Find
 local ipairs = ipairs
 local Msg = Msg
 
+util.AddNetworkString("PLib")
+
 function PLib:FastDL_File(fl, name, compress)
 	resource.AddSingleFile(fl, name or "PLib", compress)
 end
