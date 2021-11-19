@@ -32,7 +32,7 @@ function PLib:WorkshopDownload(id, cb)
 		end)
 	else
 		self.dprint("Workshop", "Addon already downloaded, id: ", id)
-		
+
 		if isfunction(cb) then
 			cb(saved)
 		end
@@ -61,30 +61,30 @@ function PLib:WorkshopInstall(id, cb)
 				cb(ok, path, files)
 			end
 
-			return (ok and outputTbl or false)
+			return ok and outputTbl or false
 		end)
 	else
 		self.dprint("Workshop", "Addon already installed, id: ", id)
 
 		if isfunction(cb) then
 			cb(true, saved[1], saved[2])
-		end	
+		end
 
-        return saved
-    end
+		return saved
+	end
 end
 
 function PLib:TryInstallWorkshop(id, cb, num)
-    self:WorkshopInstall(id, function(ok, path, files)
-        if (ok == false) then
-            local num = num + 1
-            timer_Simple(10, function()
-                self:TryInstallWorkshop(id, cb, num)
-            end)
+	self:WorkshopInstall(id, function(ok, path, files)
+		if (ok == false) then
+			num = num + 1
+			timer_Simple(10, function()
+				self:TryInstallWorkshop(id, cb, num)
+			end)
 
-            self.dprint("Workshop", "Install try #", num)
-        elseif isfunction(cb) then
-            cb(path, files)
-        end
-    end)
+			self.dprint("Workshop", "Install try #", num)
+		elseif isfunction(cb) then
+			cb(path, files)
+		end
+	end)
 end
