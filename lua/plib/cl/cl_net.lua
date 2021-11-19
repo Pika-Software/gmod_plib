@@ -50,7 +50,7 @@ local acts = {
 			if (tbl != nil) then
 				local mat = tbl[2]
 				if (mat != nil) then
-					tbl[2] = (isnumber(mat) and PLib:GetStandardAchievementIcon(--[[id]]) or Material(mat, matOptions)) -- ?
+					tbl[2] = (isnumber(mat) and PLib:GetStandardAchievementIcon(mat) or Material(mat, matOptions))
 				end
 
 				PLib["Achievements"][tostring(tag)] = tbl
