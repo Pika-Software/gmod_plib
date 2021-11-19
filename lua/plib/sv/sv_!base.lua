@@ -24,6 +24,8 @@ hook.Add("EntityRemoved", "PLib.AreaPortalFix", function(ent)
     PLib:AreaPortalFix(ent)
 end)
 
+util.AddNetworkString("PLib")
+
 function PLib:ServerLogoUpdate(url)
     if isURL(url) then
         hook.Add("PLib:PlayerInitialized", "PLib:Logo", function(ply)
