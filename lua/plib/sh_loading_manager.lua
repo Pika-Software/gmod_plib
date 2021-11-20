@@ -1,13 +1,11 @@
 -- Loading Manager by PrikolMen#3372
 local string_EndsWith = string.EndsWith
-local string_lower = string.lower
-local string_Left = string.Left
 local file_Find = file.Find
 local ipairs = ipairs
 
 function PLib:VGUILoad(dir, tag)
     dir = dir .. "/"
-    local files, folders = file_Find(dir.."*", "LUA")
+    local files, folders = file_Find(dir .. "*", "LUA")
 
     for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
@@ -33,7 +31,7 @@ end
 
 function PLib:ClientLoad(dir, tag)
     dir = dir .. "/"
-    local files, folders = file_Find(dir.."*", "LUA")
+    local files, folders = file_Find(dir .. "*", "LUA")
 
     for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
@@ -43,13 +41,13 @@ function PLib:ClientLoad(dir, tag)
 
     for _, fol in ipairs(folders) do
         if (fol == "vgui") then return end
-        self:ClientLoad(dir..fol, tag)
+        self:ClientLoad(dir .. fol, tag)
     end
 end
 
 function PLib:SharedLoad(dir, tag)
     dir = dir .. "/"
-    local files, folders = file_Find(dir.."*", "LUA")
+    local files, folders = file_Find(dir .. "*", "LUA")
 
     for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
@@ -64,7 +62,7 @@ end
 
 function PLib:ServerLoad(dir, tag)
     dir = dir .. "/"
-    local files, folders = file_Find(dir.."*", "LUA")
+    local files, folders = file_Find(dir .. "*", "LUA")
 
     for _, fl in ipairs(files) do
         if string_EndsWith(fl, ".lua") then
@@ -213,7 +211,7 @@ local function BuildRequiredCheck(str)
         [[
         local args = {...}
         local version = args[1]
-        return (version ]]..operator1.." "..ver1.." "..((operator2 != nil) and (" and version "..operator2.." "..ver2) or "")..")",
+        return (version ]] .. operator1 .. " " .. ver1 .. " " .. ((operator2 != nil) and (" and version " .. operator2 .. " " .. ver2) or "") .. ")",
     "CompileRequiredCheck"), name, str
 end
 
@@ -247,7 +245,7 @@ function PLib:GetModuleLoadTable(path, data)
         ["name"] = data["name"],
         ["path"] = path,
         ["required"] = data["required"] or {
-            ["PLib_Core"] = (">= 1.0, <="..self["Version"]),
+            ["PLib_Core"] = ">= 1.0, <=" .. self["Version"],
         },
         ["version"] = data["version"],
         ["description"] = data["description"] or {
@@ -261,7 +259,7 @@ function PLib:GetModuleLoadTable(path, data)
             ["tag"] = "",
         },
     }
-    
+
     local init = data["init"]
     if isfunction(init) then
         loadTable["init"] = init
@@ -286,7 +284,7 @@ end
 
 function PLib:LoadModules(path)
     local modulesDir = path .. "/"
-    local _, modules = file_Find(modulesDir.."*", "LUA")
+    local _, modules = file_Find(modulesDir .. "*", "LUA")
 
     self["Modules"] = {}
 
@@ -302,7 +300,7 @@ function PLib:LoadModules(path)
                 for num, folder in ipairs(modules) do
                     if (num == id) then continue end
                     local data = self:ModuleData(modulesDir, folder)
-                    if !istable(data) then continue end
+                    if not istable(data) then continue end
 
                     self:RequiredModluesAnalize(required, function(name, func, str)
                         if (name == data["name"]) and func(data["version"]) then
@@ -334,13 +332,13 @@ function PLib:LoadModules(path)
             for num, folder in ipairs(modules) do
                 if (num == id) then continue end
                 local data = self:ModuleData(modulesDir, folder)
-                if !istable(data) then continue end
+                if not istable(data) then continue end
 
                 if (data["name"] == name) and (data["version"] > version) then
                     self:Log(name .. " v" .. version, "Module loading canceled, reason: ", self["_C"]["warn"], "New version detected!")
                     return
                 end
-                
+
                 self:RequiredModluesAnalize(required, function(reqName, func)
                     if (reqName == name) and func(version) then
                         table.insert(loadList, self:GetModuleLoadTable(modulesDir .. folder, data))
