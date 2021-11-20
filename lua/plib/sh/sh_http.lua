@@ -46,90 +46,93 @@ function PLib:getFileFromURL(url, ext)
 	return hash .. "." .. filetype
 end
 
-PLib:Precache_G("Material", Material)
-local _GMaterial = PLib:Get_G("Material")
-PLib["Material_Cache"] = PLib["Material_Cache"] or {}
-function Material(name, parameters, cb)
-	local isImage = isURL(name) and (name:EndsWith(".png") or name:EndsWith(".jpg"))
-	if not isImage then
-		return _GMaterial(name, parameters)
-	end
+if CLIENT then
+	PLib:Precache_G("Material", Material)
+	local _GMaterial = PLib:Get_G("Material")
 
-	if PLib["Material_Cache"][name] then
-		local mat = PLib["Material_Cache"][name]
-		if isfunction(cb) then cb(mat) end
-		return mat
-	end
-
-	if not file_Exists("plib/cache/images", "DATA") then file_CreateDir("plib/cache/images") end
-
-	local fl = PLib:getFileFromURL(name)
-	local path = "plib/cache/images/" .. fl
-	if file_Exists(path, "DATA") then
-		local mat = _GMaterial("data/" .. path, parameters)
-		if isfunction(cb) then cb(mat) end
-		return mat
-	end
-
-	if CLIENT and cvars.Bool("developer") and PLib["Initialized"] then
-		notification.AddProgress("plib.http_material_#" .. name, "[PLib] Downloading " .. fl)
-	end
-
-	local mat = CreateMaterial(name, "UnlitGeneric", {
-		["$basetexture"] = "debugempty",
-		["$alpha"] = 0,
-		["$realwidth"] = 32,
-		["$realheight"] = 32,
-	})
-
-	local function onFailure(reason)
-		if CLIENT then
-			notification.Kill("plib.http_material_#" .. name)
+	PLib["Material_Cache"] = PLib["Material_Cache"] or {}
+	function Material(name, parameters, cb)
+		local isImage = isURL(name) and (name:EndsWith(".png") or name:EndsWith(".jpg"))
+		if not isImage then
+			return _GMaterial(name, parameters)
 		end
 
-		dprint("[ERROR] [HTTP] Failed to download image from `" .. name .. "`. Reason: " .. reason)
-		mat:SetInt("$alpha", 1)
-		PLib["Material_Cache"][name] = nil
-	end
+		if PLib["Material_Cache"][name] then
+			local mat = PLib["Material_Cache"][name]
+			if isfunction(cb) then cb(mat) end
+			return mat
+		end
 
-	local function onSuccess(body, size, headers, code)
-		if (code ~= 200) then
-			onFailure("invalid status code " .. code)
-		return end
+		if not file_Exists("plib/cache/images", "DATA") then file_CreateDir("plib/cache/images") end
 
-		file_Write(path, body)
-		local try = Material("data/" .. path, parameters)
+		local fl = PLib:getFileFromURL(name)
+		local path = "plib/cache/images/" .. fl
+		if file_Exists(path, "DATA") then
+			local mat = _GMaterial("data/" .. path, parameters)
+			if isfunction(cb) then cb(mat) end
+			return mat
+		end
 
-		for k, v in pairs(try:GetKeyValues()) do
-			local vtype = type(v)
+		if CLIENT and cvars.Bool("developer") and PLib["Initialized"] then
+			notification.AddProgress("plib.http_material_#" .. name, "[PLib] Downloading " .. fl)
+		end
 
-			if (vtype == "ITexture") then
-				mat:SetTexture(k, v)
-			elseif (vtype == "VMatrix") then
-				mat:SetMatrix(k, v)
-			elseif (vtype == "Vector") then
-				mat:SetVector(k, v)
-			elseif (vtype == "number") then
-				if (math_floor(v) == v) then
-					mat:SetInt(k, v)
-				else
-					mat:SetFloat(k, v)
+		local mat = CreateMaterial(name, "UnlitGeneric", {
+			["$basetexture"] = "debugempty",
+			["$alpha"] = 0,
+			["$realwidth"] = 32,
+			["$realheight"] = 32,
+		})
+
+		local function onFailure(reason)
+			if CLIENT then
+				notification.Kill("plib.http_material_#" .. name)
+			end
+
+			dprint("[ERROR] [HTTP] Failed to download image from `" .. name .. "`. Reason: " .. reason)
+			mat:SetInt("$alpha", 1)
+			PLib["Material_Cache"][name] = nil
+		end
+
+		local function onSuccess(body, size, headers, code)
+			if (code ~= 200) then
+				onFailure("invalid status code " .. code)
+			return end
+
+			file_Write(path, body)
+			local try = Material("data/" .. path, parameters)
+
+			for k, v in pairs(try:GetKeyValues()) do
+				local vtype = type(v)
+
+				if (vtype == "ITexture") then
+					mat:SetTexture(k, v)
+				elseif (vtype == "VMatrix") then
+					mat:SetMatrix(k, v)
+				elseif (vtype == "Vector") then
+					mat:SetVector(k, v)
+				elseif (vtype == "number") then
+					if (math_floor(v) == v) then
+						mat:SetInt(k, v)
+					else
+						mat:SetFloat(k, v)
+					end
 				end
 			end
+
+			if CLIENT and PLib["Initialized"] then
+				notification.Kill("plib.http_material_#" .. name)
+			end
+
+			dprint("[HTTP] Material from `" .. name .. "` downloaded. Cached in `" .. path .. "`")
+			if isfunction(cb) then cb(mat) end
+			PLib["Material_Cache"][name] = nil
 		end
 
-		if CLIENT and PLib["Initialized"] then
-			notification.Kill("plib.http_material_#" .. name)
-		end
-
-		dprint("[HTTP] Material from `" .. name .. "` downloaded. Cached in `" .. path .. "`")
-		if isfunction(cb) then cb(mat) end
-		PLib["Material_Cache"][name] = nil
+		PLib["Material_Cache"][name] = mat
+		http_Fetch(name, onSuccess, onFailure)
+		return mat
 	end
-
-	PLib["Material_Cache"][name] = mat
-	http_Fetch(name, onSuccess, onFailure)
-	return mat
 end
 
 -- URL Sound extension by Retro#1593
