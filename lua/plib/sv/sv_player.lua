@@ -24,6 +24,27 @@ hook.Add("PLib:PlayerInitialized", "PLib:PlayerData_Sync", function(ply)
     ply:SyncData()
 end)
 
+local cmd_starts = {"/", "!"}
+hook.Add("PlayerSay", "PLib:ChatCommands", function(ply, text, teamChat)
+	for _, start in ipairs(cmd_starts) do
+		if text:StartWith(start) then
+			local cmd = text:Replace(start, "")
+
+            local splited = cmd:Split(" ")
+            local args = {}
+            for num, str in ipairs(splited) do
+                if (num == 1) then
+                    continue
+                end
+
+                table.insert(args, str)
+            end
+
+			return hook.Run("ChatCommand", ply, splited[1], args, teamChat) or ""
+		end
+	end
+end)
+
 function PLib:SendAchievements(ply)
     net.Start("PLib")
         net.WriteUInt(0, 3)
