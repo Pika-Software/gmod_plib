@@ -39,17 +39,16 @@ function PLib:GetHostName()
 end
 
 function PLib:SetHostName(str)
-	local old = self:GetHostName()
-	RunConsoleCommand("hostname", isstring(str) and str or old)
-	timer.Simple(0, function()
-		local new = self:GetHostName()
-		self:Log(nil, string.format("Server hostname changed from '%s' to '%s'!", old, new))
+	if isstring(str) then
+		self:Log(nil, string.format("Server hostname changed from '%s' to '%s'!", self:GetHostName(), str))
+
+		RunConsoleCommand("hostname", str)
 
 		net.Start("PLib")
 			net.WriteUInt(5, 3)
-			net.WriteString(new)
+			net.WriteString(str)
 		net.Broadcast()
-	end)
+	end
 end
 
 local string_find = string.find
