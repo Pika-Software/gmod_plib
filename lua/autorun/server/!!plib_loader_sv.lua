@@ -2,6 +2,7 @@
 local resource_AddWorkshop = resource.AddWorkshop
 local engine_GetAddons = engine.GetAddons
 local game_MountGMA = game.MountGMA
+local string_lower = string.lower
 local string_sub = string.sub
 local file_Find = file.Find
 local ipairs = ipairs
@@ -34,7 +35,7 @@ cvars.AddChangeCallback("plib_workshop_active_map", function(name, old, new)
 end, "PLib")
 
 local function IsMap(addon)
-	return addon["tags"]:find("map") or addon["title"]:find("ttt_")
+	return (addon["tags"]:find("map") or addon["title"]:find("ttt_")) and not string_lower(addon["title"]):find("nav file")
 end
 
 PLib["Workshop"] = PLib["Workshop"] or {}
