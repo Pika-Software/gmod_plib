@@ -52,13 +52,13 @@ function PLib:SteamWorkshop()
 	if #addons > 0 then
 		Msg("\n")
 		self:Log(nil, "Making enabled addons available for client download...")
+
 		local oldWorkshopCount = 0
 		for _, _ in pairs(self["Workshop"]) do
 			oldWorkshopCount = oldWorkshopCount + 1
 		end
 
 		local currentMap = game.GetMap()
-
 		for _, addon in ipairs(addons) do
 			if not addon["downloaded"] or not addon["mounted"] then continue end
 			if IsMap(addon) then
