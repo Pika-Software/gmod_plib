@@ -1,6 +1,8 @@
 -- PLib Core by PrikolMen#3372
 local resource_AddWorkshop = resource.AddWorkshop
 local engine_GetAddons = engine.GetAddons
+local game_MountGMA = game.MountGMA
+local string_sub = string.sub
 local file_Find = file.Find
 local ipairs = ipairs
 local Msg = Msg
@@ -31,11 +33,16 @@ cvars.AddChangeCallback("plib_workshop_active_map", function(name, old, new)
 	onlyActiveMap = tobool(new)
 end, "PLib")
 
-PLib["WorkshopCount"] = PLib["WorkshopCount"] or 0
-function PLib:AddWorkshop(wsid, title, tag)
+local function IsMap(addon)
+	return addon["tags"]:find("map") or addon["title"]:find("ttt_")
+end
+
+PLib["Workshop"] = PLib["Workshop"] or {}
+function PLib:AddWorkshop(addon)
+	local wsid = addon["wsid"]
 	resource_AddWorkshop(wsid)
-	string.format("\t+ %s: %s (%s)\n", (tag or "Addon"), title, wsid)
-	self["WorkshopCount"] = self["WorkshopCount"] + 1
+	Msg(string.format("\t+ %s: %s (%s)\n", (IsMap(addon) and "Map" or "Addon"), addon["title"], wsid))
+	self["Workshop"][wsid] = addon
 end
 
 function PLib:SteamWorkshop()
@@ -45,14 +52,16 @@ function PLib:SteamWorkshop()
 	if #addons > 0 then
 		Msg("\n")
 		self:Log(nil, "Making enabled addons available for client download...")
-		local oldWorkshopCount = self["WorkshopCount"]
+		local oldWorkshopCount = 0
+		for _, _ in pairs(self["Workshop"]) do
+			oldWorkshopCount = oldWorkshopCount + 1
+		end
+
 		local currentMap = game.GetMap()
 
 		for _, addon in ipairs(addons) do
 			if not addon["downloaded"] or not addon["mounted"] then continue end
-
-			local wsid = addon["wsid"]
-			if addon["tags"]:find("map") then
+			if IsMap(addon) then
 				local shouldAdd = allMaps
 
 				if onlyActiveMap and (allMaps == false) then
@@ -70,15 +79,20 @@ function PLib:SteamWorkshop()
 				end
 
 				if shouldAdd then
-					self:AddWorkshop(wsid, addon["title"], "Map")
+					self:AddWorkshop(addon)
 				else
-					Msg("\t- Map (ignored): " .. addon["title"] .. " (" .. wsid .. ")\n")
+					Msg("\t- Map (ignored): " .. addon["title"] .. " (" .. addon["wsid"] .. ")\n")
 				end
 			else
-				self:AddWorkshop(wsid, addon["title"])
+				self:AddWorkshop(addon)
 			end
 		end
 
-		self:Log(nil, "Total: " .. (self["WorkshopCount"] - oldWorkshopCount) .. " addons " .. string.format("added to client download list in %.4f seconds.", SysTime() - st), "\n")
+		local newCount = 0
+		for _, _ in pairs(self["Workshop"]) do
+			newCount = newCount + 1
+		end
+
+		self:Log(nil, "Total: " .. (newCount - oldWorkshopCount) .. " addons " .. string.format("added to client download list in %.4f seconds.", SysTime() - st), "\n")
 	end
 end
