@@ -62,8 +62,8 @@ end
 
 local getFontSize = PLib["GetFontSize"]
 function PANEL:Setup(title, msg, color, lifetime, animSpeed)
-	self["title"] = title or "Title"
-	self["msg"] = msg or "Text"
+	self["title"] = title and PLib:TranslateText(title) or "Title"
+	self["msg"] = msg and PLib:TranslateText(msg) or "Text"
 
 	if istable(color) and not IsColor(color) then
 		self["mainColor"] = color["main"] or green

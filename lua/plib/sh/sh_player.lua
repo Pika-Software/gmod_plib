@@ -148,10 +148,74 @@ if SERVER then
 			net.Send(self)
 		end
 	end
+
+	util.AddNetworkString("PLib.Notify")
+	function PLAYER:PNotify(title, text, color, lifetime, image, animated)
+		net.Start("PLib.Notify")
+			net.WriteString(title)
+			net.WriteString(text)
+			
+			if IsColor(color) then
+				net.WriteColor(color)
+			end
+
+			if isnumber(lifetime) then
+				net.WriteUInt(lifetime, 8)
+			end
+
+			if isstring(image) then
+				net.WriteString(image)
+				net.WriteBool(animated)
+			end
+		net.Send(self)
+	end
 else
+	local localPlayer = NULL
 	net.Receive("PLib.ConCommand", function()
-		LocalPlayer():ConCommand(net.ReadString())
+		if !IsValid(localPlayer) then
+			localPlayer = LocalPlayer()
+		end
+
+		localPlayer:ConCommand(net.ReadString())
 	end)
+
+	net.Receive("PLib.Notify", function()
+		if !IsValid(localPlayer) then
+			localPlayer = LocalPlayer()
+		end
+
+		local title = net.ReadString()
+		if (title == "") then return end
+
+		local text = net.ReadString()
+		if (text == "") then return end
+
+		local c = net.ReadColor()
+		if (c["r"] == 0 and c["g"] == 0 and c["b"] == 0 and c["a"] == 0) then
+			c = nil
+		end
+
+		local time = net.ReadUInt(8)
+		if (time == 0) then
+			time = nil
+		end
+
+		local image, animated = net.ReadString(), nil
+		if (image == "") then
+			image = nil
+		else
+			animated = net.ReadBool()
+		end
+
+		localPlayer:PNotify(title, text, c, time, image, animated)
+	end)
+
+	function PLAYER:PNotify(title, text, color, lifetime, image, animated)
+		local notify = PLib:AddNotify(title, text, color, lifetime)
+		if (image != "") then
+			notify:SetIcon(Material(image, matOptions), animated or false)
+		end
+	end
 end
 
 function PLAYER:HasAchievement(tag)
