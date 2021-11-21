@@ -68,12 +68,6 @@ local acts = {
 		end
 	end,
 	[2] = function()
-		local notify = PLib:AddNotify(net_ReadString(), net_ReadString(), net_ReadString(), net.ReadUInt(8))
-
-		local image = net_ReadString()
-		if (image != "") then
-			notify:SetIcon(Material(image, matOptions), net.ReadBool())
-		end
 	end,
 	[3] = function()
 		local url = net_ReadString()

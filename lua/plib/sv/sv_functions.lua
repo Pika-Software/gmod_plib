@@ -81,15 +81,6 @@ end, function(cmd, args)
 	return tbl
 end, "Server map change (only for superadmins)", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
-local workshop = CreateConVar("plib_workshop", "1", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds all server addons to client download list. (0/1)", 0, 1)
-local shouldAddMaps = CreateConVar("plib_workshop_all_maps", "0", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds to client download list all maps from server collection. (0/1)", 0, 1)
-
-function PLib:CheckWorkshopLoadList()
-	if (workshop:GetBool() == true) then
-		PLib:SteamWorkshop(shouldAddMaps:GetBool())
-	end
-end
-
 function PLib:SetGameDifficulty(difficulty)
     local name, id = "Normal", 2
 
@@ -124,9 +115,16 @@ function PLib:SetGameDifficulty(difficulty)
     self:Log(nil, string.format("Game difficulty changed to -> %s (%s)", name, id))
 end
 
+local workshop = CreateConVar("plib_workshop", "1", {FCVAR_ARCHIVE, FCVAR_LUA_SERVER}, "Adds all server addons to client download list. (0/1)", 0, 1)
 cvars.AddChangeCallback("plib_workshop", function(name, old, new)
 	PLib:CheckWorkshopLoadList()
 end, "PLib")
+
+function PLib:CheckWorkshopLoadList()
+	if workshop:GetBool() then
+		PLib:SteamWorkshop()
+	end
+end
 
 hook.Add("PLib:GameLoaded", "PLib:Functions", function()
 	PLib:CheckWorkshopLoadList()
