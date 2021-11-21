@@ -122,15 +122,3 @@ function PLAYER:SetNick(name)
 end
 
 PLAYER["SetName"] = PLAYER["SetNick"]
-
-function PLAYER:PNotify(title, text, style, lifetime, image, animated)
-	net_Start("PLib")
-		net.WriteUInt(2, 3)
-		net.WriteString(title)
-		net.WriteString(text)
-		net.WriteString(style)
-		net.WriteUInt(lifetime, 8)
-		net.WriteString(image)
-		net.WriteBool(animated)
-	net.Send(self)
-end
