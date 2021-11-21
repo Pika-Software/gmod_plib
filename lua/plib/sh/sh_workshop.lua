@@ -1,10 +1,7 @@
-local notification_AddProgress = notification.AddProgress
-local steamworks_DownloadUGC = steamworks.DownloadUGC
 local string_format = string.format
-local notification_Kill = notification.Kill
-local isfunction = isfunction
 local game_MountGMA = game.MountGMA
 local timer_Simple = timer.Simple
+local isfunction = isfunction
 
 PLib["WorkshopDownloaded"] = PLib["WorkshopDownloaded"] or {}
 PLib["WorkshopInstalled"] = PLib["WorkshopInstalled"] or {}
@@ -15,14 +12,14 @@ function PLib:WorkshopDownload(id, cb)
 	local saved = PLib["WorkshopDownloaded"][id]
 	if (saved == nil) then
 		if CLIENT then
-			notification_AddProgress("plib.workshop_download_#" .. id, "[PLib] Downloading: " .. id)
+			notification.AddProgress("plib.workshop_download_#" .. id, "[PLib] Downloading: " .. id)
 		end
 
-		steamworks_DownloadUGC(id, function(path)
+		steamworks.DownloadUGC(id, function(path)
 			self.dprint("Workshop", string_format("Addon downloaded, id: %s (%s)", id, path))
 
 			if CLIENT then
-				notification_Kill("plib.workshop_download_#" .. id)
+				notification.Kill("plib.workshop_download_#" .. id)
 			end
 
 			PLib["WorkshopDownloaded"][id] = path
