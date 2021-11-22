@@ -76,6 +76,7 @@ local net_ReadUInt = net.ReadUInt
 local util_JSONToTable = util.JSONToTable
 local util_Decompress = util.Decompress
 local net_ReadData = net.ReadData
+local dprint = PLib["dprint"]
 local module = module
 local type = type
 
@@ -292,7 +293,7 @@ function PLib:SetServerName(str)
 	local old = self:GetServerName()
 	SetGlobalString("ServerName", isstring(str) and str or old)
 	timer_Simple(0, function()
-		self:Log(nil, string_format("Server name changed from '%s' to '%s'!", old, self:GetServerName()))
+		dprint(nil, string_format("Server name changed from '%s' to '%s'!", old, self:GetServerName()))
 	end)
 end
 

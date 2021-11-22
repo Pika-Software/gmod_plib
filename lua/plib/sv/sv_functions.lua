@@ -38,9 +38,11 @@ function PLib:GetHostName()
 	return cvars.String("hostname", GetHostName())
 end
 
-function PLib:SetHostName(str)
+function PLib:SetHostName(str, distableNotify)
 	if isstring(str) then
-		self:Log(nil, string.format("Server hostname changed from '%s' to '%s'!", self:GetHostName(), str))
+		if (distableNotify == nil) then
+			self:Log(nil, string.format("Server hostname changed from '%s' to '%s'!", self:GetHostName(), str))
+		end
 
 		RunConsoleCommand("hostname", str)
 

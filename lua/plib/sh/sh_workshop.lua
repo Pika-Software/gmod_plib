@@ -7,6 +7,7 @@ PLib["WorkshopDownloaded"] = PLib["WorkshopDownloaded"] or {}
 PLib["WorkshopInstalled"] = PLib["WorkshopInstalled"] or {}
 
 function PLib:WorkshopDownload(id, cb)
+	if !isstring(id) then id = tostring(id) end
 	self.dprint("Workshop", "Trying download addon, id: ", id)
 
 	local saved = PLib["WorkshopDownloaded"][id]
@@ -27,6 +28,12 @@ function PLib:WorkshopDownload(id, cb)
 				cb(path)
 			end
 		end)
+
+		if CLIENT then
+			timer.Simple(30, function()
+				notification.Kill("plib.workshop_download_#" .. id)
+			end)
+		end
 	else
 		self.dprint("Workshop", "Addon already downloaded, id: ", id)
 
@@ -39,6 +46,7 @@ function PLib:WorkshopDownload(id, cb)
 end
 
 function PLib:WorkshopInstall(id, cb)
+	if !isstring(id) then id = tostring(id) end
 	self.dprint("Workshop", "Trying install addon, id: ", id)
 
 	local saved = PLib["WorkshopInstalled"][id]
