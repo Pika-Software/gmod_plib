@@ -61,19 +61,9 @@ function PANEL:GetDescColor()
 end
 
 local getFontSize = PLib["GetFontSize"]
-function PANEL:Setup(title, msg, color, lifetime, animSpeed)
+function PANEL:Setup(title, msg, style, lifetime, animSpeed)
 	self["title"] = title and PLib:TranslateText(title) or "Title"
 	self["msg"] = msg and PLib:TranslateText(msg) or "Text"
-
-	if istable(color) and not IsColor(color) then
-		self["mainColor"] = color["main"] or green
-		self["bgColor"] = color["bg"] or bg
-		self["descColor"] = color["desc"] or self:GetDescColor()
-	else
-		self["mainColor"] = IsColor(color) and color or green
-		self["bgColor"] = bg
-		self["descColor"] = self:GetDescColor()
-	end
 
 	self["created"] = CurTime()
 	self["lifetime"] = (lifetime or 5)
@@ -82,11 +72,11 @@ function PANEL:Setup(title, msg, color, lifetime, animSpeed)
 
 	self["animSpeed"] = animSpeed or 0.25
 
-	if isstring(color) then
-		local style = PLib["NotifyStyles"][color]
-		if (style != nil) then
-			self:SetStyle(style)
-		end
+	local style = PLib["NotifyStyles"][style]
+	if (style == nil) then
+		self:SetStyle(PLib["NotifyStyles"]["default"])
+	else
+		self:SetStyle(style)
 	end
 
 	self["lifetime"] = self["lifetime"] or lifetime
@@ -160,22 +150,19 @@ end
 vgui.Register("plib_notify", PANEL)
 
 local vgui_Create = vgui.Create
-function PLib:AddNotify(title, text, color, lifetime, image, animated)
+function PLib:AddNotify(title, text, style, lifetime, image, animated)
+	self:Log(self:TranslateText(title), self:TranslateText(text))
+
 	local notify = vgui_Create("plib_notify")
+	if IsValid(notify) then
+		notify:Setup(title, text, style, lifetime)
 
-	if (color != nil) then
-		if isstring(color) then
-			if (color == "") then
-				color = "default"
-			end
-		elseif not istable(color) then
-			color = nil
+		if isstring(image) and (#image > 0) then
+			notify:SetIcon(Material(image, matOptions), animated or false)
 		end
+		
+		return notify
 	end
-
-	notify:Setup(title, text, color, lifetime)
-
-	return notify
 end
 
 PLib:AddNotifyPreset("default", {

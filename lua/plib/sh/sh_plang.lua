@@ -85,14 +85,16 @@ local tag = "#"
 function PLib:TranslateText(name)
 	local tbl = string_Split(name, space)
 	local output = ""
-	for i = 1, #tbl do
+
+	local len = #tbl
+	for i = 1, len do
 		local str = tbl[i]
 
 		if (string_StartWith(str, tag) == true) then
 			str = string_sub(str, 2, #str)
 		end
 
-		output = output .. self:Translate(str) .. space
+		output = output .. self:Translate(str) .. ((i == len) and "" or space)
 	end
 
 	return output

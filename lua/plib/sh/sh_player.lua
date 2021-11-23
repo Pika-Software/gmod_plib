@@ -150,20 +150,18 @@ if SERVER then
 	end
 
 	util.AddNetworkString("PLib.Notify")
-	function PLAYER:PNotify(title, text, color, lifetime, image, animated)
+	function PLAYER:PNotify(title, text, style, lifetime, image, animated)
+		if !isstring(title) or !isstring(text) then return end
+
 		net.Start("PLib.Notify")
 			net.WriteString(title)
 			net.WriteString(text)
+			net.WriteString(isstring(style) and style or "default")
+			net.WriteUInt(isnumber(lifetime) and lifetime or 5, 8)
 			
-			if IsColor(color) then
-				net.WriteColor(color)
-			end
-
-			if isnumber(lifetime) then
-				net.WriteUInt(lifetime, 8)
-			end
-
-			if isstring(image) then
+			local hasImage = isstring(image)
+			net.WriteBool(hasImage)
+			if hasImage then
 				net.WriteString(image)
 				net.WriteBool(animated)
 			end
@@ -185,36 +183,21 @@ else
 		end
 
 		local title = net.ReadString()
-		if (title == "") then return end
-
 		local text = net.ReadString()
-		if (text == "") then return end
 
-		local c = net.ReadColor()
-		if (c["r"] == 0 and c["g"] == 0 and c["b"] == 0 and c["a"] == 0) then
-			c = nil
-		end
-
+		local style = net.ReadString()
 		local time = net.ReadUInt(8)
-		if (time == 0) then
-			time = nil
+
+		local image, animated = nil, nil
+		if net.ReadBool() then
+			image, animated = net.ReadString(), net.ReadBool()
 		end
 
-		local image, animated = net.ReadString(), nil
-		if (image == "") then
-			image = nil
-		else
-			animated = net.ReadBool()
-		end
-
-		localPlayer:PNotify(title, text, c, time, image, animated)
+		localPlayer:PNotify(title, text, style, time, image, animated)
 	end)
 
-	function PLAYER:PNotify(title, text, color, lifetime, image, animated)
-		local notify = PLib:AddNotify(title, text, color, lifetime)
-		if (image != "") then
-			notify:SetIcon(Material(image, matOptions), animated or false)
-		end
+	function PLAYER:PNotify(...)
+		return PLib:AddNotify(...)
 	end
 end
 

@@ -30,7 +30,7 @@ hook.Add("InitPostEntity", "PLib:GameLoaded", function()
 end)
 
 function string.isvalid(str)
-	return isstring(str) and str != ""
+	return isstring(str) and (#str > 0)
 end
 
 local validStr = string["isvalid"]
