@@ -28,15 +28,15 @@ hook.Add("PLib:PlayerInitialized", "PLib:BetterPlayer", function(ply)
 	ply:ScreenFade(SCREENFADE.IN, Color(0, 0, 0, 255), 3, 1)
 end)
 
-hook.Add("PostPlayerDraw", "PLib:GoodGuysCheck", function(ply)
-	if (ply["PLib_IsGoodGuyChecked"] == nil) then
-		if ply:IsGoodGuy() then
-			LocalPlayer():GiveAchievement("plib.gg_" .. ply:SteamID64())
-		end
+-- hook.Add("PostPlayerDraw", "PLib:GoodGuysCheck", function(ply)
+-- 	if (ply["PLib_IsGoodGuyChecked"] == nil) then
+-- 		if ply:IsGoodGuy() then
+-- 			LocalPlayer():GiveAchievement("plib.gg_" .. ply:SteamID64())
+-- 		end
 
-		ply["PLib_IsGoodGuyChecked"] = true
-	end
-end)
+-- 		ply["PLib_IsGoodGuyChecked"] = true
+-- 	end
+-- end)
 
 hook.Add("UpdateAnimation", "PLib:UpdateAnimation", function(ply)
 	ply:MouthMoveAnimation()

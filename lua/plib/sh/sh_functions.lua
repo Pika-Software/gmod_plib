@@ -648,7 +648,23 @@ function ENTITY:TeamObject(ply)
 end
 
 function ENTITY:IsDoor()
-	return (self:GetClass() == "prop_door_rotating") or (self:GetClass() == "func_door_rotating") or IsValid(self:GetNWEntity("PLib.DoorEntity", false))
+	local class = self:GetClass()
+	return (class == "prop_door_rotating") or (class == "func_door_rotating") or IsValid(self:GetNWEntity("PLib.DoorEntity", false))
+end
+
+local prop_Classes = {
+	["prop_detail"] = true,
+	["prop_static"] = true,
+	["prop_physics"] = true,
+	["prop_ragdoll"] = true,
+	["prop_dynamic"] = true,
+	["prop_physics_override"] = true,
+	["prop_dynamic_override"] = true,
+	["prop_physics_multiplayer"] = true
+}
+
+function ENTITY:IsProp()
+	return prop_Classes[self:GetClass()] or false
 end
 
 function ENTITY:GetSize()

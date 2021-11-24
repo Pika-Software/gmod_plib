@@ -89,18 +89,18 @@ PLib:AddAchievement("plib.i_see_my_shadow", {
 	["clientside"] = true,
 })
 
-hook.Add("PlayerInitialSpawn", "PLib:GoodGuysAchievementAdd", function(ply)
-	local steamid64 = ply:SteamID64()
-	if (PLib["GoodGuys"][steamid64] == true) then
-		PLib:SteamUserData(steamid64, function(tbl)
-			PLib:AddAchievement("plib.gg_"..steamid64, {
-				["title"] = "#plib.meet_the".." "..tbl["personaname"],
-				["icon"] = tbl["avatarfull"],
-				["clientside"] = true,
-			})
-		end)
-	end
-end)
+-- hook.Add("PlayerInitialSpawn", "PLib:GoodGuysAchievementAdd", function(ply)
+-- 	-- local steamid64 = ply:SteamID64()
+-- 	-- if (PLib["GoodGuys"][steamid64] == true) then
+-- 	-- 	PLib:SteamUserData(steamid64, function(tbl)
+-- 	-- 		PLib:AddAchievement("plib.gg_"..steamid64, {
+-- 	-- 			["title"] = "#plib.meet_the".." "..tbl["personaname"],
+-- 	-- 			["icon"] = tbl["avatarfull"],
+-- 	-- 			["clientside"] = true,
+-- 	-- 		})
+-- 	-- 	end)
+-- 	-- end
+-- end)
 
 PLib:AddAchievement("plib.i_see_my_shadow", {
 	["title"] = "#plib.i_see_my_shadow",
