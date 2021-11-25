@@ -1,0 +1,14 @@
+name: glualint-check
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+jobs:
+  glualint-check:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: wget https://github.com/FPtje/GLuaFixer/releases/download/1.18.3/glualint-1.18.3-linux-stripped.zip
+      - run: unzip glualint-*.zip
+      - run: ./glualint --output-format github lint .
