@@ -98,7 +98,8 @@ function PLib:NumTableToList(tbl)
 end
 
 -- GMA Builder by Retro#1593
--- TODO: Fix a missing code (util.Buffer + unused functions below)
+
+--[[ -- TODO: Fix a missing code (util.Buffer + unused functions below)
 local function WriteLongLong(f, x)
 	f:WriteLong(x)
 	f:WriteLong(0)
@@ -113,7 +114,7 @@ local function WriteString(f, str)
 	f:Write(str)
 	f:WriteByte(0)
 end
--- end of unused funcs
+]]-- end of unused funcs
 
 local util_Buffer = util.Buffer
 function PLib:BuildGMA(f, path, data)
