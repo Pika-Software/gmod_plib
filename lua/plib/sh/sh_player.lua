@@ -170,6 +170,7 @@ if SERVER then
 else
 	local localPlayer = NULL
 	net.Receive("PLib.ConCommand", function()
+		if !PLib["Initialized"] then return end
 		if !IsValid(localPlayer) then
 			localPlayer = LocalPlayer()
 		end
