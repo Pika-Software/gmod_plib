@@ -179,6 +179,7 @@ else
 	end)
 
 	net.Receive("PLib.Notify", function()
+		if !PLib["Initialized"] then return end
 		if !IsValid(localPlayer) then
 			localPlayer = LocalPlayer()
 		end
