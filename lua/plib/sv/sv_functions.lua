@@ -180,7 +180,7 @@ PLib["MAT_"] = {
 		return PLib["MAT_"][MAT_METAL]() * 1.5
 	end,
 	[MAT_VENT] = function()
-		return PLib["MAT_"][MAT_METAL]() * 2
+		return PLib["MAT_"][MAT_METAL]() * 0.1
 	end,
 	[MAT_FLESH] = function()
 		return math_random(1077, 1110)
