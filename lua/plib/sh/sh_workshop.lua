@@ -159,7 +159,7 @@ function PLib:WorkshopEnable(id)
 	self.dprint("Workshop", "Addon successfully enabled, id: ", id)
 end
 
-PLib:WorkshopEnable("2663863847")
+-- PLib:WorkshopEnable("2663863847")
 
 function PLib:WorkshopUpdate(id, cb)
 	if !isstring(id) then id = tostring(id) end
