@@ -11,7 +11,15 @@ end)
 local debugTag = "Debug/"
 concommand_Add("plib_ent", function(ply)
 	if not PLib:DebugAllowed() then return end
-	local ent = ply:GetEyeTrace()["Entity"]
+	local eyePos = ply:EyePos()
+	local tr = util.TraceLine({
+		["start"] = eyePos,
+		["endpos"] = eyePos + ply:GetAimVector() * 5000,
+		["filter"] = {ply},
+		["mask"] = MASK_ALL
+	})
+
+	local ent = tr["Entity"]
 	PLib:Log(debugTag .. "Entity", string.format("%s\n	Index: %s\n	Name: %s\n	Class: %s\n	Model: %s", ent, ent:EntIndex(), ent["PrintName"] or (ent["GetName"] and ent:GetName()) or "none", ent:GetClass(), ent:GetModel() or "No Model"))
 end)
 

@@ -56,7 +56,7 @@ function PLib:WorkshopInstall(id, cb)
 				if isfunction(cb) then
 					cb(false)
 				end
-				
+
 				return false
 			end
 			local ok, files = game_MountGMA(path)
@@ -85,18 +85,6 @@ function PLib:WorkshopInstall(id, cb)
 		return saved
 	end
 end
-
--- local function loadLuaFolder(path)
--- 	local files, folder = file.Find(path .. "/*", "LUA")
--- 	for _, fol in ipairs(folders) do
--- 		print(fol)
--- 		loadLuaFolder(path .. "/" .. fol)
--- 	end
-
--- 	for _, fl in ipairs(files) do
-		
--- 	end
--- end
 
 function PLib:WorkshopEnable(id)
 	if !isstring(id) then id = tostring(id) end
@@ -130,7 +118,7 @@ function PLib:WorkshopEnable(id)
 					SafeInclude(fol)
 
 					scripted_ents.Register(istable(ENT) and ENT or {}, ent_class)
-					
+
 					ENT = nil
 				end
 			elseif fol:StartWith("weapons") then
@@ -147,7 +135,7 @@ function PLib:WorkshopEnable(id)
 
 					SafeInclude(fol)
 					weapons.Register(istable(SWEP) and SWEP or {}, wep_class)
-					
+
 					SWEP = nil
 				end
 			end
@@ -159,7 +147,9 @@ function PLib:WorkshopEnable(id)
 	self.dprint("Workshop", "Addon successfully enabled, id: ", id)
 end
 
-PLib:WorkshopEnable("2663863847")
+-- local fls, fols = file.Find("lua/weapons/*", "LUA")
+
+-- PrintTable(fls)
 
 function PLib:WorkshopUpdate(id, cb)
 	if !isstring(id) then id = tostring(id) end
@@ -207,5 +197,53 @@ function PLib:TryInstallWorkshop(id, cb, num)
 		elseif isfunction(cb) then
 			cb(path, files)
 		end
+	end)
+end
+
+-- PLib:TryInstallWorkshop("2663863847", function()
+-- 	-- PLib:WorkshopEnable("2663863847")
+-- end)
+
+if SERVER then
+	hook.Add("PLib:PlayerInitialized", "PLib:CheckSelfHosted", function(ply)
+		hook.Remove("PLib:PlayerInitialized", "PLib:CheckSelfHosted")
+		local host = player.GetListenServerHost()
+		if IsValid(host) and (steamworks == nil) then
+			util.AddNetworkString("PLib.steamworks")
+			steamworks = {}
+
+			local funcs = {}
+			function steamworks.DownloadUGC(id, func)
+				if !isstring(id) or !isfunction(func) then return end
+				net.Start("PLib.steamworks")
+					net.WriteUInt(table.insert(funcs, func), 7)
+					net.WriteString(id)
+				net.Send(host)
+			end
+
+			net.Receive("PLib.steamworks", function(len, ply)
+				if (ply != host) then
+					ply:Kick("PLib - Don't touch my net functions!")
+					return
+				end
+
+				local id = net.ReadUInt(7)
+				local func = funcs[id]
+				if (func != nil) then
+					func(net.ReadString())
+					table.remove(funcs, id)
+				end
+			end)
+		end
+	end)
+else
+	net.Receive("PLib.steamworks", function()
+		local num = net.ReadUInt()
+		steamworks.DownloadUGC(net.ReadString(), function(path)
+			net.Start("PLib.steamworks")
+				net.WriteUInt(num, 7)
+				net.WriteString(path)
+			net.SendToServer()
+		end)
 	end)
 end

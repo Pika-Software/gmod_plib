@@ -20,6 +20,13 @@ function PLib:AreaPortalFix(ent)
 	end
 end
 
+hook.Add("InitPostEntity", "PLib:ServerLoadingFinished", function()
+	timer.Simple(5, function()
+		PLib["ServerLoaded"] = true
+		hook.Run("PLib:ServerLoaded")
+	end)
+end)
+
 hook.Add("EntityRemoved", "PLib.AreaPortalFix", function(ent)
 	PLib:AreaPortalFix(ent)
 end)

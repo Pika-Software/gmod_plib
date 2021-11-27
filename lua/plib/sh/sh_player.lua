@@ -158,7 +158,7 @@ if SERVER then
 			net.WriteString(text)
 			net.WriteString(isstring(style) and style or "default")
 			net.WriteUInt(isnumber(lifetime) and lifetime or 5, 8)
-			
+
 			local hasImage = isstring(image)
 			net.WriteBool(hasImage)
 			if hasImage then

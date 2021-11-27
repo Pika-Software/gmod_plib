@@ -65,6 +65,7 @@ if SERVER then
 		local time = CurTime()
 		if ((self["UseTimeout"] or 0) < time) then
 			self:SetEnabled(not self:GetEnabled())
+			self:EmitSound("buttons/lightswitch2.wav")
 
 			self:SetURL(self:GetEnabled() and table_Random(self["URLs"] or {"https://radio.pika-soft.ru/stream"}) or "Stop")
 			timer.Simple(0, function()

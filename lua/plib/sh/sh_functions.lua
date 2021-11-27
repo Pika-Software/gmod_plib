@@ -378,6 +378,17 @@ function player.Random(no_bots)
 	return players[math_random(1, #players)]
 end
 
+function player.GetListenServerHost()
+	local host = nil
+	for _, ply in ipairs(player_GetHumans()) do
+		if ply:IsListenServerHost() then
+			host = ply
+		end
+	end
+
+	return host
+end
+
 function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
 	local result = {}
 

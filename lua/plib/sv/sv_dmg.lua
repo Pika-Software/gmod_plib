@@ -6,7 +6,7 @@ hook.Add("EntityTakeDamage", "PLib:ApplyDamageForce", function(ent, cdmg)
 
 	if ent["AcceptDamageForce"] or ent:GetClass() == "prop_vehicle_prisoner_pod" then
 		ent:TakePhysicsDamage(cdmg)
-	end 
+	end
 end)
 
 hook.Add("OnFireBulletCallback", "PLib:PrisonerTakeDamage", function(attk, tr, cdmg)

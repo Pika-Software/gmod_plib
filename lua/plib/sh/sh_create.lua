@@ -127,12 +127,11 @@ function PLib:CreateTriggerEntity(class, data, trigger, use)
 	self:CreateEntity(class, table_Merge(ENT, data or {}), true)
 end
 
-local plib = PLib
 function PLib:CreateInfoBanner(class, url, mins, maxs)
 	self:CreateTriggerEntity(class, {
-		["URL"] = (url or "http://pika-soft.ru/"),
-		["Mins"] = (mins or Vector(-18, 0, -15)),
-		["Maxs"] = (maxs or Vector(18, 2, 55)),
+		["URL"] = url or "http://pika-soft.ru/",
+		["Mins"] = mins or Vector(-18, 0, -15),
+		["Maxs"] = maxs or Vector(18, 2, 55),
 		["UpdatePos"] = function(self)
 			local mins, maxs = self:OBBMins(), self:OBBMaxs()
 			self["pnlPos"] = Vector(maxs[1], 1, maxs[3]) + self:GetPos()
@@ -225,7 +224,7 @@ function PLib:CreateInfoBanner(class, url, mins, maxs)
 			end
 		end,
 		["Use"] = function(self, ply)
-			if IsValid(ply) and ply:IsPlayer() and !ply:IsBot() then
+			if IsValid(ply) and ply:IsPlayer() and not ply:IsBot() then
 				ply:SendLua("local ent = Entity(" .. self:EntIndex() .. ");if IsValid(ent) then ent:Toggle(true);end")
 			end
 		end,
