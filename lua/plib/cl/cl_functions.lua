@@ -69,41 +69,39 @@ end
 
 function PLib:URLSoundThink()
 	for tag, tbl in pairs(self["URL_Sound_List"]) do
-		if (tbl != nil) then
-			local channel = tbl[1]
-			if IsValid(channel) then
-				local target = tbl[2]
-				if (target != false) then
-					if IsValid(target) then
-						local pos = target:GetPos()
-						if (target["OBBCenter"] != nil) then
-							pos = pos + target:OBBCenter()
-						end
-
-						local state = channel:GetState()
-
-						if (state == 0) and target["AudioEnded"] then
-							target:AudioEnded(channel, tag)
-							continue
-						end
-
-						if (LocalPlayer():GetPos():DistToSqr(pos) < tbl[3]) then
-							if (state == 2) then
-								channel:Play()
-							end
-						elseif (state == 1) then
-							channel:Pause()
-						end
-
-						channel:SetPos(pos)
-					else
-						channel:Stop()
-						self["URL_Sound_List"][tag] = nil
-					end
+		if (tbl == nil) then continue end
+		local channel = tbl[1]
+		if IsValid(channel) then
+			local target = tbl[2]
+			if (target == false) then continue end
+			if IsValid(target) then
+				local pos = target:GetPos()
+				if (target["OBBCenter"] != nil) then
+					pos = pos + target:OBBCenter()
 				end
+
+				local state = channel:GetState()
+
+				if (state == 0) and target["AudioEnded"] then
+					target:AudioEnded(channel, tag)
+					continue
+				end
+
+				if (LocalPlayer():GetPos():DistToSqr(pos) < tbl[3]) then
+					if (state == 2) then
+						channel:Play()
+					end
+				elseif (state == 1) then
+					channel:Pause()
+				end
+
+				channel:SetPos(pos)
 			else
+				channel:Stop()
 				self["URL_Sound_List"][tag] = nil
 			end
+		else
+			self["URL_Sound_List"][tag] = nil
 		end
 	end
 end

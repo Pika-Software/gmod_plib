@@ -147,10 +147,6 @@ function PLib:WorkshopEnable(id)
 	self.dprint("Workshop", "Addon successfully enabled, id: ", id)
 end
 
--- local fls, fols = file.Find("lua/weapons/*", "LUA")
-
--- PrintTable(fls)
-
 function PLib:WorkshopUpdate(id, cb)
 	if !isstring(id) then id = tostring(id) end
 	self.dprint("Workshop", "Trying update addon, id: ", id)
