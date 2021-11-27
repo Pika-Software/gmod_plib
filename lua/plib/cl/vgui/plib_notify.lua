@@ -72,11 +72,11 @@ function PANEL:Setup(title, msg, style, lifetime, animSpeed)
 
 	self["animSpeed"] = animSpeed or 0.25
 
-	local style = PLib["NotifyStyles"][style]
-	if (style == nil) then
+	local theme = PLib["NotifyStyles"][style]
+	if (theme == nil) then
 		self:SetStyle(PLib["NotifyStyles"]["default"])
 	else
-		self:SetStyle(style)
+		self:SetStyle(theme)
 	end
 
 	self["lifetime"] = self["lifetime"] or lifetime
@@ -160,7 +160,7 @@ function PLib:AddNotify(title, text, style, lifetime, image, animated)
 		if isstring(image) and (#image > 0) then
 			notify:SetIcon(Material(image, matOptions), animated or false)
 		end
-		
+
 		return notify
 	end
 end
