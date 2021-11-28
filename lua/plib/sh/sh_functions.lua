@@ -389,46 +389,13 @@ function player.GetListenServerHost()
 	return host
 end
 
-function ents.FindInBoxRotated(pos, ang, mins, maxs, size, ent)
+-- Global Pos, Angle, Local Mins & Maxs
+function ents.FindInBoxRotated(pos, ang, mins, maxs)
 	local result = {}
 
-	if (pos == nil) then
-		if IsValid(ent) then
-			pos = ent:GetPos()
-		else
-			return result
-		end
-	end
-
-	if (size == nil) then
-		if IsValid(ent) then
-			size = ent:CubicDistance()
-		else
-			return result
-		end
-	end
-
-	if IsValid(ent) then
-		for _, tEnt in ipairs(ents_FindInSphere(pos, size)) do
-			if IsValid(tEnt) and tEnt ~= ent then
-				local mn, mx = tEnt:GetCollisionBounds()
-				if (ent:WorldToLocal(tEnt:LocalToWorld(tEnt:OBBCenter())):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(mn)):WithinAABox(mins, maxs)
-				or ent:WorldToLocal(tEnt:LocalToWorld(mx)):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mn[1],mn[2],mx[3]))):WithinAABox(mins, maxs)
-				or ent:WorldToLocal(tEnt:LocalToWorld(Vector(mx[1],mx[2],mn[3]))):WithinAABox(mins, maxs) or ent:WorldToLocal(tEnt:GetPos()):WithinAABox(mins, maxs)) then
-					table_insert(result, tEnt)
-				end
-			end
-		end
-	else
-		for _, eTarget in ipairs(ents_FindInSphere(pos, size)) do
-			if WorldToLocal(eTarget:GetPos(), eTarget:GetAngles(), pos, ang):WithinAABox(mins, maxs) then
-				table_insert(result, eTarget)
-			elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles() - Angle(0,180,0), pos, ang):WithinAABox(mins, maxs) then
-				table_insert(result, eTarget)
-			elseif WorldToLocal(eTarget:GetPos(), eTarget:GetAngles() * (-1), pos, ang):WithinAABox(mins, maxs) then
-				table_insert(result, eTarget)
-			end
-
+	for _, ent in ipairs(ents_FindInSphere(pos, mins:Diameter(maxs))) do
+		if WorldToLocal(ent:GetPos(), ent:GetAngles(), pos, ang):WithinAABox(mins, maxs) then
+			table_insert(result, ent)
 		end
 	end
 
@@ -587,6 +554,21 @@ if SERVER then
 	table.insert(ownerCheckFunctions, ENTITY["GetCreator"])
 end
 
+function ENTITY:HasPlaceHull()
+	local mins, maxs = self:GetModelRenderBounds()
+
+	local center = self:LocalToWorld(self:OBBCenter())
+	local tr = util.TraceHull({
+		start = center,
+		endpos = center,
+		filter = self,
+		mins = mins,
+		maxs = maxs
+	})
+
+	return tr["Hit"] -- and tr["HitPos"]:Distance(center) < math_max(math_abs(maxs[1]), math_abs(maxs[2]), math_abs(mins[1]), math_abs(mins[2]))
+end
+
 function ENTITY:GetOwner()
 	if SERVER and self:CreatedByMap() then
 		return NULL
@@ -732,6 +714,14 @@ end
 --[[-------------------------------------------------------------------------
 	Vector improvements
 ---------------------------------------------------------------------------]]
+
+function VECTOR:Center(vec)
+	return (self + vec) / 2
+end
+
+function VECTOR:Diameter(maxs)
+	return math_max(maxs[1] + math_abs(self[1]), maxs[2] + math_abs(self[2]), maxs[3] + math_abs(self[3]))
+end
 
 function VECTOR:Round(dec)
 	return Vector(math_Round(self["x"], dec or 0), math_Round(self["y"], dec or 0), math_Round(self["z"], dec or 0))
