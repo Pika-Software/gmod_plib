@@ -1141,6 +1141,26 @@ function PLib:GameDifficulty()
 end
 
 --[[-------------------------------------------------------------------------
+	Hooks Debug
+---------------------------------------------------------------------------]]
+
+function PLib:PrintHookList()
+	local n = 0
+	for k, v in pairs(hook.GetTable()) do
+		for k2, v2 in pairs(v) do
+			if IsEntity(k2) and not IsValid(k2) then
+				hook.Remove(k, k2)
+			end
+
+			print(string.format('hook.Add("%s", "%s", %s)', k, k2, v))
+			n = n + 1
+		end
+	end
+
+	print("\nTotal: ", n, "hooks on Client.")
+end
+
+--[[-------------------------------------------------------------------------
 	not yet
 ---------------------------------------------------------------------------]]
 

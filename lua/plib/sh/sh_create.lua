@@ -11,6 +11,7 @@ local IsValid = IsValid
 local math_min = math.min
 local ScrW = ScrW
 local ScrH = ScrH
+local isfunction = isfunction
 local LocalPlayer = LocalPlayer
 local input_IsButtonDown = CLIENT and input.IsButtonDown
 local gui_HideGameUI = CLIENT and gui.HideGameUI
@@ -61,6 +62,7 @@ function PLib:CreateEntity(class, data, clear)
 			ENT["Category"]    = "PLib"
 			ENT["PrintName"] = "PLib Entity"
 			ENT["Spawnable"] = true
+			ENT["DisableDuplicator"] = true
 
 			function ENT:Initialize()
 				if SERVER then

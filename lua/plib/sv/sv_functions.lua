@@ -199,7 +199,7 @@ PLib["MAT_"] = {
 	end,
 	[MAT_EGGSHELL] = function()
 		return PLib["MAT_"][MAT_ANTLION]() * 2
-	end,
+	end
 }
 
 local ENTITY = FindMetaTable("Entity")
@@ -208,6 +208,8 @@ function ENTITY:GetMass()
 		local mass = PLib["MAT_"][self:GetMaterialType()] -- in pika units ^3
 		if (mass != nil) then
 			mass = mass() * self:GetSize() * 0.01
+		else
+			mass = self:GetSize()
 		end
 
 		self["PLib.Mass"] = mass or 0

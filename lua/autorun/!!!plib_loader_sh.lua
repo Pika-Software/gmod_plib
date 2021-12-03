@@ -4,9 +4,11 @@ local AddCSLuaFile = AddCSLuaFile
 local string_lower = string.lower
 local string_Left = string.Left
 local file_Find = file.Find
+local table_Add = table.Add
 local isstring = isstring
 local include = include
 local ipairs = ipairs
+local unpack = unpack
 local Color = Color
 local MsgC = MsgC
 
@@ -102,8 +104,7 @@ cvars.AddChangeCallback("developer", function(cvar, old, new)
 end, "PLib")
 
 function PLib:Log(tag, ...)
-	MsgC(self:SideColor(), "[" .. (tag or "PLib") .. "] ", self["_C"]["text"], ...)
-	Msg("\n")
+	MsgC(self:SideColor(), "[" .. (tag or "PLib") .. "] ", self["_C"]["text"], unpack(table_Add({...}, {"\n"})))
 end
 
 function PLib:Path(dir, fl)
