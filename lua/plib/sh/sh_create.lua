@@ -80,7 +80,7 @@ function PLib:CreateEntity(class, data, clear)
 	end
 end
 
-function PLib:CreateTriggerEntity(class, data, trigger, use)
+function PLib:CreateTrigger(class, data)
 	local ENT = {}
 	ENT["Type"] = "anim"
 	ENT["PrintName"] = "PLib Trigger"
@@ -101,17 +101,59 @@ function PLib:CreateTriggerEntity(class, data, trigger, use)
 	end
 
 	function ENT:Initialize()
-		self:SetCollisionGroup((use != nil) and COLLISION_GROUP_DEBRIS or COLLISION_GROUP_IN_VEHICLE)
+		self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		self:SetMoveType(MOVETYPE_NONE)
 		self:SetSolid(SOLID_BBOX)
 		self:DrawShadow(false)
 		self:SetNoDraw(true)
 
 		if SERVER then
-			self:SetTrigger((trigger == true) and trigger or false)
-			if (use != nil) then
-				self:SetUseType(isnumber(use) and use or SIMPLE_USE)
-			end
+			self:SetTrigger(true)
+		end
+
+		self:SetupBox(self["Mins"], self["Maxs"])
+		self:Init()
+	end
+
+	if CLIENT then
+		local plib = self
+		function ENT:Draw()
+			plib:DebugEntityDraw(self)
+		end
+	end
+
+	self:CreateEntity(class, table_Merge(ENT, data or {}), true)
+end
+
+function PLib:CreateButton(class, data, usetype)
+	local ENT = {}
+	ENT["Type"] = "anim"
+	ENT["PrintName"] = "PLib Trigger"
+	ENT["Mins"] = Vector(-25, -25, -25)
+	ENT["Maxs"] = Vector(25, 25, 25)
+
+	function ENT:Init()
+	end
+
+	function ENT:SetSize(mins, maxs)
+		self["Mins"], self["Maxs"] = mins, maxs
+	end
+
+	function ENT:SetupBox(mins, maxs)
+		OrderVectors(mins, maxs)
+		self:SetCollisionBounds(mins, maxs)
+		self["Mins"], self["Maxs"] = mins, maxs
+	end
+
+	function ENT:Initialize()
+		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_BBOX)
+		self:DrawShadow(false)
+		self:SetNoDraw(true)
+
+		if SERVER then
+			self:SetUseType(isnumber(usetype) and usetype or SIMPLE_USE)
 		end
 
 		self:SetupBox(self["Mins"], self["Maxs"])
@@ -129,7 +171,7 @@ function PLib:CreateTriggerEntity(class, data, trigger, use)
 end
 
 function PLib:CreateInfoBanner(class, url, mins, maxs)
-	self:CreateTriggerEntity(class, {
+	self:CreateButton(class, {
 		["URL"] = url or "http://pika-soft.ru/",
 		["Mins"] = mins or Vector(-18, 0, -15),
 		["Maxs"] = maxs or Vector(18, 2, 55),
@@ -229,14 +271,14 @@ function PLib:CreateInfoBanner(class, url, mins, maxs)
 				ply:SendLua("local ent = Entity(" .. self:EntIndex() .. ");if IsValid(ent) then ent:Toggle(true);end")
 			end
 		end,
-	}, false, true)
+	})
 end
 
 --[[-------------------------------------------------------------------------
 	Library entities
 ---------------------------------------------------------------------------]]
 
-PLib:CreateTriggerEntity("plib_achievement_trigger", {
+PLib:CreateTrigger("plib_achievement_trigger", {
 	["Init"] = function(self)
 		self:SetNoDraw(false)
 	end,
@@ -250,9 +292,9 @@ PLib:CreateTriggerEntity("plib_achievement_trigger", {
 			ply[tag] = true
 		end
 	end,
-}, true)
+})
 
-PLib:CreateTriggerEntity("plib_achievement_button", {
+PLib:CreateButton("plib_achievement_button", {
 	["SetAchievement"] = function(self, tag)
 		self["Achievement"] = tag
 	end,
@@ -266,11 +308,14 @@ PLib:CreateTriggerEntity("plib_achievement_button", {
 			ply[tag] = true
 		end
 	end,
-}, false, true)
+})
 
-PLib:CreateTriggerEntity("prop_collide_box", {
+PLib:CreateTrigger("prop_collide_box", {
 	["Init"] = function(self)
-		self:SetCollisionGroup(COLLISION_GROUP_NONE)
-        self:SetNoDraw(false)
+		if SERVER then
+			self:SetCollisionGroup(COLLISION_GROUP_NONE)
+			self:SetTrigger(false)
+			self:SetNoDraw(false)
+		end
     end
 })
