@@ -250,16 +250,16 @@ else
 	end
 end
 
-hook.Add("PlayerPostThink", "InfAmmo", function(ply)
-    if ply:Alive() then
-        local wep = ply:GetActiveWeapon()
-        if IsValid(wep) then
-            local max = wep:GetMaxClip1()
-            if (max > 0) and (wep:Clip1() == max) then
-                return
-            end
+-- hook.Add("PlayerPostThink", "InfAmmo", function(ply)
+--     if ply:Alive() then
+--         local wep = ply:GetActiveWeapon()
+--         if IsValid(wep) then
+--             local max = wep:GetMaxClip1()
+--             if (max > 0) and (wep:Clip1() == max) then
+--                 return
+--             end
 
-            wep:SetClip1(max)
-        end
-    end
-end)
+--             wep:SetClip1(max)
+--         end
+--     end
+-- end)
