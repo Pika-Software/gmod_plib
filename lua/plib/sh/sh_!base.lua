@@ -34,6 +34,7 @@ function string.isvalid(str)
 end
 
 local validStr = string["isvalid"]
+string["IsValid"] = validStr
 
 function PLib.dprint(tag, ...)
 	if SERVER or PLib["Debug"] then

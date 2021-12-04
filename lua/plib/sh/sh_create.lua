@@ -59,7 +59,6 @@ function PLib:CreateEntity(class, data, clear)
 		if not clear then
 			ENT["Base"] = "base_anim"
 			ENT["Model"] = "models/props_c17/oildrum001_explosive.mdl"
-			ENT["Category"]    = "PLib"
 			ENT["PrintName"] = "PLib Entity"
 			ENT["Spawnable"] = true
 			ENT["DisableDuplicator"] = true
