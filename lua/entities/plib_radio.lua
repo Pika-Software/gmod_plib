@@ -168,6 +168,11 @@ else
 
 				self["FFT2"][i] = math_max(FFT, FFT2 - FrameTime() / 10)
 
+			if self["Bass"] == 0 or !IsValid(channel)  then
+				self["FFT"][i] = math_max(0, FFT - FrameTime() / 10)
+				self["Bass"] = math_max(0, self["Bass"] - FrameTime() / 10)
+			end
+
 				local simple = math_min(180, FFT * 1200)
 				surface_SetDrawColor(HSVToColor((180 + (FFT2 - FFT) * 800) % 360, 1, 1))
 				surface_DrawRect(-360 + i * 10, 200 - simple, 10, simple)

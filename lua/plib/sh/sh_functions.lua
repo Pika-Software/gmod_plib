@@ -868,6 +868,15 @@ end
 
 math["Map"] = math["Remap"]
 
+function math.sum(...)
+	local sum = 0
+	for _, num in ipairs({...}) do
+		sum = sum + num
+	end
+
+	return sum
+end
+
 function math.striving_for(value, valueTo, delay)
 	return value + (valueTo - value) / delay
 end

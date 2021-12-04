@@ -7,6 +7,10 @@ local math_max = math.max
 local isstring = isstring
 local IsValid = IsValid
 
+local IGModAudioChannel = FindMetaTable("IGModAudioChannel")
+
+-- IGModAudioChannel["BPM"]
+
 -- Sound Analyze by _ᐱℕᏩĒŁØҜҜ_#8486
 PLib["URL_Sound_List"] = PLib["URL_Sound_List"] or {}
 PLib["DefaultSoundURL"] = "https://radio.pika-soft.ru/stream"
@@ -167,7 +171,7 @@ end
 
 local HSVToColor = HSVToColor
 function PLib:BassColor(bass, frequency, saturation, value)
-	return HSVToColor(bass * frequency  % 360, saturation or 1, value or 1)
+	return HSVToColor(bass * frequency % 255, saturation or 1, value or 1)
 end
 
 local StandardAchievementIcons = {
