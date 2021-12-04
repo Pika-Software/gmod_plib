@@ -267,3 +267,10 @@ PLib:CreateTriggerEntity("plib_achievement_button", {
 		end
 	end,
 }, false, true)
+
+PLib:CreateTriggerEntity("prop_collide_box", {
+	["Init"] = function(self)
+		self:SetCollisionGroup(COLLISION_GROUP_NONE)
+        self:SetNoDraw(false)
+    end
+})
