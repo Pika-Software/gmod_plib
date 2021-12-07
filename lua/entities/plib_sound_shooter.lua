@@ -172,7 +172,7 @@ else
 
             local newState = audio:GetState()
             if newState != state then
-                print("state update:", state, "to", newState)
+                -- print("state update:", state, "to", newState)
                 state = newState
             end
 

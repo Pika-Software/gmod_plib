@@ -233,6 +233,9 @@ function PLib:GET(url, cb, headers)
 		["success"] = function(code, body)
 			cb(code, body)
 		end,
+		["failed"] = function(reason)
+			cb(504, reason)
+		end
 	}) == nil) then
 		self:Log(PLib:Translate("plib.get_error"))
 	end

@@ -50,6 +50,20 @@ PLib["phrases"] = {
 	}
 }
 
+function PLib:AddTranslate(translate)
+	for lang, tbl in pairs(self["phrases"]) do
+		if (translate[lang] == nil) then continue end
+
+		if (self["phrases"][lang] == nil) then
+			self["phrases"][lang] = {}
+		end
+
+		for tag, text in pairs(translate[lang]) do
+			self["phrases"][lang][tag] = text
+		end
+	end
+end
+
 if CLIENT then
 	for tag, text in pairs(PLib["phrases"]["en"]) do
 		language_Add(tag, text)
