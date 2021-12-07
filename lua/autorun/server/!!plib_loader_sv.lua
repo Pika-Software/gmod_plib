@@ -68,13 +68,11 @@ function PLib:SteamWorkshop()
 				if onlyActiveMap and (allMaps == false) then
 					local ok, files = game_MountGMA(addon["file"])
                     if not ok then continue end
-                    
+
 					for _, fl in ipairs(files) do
-                        if (string_sub(fl, #fl - 3, #fl) == ".bsp") then
-                            if (string_sub(fl, 6, #fl - 4) == currentMap) then
-								shouldAdd = true
-                                break;
-                            end
+                        if (string_sub(fl, #fl - 3, #fl) == ".bsp") and (string_sub(fl, 6, #fl - 4) == currentMap) then
+							shouldAdd = true
+							break;
                         end
                     end
 				end
