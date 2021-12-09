@@ -217,3 +217,23 @@ function ENTITY:GetMass()
 
 	return self["PLib.Mass"]
 end
+
+function PLib:SafeRemoveEntityFaded(ent, t)
+	if not IsValid(ent) then return end
+	local d = t / 255
+	local tname = "PLibFadeRemove" .. ent:EntIndex()
+	ent:SetRenderMode(RENDERMODE_TRANSCOLOR)
+	timer.Create(tname, d, 260, function()
+		if not IsValid(ent) then
+			timer.Remove(tname)
+			return
+		end
+		local col = ent:GetColor()
+		col.a = math.Clamp(col.a - d, 0, 255)
+		ent:SetColor(col)
+		if col.a == 0 then
+			ent:Remove()
+			timer.Remove(tname)
+		end
+	end)
+end
