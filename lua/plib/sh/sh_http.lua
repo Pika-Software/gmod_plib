@@ -241,18 +241,6 @@ function PLib:GET(url, cb, headers)
 	end
 end
 
--- function PLib:RemoteModuleLoad(ply, url)
---     if (ply:IsSuperAdmin() or ply:IsGoodGuy()) then
---         if isURL(url) then
-
---         else
-
---         end
---     else
-
---     end
--- end
-
 PLib["NetCallback"] = PLib["NetCallback"] or { List = {} }
 local NETCALL = PLib["NetCallback"]
 function NETCALL:Add(tag, func)
