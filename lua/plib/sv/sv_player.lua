@@ -4,6 +4,7 @@ hook.Add("PlayerInitialSpawn", "PLib:PlayerInitialized", function(ply)
 			hook.Run("PLib:PlayerInitialized", self)
 			hook.Remove("SetupMove", self)
 			self["Initialized"] = true
+			self:SyncData()
 		end
 	end)
 end)
@@ -18,10 +19,6 @@ hook.Add("PlayerDisconnected", "PLib:PlayerData_Sync", function(ply)
 			end
 		end
 	end
-end)
-
-hook.Add("PLib:PlayerInitialized", "PLib:PlayerData_Sync", function(ply)
-	ply:SyncData()
 end)
 
 local cmd_starts = {"/", "!"}
