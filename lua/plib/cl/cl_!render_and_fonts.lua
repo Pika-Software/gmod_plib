@@ -35,10 +35,25 @@ local isvalid = FindMetaTable("Entity").IsValid
 local colors = PLib["_C"]
 PLib["Fonts"] = {
 	{
-		["name"] = "Main1",
+		["name"] = "PLib.Main1",
 		["font"] = "Roboto",
 		["size"] = 1.7,
 	},
+	{
+		["name"] = "PLib.Main2",
+		["font"] = "Roboto",
+		["size"] = 2,
+	},
+	{
+		["name"] = "PLib.Main3",
+		["font"] = "Roboto",
+		["size"] = 3,
+	},
+	{
+		["name"] = "PLib.Main5",
+		["font"] = "Roboto",
+		["size"] = 5,
+	}
 }
 
 local surface_GetTextSize = surface.GetTextSize
