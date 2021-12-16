@@ -112,6 +112,8 @@ concommand_Add("plib_achievement_test", function(ply, cmd, args)
 	achi["Title"] = "Test Achievement"
 end)
 
+concommand.Add("plib_hooks", PLib.PrintHookList)
+
 local blacklist = {
 	["DMenuBar"] = true,
 	["DMenu"] = true,
