@@ -33,7 +33,7 @@ end
 hook_Add("OnScreenSizeChanged", "PLib:Achievement", ScreenInit)
 ScreenInit()
 
-local font = "Main1"
+local font = "PLib.Main1"
 local sound1 = Sound("ui/buttonrollover.wav")
 
 local achievementsCreated = {}
