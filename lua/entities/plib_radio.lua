@@ -112,6 +112,26 @@ if SERVER then
 			end
 		end)
 	end)
+
+	concommand.Add("plib_radio_url", function(ply, cmd, args)
+		for k, link in ipairs(args) do
+			if not string.isURL(link) then
+				table.remove(args, k)
+			end
+		end
+
+		if (#args < 1) then return end
+
+		if IsValid(ply) and ply:IsSuperAdmin() then
+			local tr = ply:GetEyeTrace()
+			if (tr.Hit) then
+				local ent = tr.Entity
+				if IsValid(ent) and (ent:GetClass() == "plib_radio") then
+					ent:SetURLs(args)
+				end
+			end
+		end
+	end)
 else
 	local surface_SetDrawColor = surface.SetDrawColor
 	local surface_DrawRect = surface.DrawRect
