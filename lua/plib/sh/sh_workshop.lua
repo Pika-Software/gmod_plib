@@ -59,9 +59,10 @@ function PLib:WorkshopInstall(id, cb)
 
 				return false
 			end
-			local ok, files = game_MountGMA(path)
 
+			local ok, files = game_MountGMA(path)
 			local outputTbl = {path, files}
+
 			if ok then
 				self["WorkshopInstalled"][id] = outputTbl
 				self.dprint("Workshop", "Addon installed successfully, id: ", id)
