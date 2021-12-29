@@ -79,6 +79,7 @@ local net_ReadData = net.ReadData
 local dprint = PLib["dprint"]
 local module = module
 local type = type
+local table_GetKeys = table.GetKeys
 
 --[[-------------------------------------------------------------------------
 	Used local variables
@@ -864,9 +865,8 @@ end
 -- by Be1zebub
 --
 
-local GetKeys = table.GetKeys
 function table.Random(tab, issequential)
-    local keys = issequential and tab or GetKeys(tab)
+    local keys = issequential and tab or table_GetKeys(tab)
     local rand = keys[math_random(1, #keys)]
     return tab[rand], rand
 end
