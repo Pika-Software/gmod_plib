@@ -858,6 +858,19 @@ function table.Lookup(tbl, key, default)
 	return value
 end
 
+--
+-- Thats better then a shitty glua table.Random function
+-- https://github.com/Be1zebub/Small-GLua-Things/blob/master/sh_tablerandom.lua
+-- by Be1zebub
+--
+
+local GetKeys = table.GetKeys
+function table.Random(tab, issequential)
+    local keys = issequential and tab or GetKeys(tab)
+    local rand = keys[math_random(1, #keys)]
+    return tab[rand], rand
+end
+
 --[[-------------------------------------------------------------------------
 	math module improvements
 ---------------------------------------------------------------------------]]
