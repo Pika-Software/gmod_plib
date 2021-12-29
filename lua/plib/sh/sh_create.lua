@@ -27,43 +27,78 @@ local validStr = string.isvalid
 	Creating
 ---------------------------------------------------------------------------]]
 
-function PLib:CreateWeapon(class, data)
-	if validStr(class) and istable(data) then
-		local SWEP = {}
-		SWEP["PrintName"] = "PLib Weapon"
-		SWEP["Primary"]     = {}
-		SWEP["Secondary"]     = {}
-		SWEP["WorldModel"]    = ""
-		SWEP["ViewModel"]    = "models/weapons/c_arms.mdl"
-		SWEP["Category"]    = "PLib"
-		SWEP["HoldType"]    = "normal"
-		SWEP["Spawnable"]    = true
-		SWEP["UseHands"]    = true
+function PLib:CreateWeapon(class, data, clear)
+	if validStr(class) then
+		local weapon = {}
+		if not clear then
+			weapon["PrintName"] = "PLib Weapon"
 
-		function SWEP:Initialize()
-			self:SetWeaponHoldType(self["HoldType"])
+			weapon["Primary"]     = {}
+			weapon["Secondary"]     = {}
+
+			weapon["WorldModel"]    = ""
+			weapon["ViewModel"]    = "models/weapons/c_arms.mdl"
+
+			weapon["UseHands"]    = true
+			weapon["HoldType"]    = "normal"
+
+			weapon["Spawnable"]    = true
+
+			function weapon:Initialize()
+				self:SetWeaponHoldType(self["HoldType"])
+			end
+
+			function weapon:PrimaryAttack()
+			end
+
+			function weapon:SecondaryAttack()
+			end
 		end
 
-		weapons_Register(table_Merge(SWEP, data), class)
+		if isfunction(data) then
+			SWEP = {}
+
+			local ret = data(weapon, class)
+			if (ret == true) then
+				return
+			end
+
+			if istable(ret) then
+				weapon = ret
+			else
+				weapon = table_Merge(weapon, SWEP)
+			end
+
+			SWEP = nil
+		elseif istable(data) then
+			weapon = table_Merge(weapon, data)
+		end
+
+		weapons_Register(weapon, class)
 		self.dprint("SWEP", "Weapon Created -> ", class)
 
-		if CLIENT then
-			timer.Simple(0, function() self:SpawnMenuReload() end)
+		if CLIENT and (weapon["Spawnable"] == true) then
+			timer.Simple(0, function()
+				self:SpawnMenuReload()
+			end)
 		end
 	end
 end
 
 function PLib:CreateEntity(class, data, clear)
-	if validStr(class) and istable(data) then
-		local ENT = {}
+	if validStr(class) then
+		local entity = {}
 		if not clear then
-			ENT["Base"] = "base_anim"
-			ENT["Model"] = "models/props_c17/oildrum001_explosive.mdl"
-			ENT["PrintName"] = "PLib Entity"
-			ENT["Spawnable"] = true
-			ENT["DisableDuplicator"] = true
+			entity["Base"] = "base_anim"
+			entity["Type"] = "anim"
 
-			function ENT:Initialize()
+			entity["Model"] = "models/props_c17/oildrum001_explosive.mdl"
+			entity["PrintName"] = "PLib Entity"
+
+			entity["DisableDuplicator"] = true
+			entity["Spawnable"] = true
+
+			function entity:Initialize()
 				if SERVER then
 					self:SetModel(self["Model"])
 					self:PhysicsInit(SOLID_VPHYSICS)
@@ -71,13 +106,69 @@ function PLib:CreateEntity(class, data, clear)
 			end
 		end
 
-		scripted_ents_Register(table_Merge(ENT, data), class)
+		if isfunction(data) then
+			ENT = {}
+
+			local ret = data(entity, class)
+			if (ret == true) then
+				return
+			end
+
+			if istable(ret) then
+				entity = ret
+			else
+				entity = table_Merge(entity, ENT)
+			end
+
+			ENT = nil
+		elseif istable(data) then
+			entity = table_Merge(entity, data)
+		end
+
+		scripted_ents_Register(entity, class)
 		self.dprint("ENT", "Entity Created -> ", class)
 
-		if CLIENT then
-			timer.Simple(0, function() self:SpawnMenuReload() end)
+		if CLIENT and (entity["Spawnable"] == true) then
+			timer.Simple(0, function()
+				self:SpawnMenuReload()
+			end)
 		end
 	end
+end
+
+function PLib:LoadEntity(path)
+	self:CreateEntity(path:match("([^/]+)$"):match("(.+)%..+"), function(ENT, class)
+		local folder = path:match(".+/")
+
+		ENT["Folder"] = folder
+
+		for k, fl in ipairs(file.Find(folder, "LUA")) do
+			local path = folder .. "/" .. fl
+			if path:find("cl_init.lua") then
+				if CLIENT then
+					SafeInclude(path)
+				else
+					AddCSLuaFile(path)
+				end
+
+				continue
+			end
+
+			if path:find("init.lua") then
+				if SERVER then
+					SafeInclude(path)
+				end
+
+				continue
+			end
+
+			if SERVER then
+				AddCSLuaFile(path)
+			end
+
+			include(path)
+		end
+	end, true)
 end
 
 function PLib:CreateTrigger(class, data)
