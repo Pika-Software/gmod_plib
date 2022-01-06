@@ -185,7 +185,7 @@ end
 function PLib:TryInstallWorkshop(id, cb, num)
 	self:WorkshopInstall(id, function(ok, path, files)
 		if (ok == false) then
-			num = num + 1
+			num = (num or 0) + 1
 			timer_Simple(10, function()
 				self:TryInstallWorkshop(id, cb, num)
 			end)
