@@ -268,21 +268,21 @@ function PLAYER:IsGoodGuy()
 	return PLib["GoodGuys"][self:SteamID64()] or false
 end
 
-if (PLAYER["Nickname"] == nil) then
-	PLAYER["Nickname"] = PLAYER["Nick"]
+PLib:Precache_G("PLAYER:Nick", PLAYER["Nick"])
+local plyNick = PLib:Get_G("PLAYER:Nick")
+PLAYER["Nickname"] = plyNick
 
-	function PLAYER:Nick()
-		return self:GetNWString("Nickname", self:Nickname())
-	end
-
-	PLAYER["Name"] = PLAYER["Nick"]
+function PLAYER:Nick()
+	return self:GetNWString("Nickname", plyNick(self))
 end
+
+PLAYER["Name"] = PLAYER["Nick"]
 
 local LocalPlayer = LocalPlayer
 hook.Add("StartCommand", "PLib:LastActivity", function(ply, cmd)
-	if CLIENT and (ply ~= LocalPlayer()) then return end
+	if CLIENT and (ply != LocalPlayer()) then return end
 	local lr, fb, ud = cmd:GetSideMove(), cmd:GetForwardMove(), cmd:GetUpMove()
-	if ((lr + fb + ud) ~= 0) then
+	if ((lr + fb + ud) != 0) then
 		ply["LastActivity"] = CurTime()
 		return
 	end

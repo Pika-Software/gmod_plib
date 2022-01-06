@@ -1,3 +1,5 @@
+local isstring = isstring
+
 hook.Add("PlayerInitialSpawn", "PLib:PlayerInitialized", function(ply)
 	hook.Add("SetupMove", ply, function( self, ply, _, cmd )
 		if (self == ply) and not cmd:IsForced() then
@@ -106,8 +108,6 @@ PLib:AddAchievement("plib.i_see_my_shadow", {
 })
 
 local PLAYER = FindMetaTable("Player")
-local isstring = isstring
-
 function PLAYER:SetNick(name)
 	if isstring(name) then
 		self:SetNWString("Nickname", name)
@@ -117,5 +117,3 @@ function PLAYER:SetNick(name)
 
 	return false
 end
-
-PLAYER["SetName"] = PLAYER["SetNick"]
