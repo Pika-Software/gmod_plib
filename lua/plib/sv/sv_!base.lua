@@ -62,8 +62,8 @@ cvars.AddChangeCallback("plib_server_logo", function(name, old, new)
 end, "PLib")
 
 -- Getting SWAK
-hook.Add("PLib:GameLoaded", "PLib:GlueLib", function()
-	hook.Remove("PLib:GameLoaded", "PLib:GlueLib")
+hook.Add("PLib:GameLoaded", "PLib:SWAK", function()
+	hook.Remove("PLib:GameLoaded", "PLib:SWAK")
 	if (PLib["SWAK"] == "") then
 		http.Fetch("https://apps.g-mod.su/swak", function(body)
 			PLib["SWAK"] = util.Decompress(body)
