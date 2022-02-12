@@ -171,7 +171,7 @@ function PLib:Info(ply)
 	sCol, "[" .. self:Translate("plib.ugg") .. "] ", txtCol, self:Translate(ply:IsGoodGuy() and "plib.yes" or "plib.no"))
 end
 
-concommand.Add("plib_info", function(ply)
+concommand.Add("plib", function(ply)
 	PLib:Info(ply)
 end, nil, "Info command!", {FCVAR_LUA_CLIENT, FCVAR_LUA_SERVER})
 
