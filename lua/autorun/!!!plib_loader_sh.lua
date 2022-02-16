@@ -25,18 +25,20 @@ PLib = PLib or {
 	["ModuleInitName"] = "_plib_module.lua",
 }
 
-function PLib:Precache_G(name, func)
-	if (self["_G"][name] == nil) then
-		self["_G"][name] = func
+function PLib:Precache_G( name, func )
+	if (self["_G"][ name ] == nil) then
+		self["_G"][ name ] = func
 
 		if (self["dprint"] != nil) then
 			self["dprint"]("_G", "_G Precached -> ", name)
 		end
 	end
+
+	return self:Get_G( name )
 end
 
-function PLib:Get_G(name)
-	return self["_G"][name]
+function PLib:Get_G( name )
+	return self["_G"][ name ]
 end
 
 PLib["_C"] = {
