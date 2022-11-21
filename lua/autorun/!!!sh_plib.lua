@@ -55,7 +55,7 @@ end
 -- Default Colors
 do
 
-         local Color = Color
+	local Color = Color
 
 	-- Grey
 	SetColor( 'light_grey', Color( 150, 150, 150, 255 ) )
