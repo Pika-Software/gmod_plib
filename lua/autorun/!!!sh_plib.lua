@@ -91,17 +91,20 @@ function Warn( str, ... )
 end
 
 -- Include
-function Include( filePath )
-    ArgAssert( filePath, 1, 'string' )
-    if file_Exists( filePath, 'LUA' ) then
-        local func = CompileFile( filePath )
-        if isfunction( func ) then
-            return pcall( func )
+do
+    local CompileFile = CompileFile
+    function Include( filePath )
+        ArgAssert( filePath, 1, 'string' )
+        if file_Exists( filePath, 'LUA' ) then
+            local func = CompileFile( filePath )
+            if isfunction( func ) then
+                return pcall( func )
+            else
+                return false, 'File \'' .. filePath .. '\' assembly failed.'
+            end
         else
-            return false, 'File \'' .. filePath .. '\' assembly failed.'
+            return false, 'File \'' .. filePath .. '\' does not exist.'
         end
-    else
-        return false, 'File \'' .. filePath .. '\' does not exist.'
     end
 end
 
@@ -222,7 +225,6 @@ do
         -- Require function
         do
 
-            local CompileFile = CompileFile
             local file_IsDir = file.IsDir
             local error = error
 
