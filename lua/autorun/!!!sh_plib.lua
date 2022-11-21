@@ -1,10 +1,25 @@
-AddCSLuaFile( 'plib/functions.lua' )
-include( 'plib/functions.lua' )
+local AddCSLuaFile = AddCSLuaFile
+local file_Find = file.Find
+local ipairs = ipairs
+
+local SERVER = SERVER
+local CLIENT = CLIENT
+
+local pathToLib = 'plib/'
+
+do
+	local include = include
+	for _, fl in ipairs( file_Find( pathToLib .. '*', 'LUA' ) ) do
+		if (SERVER) then
+			AddCSLuaFile( pathToLib .. fl )
+		end
+
+		include( pathToLib .. fl )
+	end
+end
 
 local string_format = string.format
-local AddCSLuaFile = AddCSLuaFile
 local file_Exists = file.Exists
-local file_Find = file.Find
 local file_Path = file.Path
 local ArgAssert = ArgAssert
 local SysTime = SysTime
@@ -54,11 +69,16 @@ do
 	-- Black
 	SetColor( 'black', Color( 0, 0, 0, 255 ) )
 
+	-- Red
+	SetColor( 'red', Color( 200, 50, 50 ) )
+
 	-- Blue
 	SetColor( 'blue', Color( 50, 150, 200 ) )
 
 	-- Orange
 	SetColor( 'orange', Color( 200, 100, 50 ) )
+
+	SetColor( 'red_orange', Color( 250, 100, 0) )
 
 end
 
@@ -69,25 +89,25 @@ do
 	local os_time = os.time
 	local os_date = os.date
 
-	function Log( level, str, ... )
+	function Log( level, color, str, ... )
 		ArgAssert( level, 1, 'string' )
 		ArgAssert( str, 2, 'string' )
-		MsgC( GetColor( 'light_grey' ), os_date( '[%H:%M:%S]', os_time() ), GetColor( SERVER and 'blue' or 'orange' ), '[PLib/' .. level .. ']: ', GetColor( 'dark_white' ), string_NetFormat( str, ... ) .. '\n' )
+		MsgC( GetColor( 'light_grey' ), os_date( '[%H:%M:%S]', os_time() ), GetColor( isstring( color ) and color or (SERVER and 'blue' or 'orange') ), '[' .. (SERVER and 'SERVER' or 'CLIENT') .. '/' .. level .. ']: ', GetColor( 'dark_white' ), string_NetFormat( str, ... ) .. '\n' )
 	end
 
 end
 
 -- Logs
 function Info( str, ... )
-	Log( 'INFO', str, ... )
+	Log( 'INFO', nil, str, ... )
 end
 
 function Error( str, ... )
-	Log( 'ERROR', str, ... )
+	Log( 'ERROR', 'red', str, ... )
 end
 
 function Warn( str, ... )
-	Log( 'WARN', str, ... )
+	Log( 'WARN', 'red_orange', str, ... )
 end
 
 -- Include
@@ -112,7 +132,7 @@ end
 do
 
 	-- Folders :x
-	local modulesFolder = 'plib/modules'
+	local modulesFolder = pathToLib .. 'modules'
 	local clientModulesFolder = file_Path( modulesFolder, 'client' )
 	local serverModulesFolder = file_Path( modulesFolder, 'server' )
 
@@ -320,7 +340,7 @@ do
 	end
 
 	-- Folders x:
-	local addonsFolder = 'plib/addons'
+	local addonsFolder = pathToLib .. 'addons'
 	local clientAddonsFolder = file_Path( addonsFolder, 'client' )
 	local serverAddonsFolder = file_Path( addonsFolder, 'server' )
 
@@ -395,4 +415,4 @@ do
 
 end
 
-Info( string_format( 'PLib v{0} loaded. (Took %.4f seconds)', SysTime() - plibStopwatch ), string.Version( Version ) )
+Info( string_format( 'PLib v{0} is successfully initialized. (Took %.4f seconds)', SysTime() - plibStopwatch ), string.Version( Version ) )
