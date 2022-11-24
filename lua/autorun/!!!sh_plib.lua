@@ -31,6 +31,13 @@ module( 'plib', package.seeall )
 -- PLib Version
 Version = 020000
 
+-- Developer Mode
+if (SERVER) then
+	CreateConVar( 'plib_developer_mode', '0', FCVAR_ARCHIVE, '', 0, 1 )
+end
+
+DeveloperMode = cvars.Bool( 'plib_developer_mode', false )
+
 -- Colors
 do
 
@@ -75,6 +82,9 @@ do
 	-- Blue
 	SetColor( 'blue', Color( 50, 150, 200 ) )
 
+	-- Green
+	SetColor( 'green', Color( 50, 200, 50 ) )
+
 	-- Orange
 	SetColor( 'orange', Color( 200, 100, 50 ) )
 
@@ -110,12 +120,22 @@ function Warn( str, ... )
 	Log( 'WARN', 'red_orange', str, ... )
 end
 
+function Debug( str, ... )
+	if DeveloperMode then
+		Log( 'DEBUG', 'green', str, ... )
+	end
+end
+
 -- Include
 do
 	local CompileFile = CompileFile
 	function Include( filePath )
 		ArgAssert( filePath, 1, 'string' )
 		if file_Exists( filePath, 'LUA' ) then
+			if DeveloperMode then
+				return true, include( filePath )
+			end
+
 			local func = CompileFile( filePath )
 			if isfunction( func ) then
 				return pcall( func )
