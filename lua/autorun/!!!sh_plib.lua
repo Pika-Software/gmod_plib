@@ -96,6 +96,7 @@ end
 do
 
 	local string_NetFormat = string.NetFormat
+	local isstring = isstring
 	local os_time = os.time
 	local os_date = os.date
 
