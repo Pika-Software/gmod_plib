@@ -29,7 +29,7 @@ local plibStopwatch = SysTime()
 module( 'plib', package.seeall )
 
 -- PLib Version
-Version = 020000
+Version = 020100
 
 -- Developer Mode
 if (SERVER) then
