@@ -1,5 +1,5 @@
 # PLib
-Powerful GLua Library
+[![GLuaLint](https://github.com/Pika-Software/gmod_plib/actions/workflows/glualint-check.yml/badge.svg)](https://github.com/FPtje/GLuaFixer)
 
 <img align="right" src="https://i.imgur.com/j5DjzQ1.png"></img>
 - **What is it?**  
@@ -12,19 +12,6 @@ Powerful GLua Library
 	*So far, the library is under early development and will be replenished, in the future we plan to develop the library as a package manager in which you and your addons will choose which functionality to download and use.*
 - **I want to (report a bug/suggest improvements)!**  
 	*You can write your problem/suggestion in __Issues__.*  
-  
-____
-**At the moment we have:**  
-  
-- **Achievement system, similar to the game**
-- **Custom notifications (not replacing the originals)**
-- **Standby screen with customizable logo and fading**
-- **More (Pre\*, On\*, Post\*) hooks for different purposes**
-- **Developer HUD and concommands for convenient debugging**
-- **Improved some built-in library functions**
-- **GMAD file format builder**
-- **Improvements in the environment and rendering**
-- **Arithmetic operations with strings**
   
 **And a lot of cool new functions can be used from PLib!** 
 
