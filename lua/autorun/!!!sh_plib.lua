@@ -351,18 +351,18 @@ end
 do
 
 	-- Include Function
-	function AddonInclude( filePath, addonName )
+	function AddonInclude( filePath, name )
 		ArgAssert( filePath, 1, 'string' )
-		ArgAssert( addonName, 2, 'string' )
+		ArgAssert( name, 2, 'string' )
 
 		local stopwatch = SysTime()
 
 		-- Include
 		local ok, err = Include( filePath )
 		if (ok) then
-			Info( string_format( 'Addon \'' .. addonName .. '\' successfully included. (Took %.4f seconds)', SysTime() - stopwatch ) )
+			Info( string_format( 'Addon \'' .. name .. '\' successfully included. (Took %.4f seconds)', SysTime() - stopwatch ) )
 		else
-			Error( 'Addon \'' .. addonName .. '\' include failed: ' .. err )
+			Error( 'Addon \'' .. name .. '\' include failed: ' .. err )
 		end
 	end
 
