@@ -37,7 +37,7 @@ local globalStopwatch = SysTime()
 module( lowerName, package.seeall )
 
 -- Lib Version
-Version = 020100
+Version = 020200
 
 -- Developer Mode
 if (SERVER) then
