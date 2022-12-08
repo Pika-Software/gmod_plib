@@ -1,3 +1,10 @@
+local addonName = 'PLib'
+
+-- gLua Refresh Protection
+pAddons = pAddons or {}
+if pAddons[ addonName ] then return end
+pAddons[ addonName ] = true
+
 local AddCSLuaFile = AddCSLuaFile
 local file_Find = file.Find
 local ipairs = ipairs
@@ -5,7 +12,8 @@ local ipairs = ipairs
 local SERVER = SERVER
 local CLIENT = CLIENT
 
-local pathToLib = 'plib/'
+local lowerName = string.lower( addonName )
+local pathToLib = lowerName .. '/'
 
 do
 	local include = include
@@ -24,19 +32,19 @@ local file_Path = file.Path
 local ArgAssert = ArgAssert
 local SysTime = SysTime
 
-local plibStopwatch = SysTime()
+local globalStopwatch = SysTime()
 
-module( 'plib', package.seeall )
+module( lowerName, package.seeall )
 
--- PLib Version
+-- Lib Version
 Version = 020100
 
 -- Developer Mode
 if (SERVER) then
-	CreateConVar( 'plib_developer_mode', '0', FCVAR_ARCHIVE, '', 0, 1 )
+	CreateConVar( lowerName .. '_developer_mode', '0', FCVAR_ARCHIVE, '', 0, 1 )
 end
 
-DeveloperMode = cvars.Bool( 'plib_developer_mode', false )
+DeveloperMode = cvars.Bool( lowerName .. '_developer_mode', false )
 
 -- Colors
 do
@@ -214,8 +222,7 @@ do
 			function WebRequire( url, callback )
 				ArgAssert( url, 1, 'string' )
 
-				-- Stopwatch
-				local startTime = SysTime()
+				local stopwatch = SysTime()
 				local moduleName = string_GetFileFromFilename( url )
 
 				-- Re-installation lock
@@ -228,7 +235,7 @@ do
 						if isfunction( func ) then
 							local ok, result = pcall( func )
 							if (ok) then
-								Info( string_format( 'Web module \'{0}\' successfully installed. (Took %.4f seconds)', SysTime() - startTime ), moduleName )
+								Info( string_format( 'Web module \'{0}\' successfully installed. (Took %.4f seconds)', SysTime() - stopwatch ), moduleName )
 								if isfunction( callback ) then
 									callback( ok, result )
 								end
@@ -279,7 +286,7 @@ do
 				if IsModuleInstalled( moduleName ) then return end
 
 				-- Stopwatch & empty path
-				local startTime = SysTime()
+				local stopwatch = SysTime()
 				local filePath
 
 				-- Client
@@ -321,7 +328,7 @@ do
 				-- Including
 				local ok, result = Include( filePath )
 				if (ok) then
-					Info( string_format( 'Module \'' .. moduleName .. '\' successfully installed. (Took %.4f seconds)', SysTime() - startTime ) )
+					Info( string_format( 'Module \'' .. moduleName .. '\' successfully installed. (Took %.4f seconds)', SysTime() - stopwatch ) )
 					modules[ moduleName ] = true
 					return result
 				else
@@ -348,13 +355,12 @@ do
 		ArgAssert( filePath, 1, 'string' )
 		ArgAssert( addonName, 2, 'string' )
 
-		-- Stopwatch
-		local startTime = SysTime()
+		local stopwatch = SysTime()
 
 		-- Include
 		local ok, err = Include( filePath )
 		if (ok) then
-			Info( string_format( 'Addon \'' .. addonName .. '\' successfully included. (Took %.4f seconds)', SysTime() - startTime ) )
+			Info( string_format( 'Addon \'' .. addonName .. '\' successfully included. (Took %.4f seconds)', SysTime() - stopwatch ) )
 		else
 			Error( 'Addon \'' .. addonName .. '\' include failed: ' .. err )
 		end
@@ -436,4 +442,4 @@ do
 
 end
 
-Info( string_format( 'PLib v{0} is successfully initialized. (Took %.4f seconds)', SysTime() - plibStopwatch ), string.Version( Version ) )
+Info( string_format( '{0} v{1} is successfully initialized. (Took %.4f seconds)', SysTime() - globalStopwatch ), addonName, string.Version( Version ) )
