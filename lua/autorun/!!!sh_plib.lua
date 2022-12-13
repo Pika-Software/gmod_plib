@@ -37,7 +37,7 @@ local globalStopwatch = SysTime()
 module( lowerName, package.seeall )
 
 -- Lib Version
-Version = 020200
+Version = 020201
 
 -- Developer Mode
 if (SERVER) then
@@ -283,7 +283,9 @@ do
 				ArgAssert( moduleName, 1, 'string' )
 
 				-- Re-installation lock
-				if IsModuleInstalled( moduleName ) then return end
+				if IsModuleInstalled( moduleName ) then
+					return modules[ moduleName ]
+				end
 
 				-- Stopwatch & empty path
 				local stopwatch = SysTime()
@@ -329,7 +331,12 @@ do
 				local ok, result = Include( filePath )
 				if (ok) then
 					Info( string_format( 'Module \'' .. moduleName .. '\' successfully installed. (Took %.4f seconds)', SysTime() - stopwatch ) )
-					modules[ moduleName ] = true
+					if (result == nil) then
+						modules[ moduleName ] = true
+					else
+						modules[ moduleName ] = result
+					end
+
 					return result
 				else
 					if (noErros) then
