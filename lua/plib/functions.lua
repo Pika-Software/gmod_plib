@@ -56,3 +56,31 @@ end
 hook.Add('OnScreenSizeChanged', 'ScreenResolutionChanged', function( oldWidth, oldHeight )
 	hook.Run( 'ScreenResolutionChanged', ScrW(), ScrH(), oldWidth, oldHeight )
 end)
+
+-- AddCSLuaFolder
+do
+
+	local AddCSLuaFile = AddCSLuaFile
+	local file_Find = file.Find
+	local file_Path = file.Path
+	local ipairs = ipairs
+
+	if (SERVER) then
+		function AddCSLuaFolder( folder )
+			local files, folders = file_Find( file_Path( folder, '*' ), 'LUA' )
+			for _, fl in ipairs( files ) do
+				AddCSLuaFile( file_Path( folder, fl ) )
+			end
+
+			for _, fol in ipairs( folders ) do
+				AddCSLuaFolder( file_Path( folder, fol ) )
+			end
+		end
+	end
+
+	if (CLIENT) then
+		function AddCSLuaFolder()
+		end
+	end
+
+end

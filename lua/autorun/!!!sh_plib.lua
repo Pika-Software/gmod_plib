@@ -26,6 +26,7 @@ do
 	end
 end
 
+local AddCSLuaFolder = AddCSLuaFolder
 local string_format = string.format
 local file_Exists = file.Exists
 local file_Path = file.Path
@@ -37,7 +38,7 @@ local globalStopwatch = SysTime()
 module( lowerName, package.seeall )
 
 -- Lib Version
-Version = 020201
+Version = 020300
 
 -- Developer Mode
 if (SERVER) then
@@ -168,14 +169,14 @@ do
 	-- Server side jobs
 	if (SERVER) then
 
-		-- Shared
-		for num, fl in ipairs( file_Find( file_Path( modulesFolder, '*' ), 'LUA' ) ) do
+		local files, folders = file_Find( file_Path( modulesFolder, '*' ), 'LUA' )
+		for num, fl in ipairs( files ) do
 			AddCSLuaFile( file_Path( modulesFolder, fl ) )
 		end
 
-		-- Client
-		for num, fl in ipairs( file_Find( file_Path( clientModulesFolder, '*' ), 'LUA' ) ) do
-			AddCSLuaFile( file_Path( clientModulesFolder, fl ) )
+		for num, fol in ipairs( folders ) do
+			if (fol == 'server') then continue end
+			AddCSLuaFolder( file_Path( modulesFolder, fol ) )
 		end
 
 	end
@@ -392,12 +393,12 @@ do
 		end
 
 		for num, fol in ipairs( folders ) do
+			if (fol ~= 'server') then
+				AddCSLuaFolder( file_Path( addonsFolder, fol ) )
+			end
+
 			local filePath = file_Path( addonsFolder, fol, 'init.lua' )
 			if file_Exists( filePath, 'LUA' ) then
-				if (SERVER) then
-					AddCSLuaFile( filePath )
-				end
-
 				AddonInclude( filePath, string.sub( fol, 1, #fol - 4 ) .. ' (FOLDER)' )
 			end
 		end
@@ -405,26 +406,17 @@ do
 	end
 
 	-- Client
-	do
+	if (CLIENT) then
 
 		local files, folders = file_Find( file_Path( clientAddonsFolder, '*' ), 'LUA' )
 		for num, fl in ipairs( files ) do
-			local filePath = file_Path( clientAddonsFolder, fl )
-			if (SERVER) then
-				AddCSLuaFile( filePath )
-			else
-				AddonInclude( filePath, string.sub( fl, 1, #fl - 4 ) .. ' (FILE)' )
-			end
+			AddonInclude( file_Path( clientAddonsFolder, fl ), string.sub( fl, 1, #fl - 4 ) .. ' (FILE)' )
 		end
 
 		for num, fol in ipairs( folders ) do
 			local filePath = file_Path( clientAddonsFolder, fol, 'init.lua' )
 			if file_Exists( filePath, 'LUA' ) then
-				if (SERVER) then
-					AddCSLuaFile( filePath )
-				else
-					AddonInclude( filePath, string.sub( fol, 1, #fol - 4 ) .. ' (FOLDER)' )
-				end
+				AddonInclude( filePath, string.sub( fol, 1, #fol - 4 ) .. ' (FOLDER)' )
 			end
 		end
 
