@@ -1,5 +1,6 @@
 local string_format = string.format
 local string_sub = string.sub
+local file_Find = file.Find
 local tonumber = tonumber
 
 -- Argument checker by Retr0 & PrikolMen:-b (From atmoshpere with love <3)
@@ -57,29 +58,45 @@ hook.Add('OnScreenSizeChanged', 'ScreenResolutionChanged', function( oldWidth, o
 	hook.Run( 'ScreenResolutionChanged', ScrW(), ScrH(), oldWidth, oldHeight )
 end)
 
--- AddCSLuaFolder
 do
 
-	local AddCSLuaFile = AddCSLuaFile
-	local file_Find = file.Find
 	local file_Path = file.Path
 	local ipairs = ipairs
 
-	if (SERVER) then
-		function AddCSLuaFolder( folder )
-			local files, folders = file_Find( file_Path( folder, '*' ), 'LUA' )
-			for _, fl in ipairs( files ) do
-				AddCSLuaFile( file_Path( folder, fl ) )
-			end
+	-- AddCSLuaFolder
+	do
 
-			for _, fol in ipairs( folders ) do
-				AddCSLuaFolder( file_Path( folder, fol ) )
+		local AddCSLuaFile = AddCSLuaFile
+
+		if (SERVER) then
+			function AddCSLuaFolder( folder )
+				local files, folders = file_Find( file_Path( folder, '*' ), 'LUA' )
+				for _, fl in ipairs( files ) do
+					AddCSLuaFile( file_Path( folder, fl ) )
+				end
+
+				for _, fol in ipairs( folders ) do
+					AddCSLuaFolder( file_Path( folder, fol ) )
+				end
 			end
 		end
+
+		if (CLIENT) then
+			function AddCSLuaFolder()
+			end
+		end
+
 	end
 
-	if (CLIENT) then
-		function AddCSLuaFolder()
+	-- includeFolder
+	function includeFolder( filePath )
+		local files, folders = file_Find( file_Path( filePath, '*' ), 'LUA' )
+		for _, fl in ipairs( files ) do
+			include( file_Path( filePath, fl ) )
+		end
+
+		for _, fol in ipairs( folders ) do
+			includeFolder( file_Path( filePath, fol ) )
 		end
 	end
 
