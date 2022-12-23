@@ -236,7 +236,7 @@ do
 						if isfunction( func ) then
 							local ok, result = pcall( func )
 							if (ok) then
-								Info( string_format( 'Web module \'{0}\' successfully installed. (Took %.4f seconds)', SysTime() - stopwatch ), moduleName )
+								Info( string_format( 'Web module \'{0}\' successfully installed. (%.4f seconds)', SysTime() - stopwatch ), moduleName )
 								if isfunction( callback ) then
 									callback( ok, result )
 								end
@@ -331,7 +331,7 @@ do
 				-- Including
 				local ok, result = Include( filePath )
 				if (ok) then
-					Info( string_format( 'Module \'' .. moduleName .. '\' successfully installed. (Took %.4f seconds)', SysTime() - stopwatch ) )
+					Info( string_format( 'Module \'' .. moduleName .. '\' successfully installed. (%.4f seconds)', SysTime() - stopwatch ) )
 					if (result == nil) then
 						modules[ moduleName ] = true
 					else
@@ -368,7 +368,7 @@ do
 		-- Include
 		local ok, err = Include( filePath )
 		if (ok) then
-			Info( string_format( 'Addon \'' .. name .. '\' successfully included. (Took %.4f seconds)', SysTime() - stopwatch ) )
+			Info( string_format( 'Addon \'' .. name .. '\' successfully included. (%.4f seconds)', SysTime() - stopwatch ) )
 		else
 			Error( 'Addon \'' .. name .. '\' include failed: ' .. err )
 		end
@@ -441,4 +441,4 @@ do
 
 end
 
-Info( string_format( '{0} v{1} is successfully initialized. (Took %.4f seconds)', SysTime() - globalStopwatch ), addonName, string.Version( Version ) )
+Info( string_format( '{0} v{1} is successfully initialized. (%.4f seconds)', SysTime() - globalStopwatch ), addonName, string.Version( Version ) )
