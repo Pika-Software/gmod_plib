@@ -38,7 +38,7 @@ local globalStopwatch = SysTime()
 module( lowerName, package.seeall )
 
 -- Lib Version
-Version = 020400
+Version = 020500
 
 -- Developer Mode
 if (SERVER) then
@@ -280,11 +280,11 @@ do
 			local SERVER = SERVER
 			local CLIENT = CLIENT
 
-			function Require( moduleName, noErros )
+			function Require( moduleName, noErros, override )
 				ArgAssert( moduleName, 1, 'string' )
 
 				-- Re-installation lock
-				if IsModuleInstalled( moduleName ) then
+				if IsModuleInstalled( moduleName ) and not override then
 					return modules[ moduleName ]
 				end
 
