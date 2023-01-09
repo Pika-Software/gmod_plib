@@ -1,4 +1,7 @@
 local tonumber = tonumber
+local string = string
+local file = file
+
 -- Argument checker by Retr0 & PrikolMen:-b (From atmoshpere with love <3)
 do
 
@@ -53,6 +56,52 @@ hook.Add('OnScreenSizeChanged', 'PLib - Global', function( oldWidth, oldHeight )
 	hook.Run( 'ScreenResolutionChanged', ScrW(), ScrH(), oldWidth, oldHeight )
 end)
 
+if (CLIENT) then
+
+	local vmin, vmax = 0, 0
+	local vh, vw = 0, 0
+
+	local function updateNumbers( w, h )
+		vh = h / 100
+		vw = w / 100
+
+		if (vh > vw) then
+			vmin = vw
+			vmax = vh
+		else
+			vmin = vh
+			vmax = vw
+		end
+	end
+
+	hook.Add('ScreenResolutionChanged', 'PLib - Global', updateNumbers)
+	updateNumbers( ScrW(), ScrH() )
+
+	local function getPercent( number, percent )
+		if (percent) then
+			return number * percent
+		end
+
+		return number
+	end
+
+	function ScreenPercentHeight( percent )
+		return getPercent( vh, percent )
+	end
+
+	function ScreenPercentWidth( percent )
+		return getPercent( vw, percent )
+	end
+
+	function ScreenPercentMin( percent )
+		return getPercent( vmin, percent )
+	end
+
+	function ScreenPercentMax( percent )
+		return getPercent( vmax, percent )
+	end
+
+end
 
 do
 
