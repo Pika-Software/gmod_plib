@@ -1,23 +1,18 @@
-local string_format = string.format
-local string_sub = string.sub
-local file_Find = file.Find
 local tonumber = tonumber
-
 -- Argument checker by Retr0 & PrikolMen:-b (From atmoshpere with love <3)
 do
 
 	local debug_getinfo = debug.getinfo
-	local string_lower = string.lower
 	local error = error
 	local type = type
 
 	function ArgAssert( value, argNum, argType, errorlevel )
-		local valueType = string_lower( type( value ) )
+		local valueType = string.lower( type( value ) )
 		if (valueType == argType) then return end
 
 		local dinfo = debug_getinfo( 2, 'n' )
 		local fname = dinfo and dinfo.name or 'func'
-		error( string_format( 'bad argument #%d to \'%s\' (%s expected, got %s)', argNum, fname, argType, valueType ), errorlevel or 3)
+		error( string.format( 'bad argument #%d to \'%s\' (%s expected, got %s)', argNum, fname, argType, valueType ), errorlevel or 3)
 	end
 
 end
@@ -49,18 +44,18 @@ end
 
 -- Version formatter
 function string.Version( number )
-	local version = string_format( '%06d', number )
-	return string_format( '%d.%d.%d', tonumber( string_sub( version, 0, 2 ) ), tonumber( string_sub( version, 3, 4 ) ), tonumber( string_sub( version, 5 ) ) )
+	local version = string.format( '%06d', number )
+	return string.format( '%d.%d.%d', tonumber( string.sub( version, 0, 2 ) ), tonumber( string.sub( version, 3, 4 ) ), tonumber( string.sub( version, 5 ) ) )
 end
 
 -- ScreenResolutionChanged
-hook.Add('OnScreenSizeChanged', 'ScreenResolutionChanged', function( oldWidth, oldHeight )
+hook.Add('OnScreenSizeChanged', 'PLib - Global', function( oldWidth, oldHeight )
 	hook.Run( 'ScreenResolutionChanged', ScrW(), ScrH(), oldWidth, oldHeight )
 end)
 
+
 do
 
-	local file_Path = file.Path
 	local ipairs = ipairs
 
 	-- AddCSLuaFolder
@@ -70,13 +65,13 @@ do
 
 		if (SERVER) then
 			function AddCSLuaFolder( folder )
-				local files, folders = file_Find( file_Path( folder, '*' ), 'LUA' )
+				local files, folders = file.Find( file.Path( folder, '*' ), 'LUA' )
 				for _, fl in ipairs( files ) do
-					AddCSLuaFile( file_Path( folder, fl ) )
+					AddCSLuaFile( file.Path( folder, fl ) )
 				end
 
 				for _, fol in ipairs( folders ) do
-					AddCSLuaFolder( file_Path( folder, fol ) )
+					AddCSLuaFolder( file.Path( folder, fol ) )
 				end
 			end
 		end
@@ -90,13 +85,13 @@ do
 
 	-- includeFolder
 	function includeFolder( filePath )
-		local files, folders = file_Find( file_Path( filePath, '*' ), 'LUA' )
+		local files, folders = file.Find( file.Path( filePath, '*' ), 'LUA' )
 		for _, fl in ipairs( files ) do
-			include( file_Path( filePath, fl ) )
+			include( file.Path( filePath, fl ) )
 		end
 
 		for _, fol in ipairs( folders ) do
-			includeFolder( file_Path( filePath, fol ) )
+			includeFolder( file.Path( filePath, fol ) )
 		end
 	end
 
