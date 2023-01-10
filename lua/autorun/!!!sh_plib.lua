@@ -1,10 +1,5 @@
 local addonName = 'PLib'
 
--- gLua Refresh Protection
-pAddons = pAddons or {}
-if pAddons[ addonName ] then return end
-pAddons[ addonName ] = true
-
 local AddCSLuaFile = AddCSLuaFile
 local file_Find = file.Find
 local ipairs = ipairs
@@ -38,7 +33,7 @@ local globalStopwatch = SysTime()
 module( lowerName, package.seeall )
 
 -- Lib Version
-Version = 020600
+Version = 020601
 
 -- Developer Mode
 if (SERVER) then
