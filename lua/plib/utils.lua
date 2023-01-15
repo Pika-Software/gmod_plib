@@ -164,3 +164,26 @@ do
 	end
 
 end
+
+local suffix = ({'osx64','osx','linux64','linux','win64','win32'})[
+	( system.IsWindows() and 4 or 0 )
+	+ ( system.IsLinux() and 2 or 0 )
+	+ ( jit.arch == 'x86' and 1 or 0 )
+	+ 1
+]
+
+local fmt = 'lua/bin/gm' .. ((CLIENT and !MENU_DLL) and 'cl' or 'sv') .. '_%s_%s.dll'
+function util.IsBinaryModuleInstalled( name )
+	ArgAssert( name, 1, 'string' )
+
+	if file.Exists( string.format( fmt, name, suffix ), 'GAME' ) then
+		return true
+	end
+
+	-- Edge case - on Linux 32-bit x86-64 branch, linux32 is also supported as a suffix
+	if (jit.versionnum ~= 20004) and (jit.arch == 'x86') and system.IsLinux() then
+		return file.Exists( string.format( fmt, name, 'linux32' ), 'GAME' )
+	end
+
+	return false
+end
