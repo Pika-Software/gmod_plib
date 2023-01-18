@@ -319,7 +319,7 @@ do
 					filePath = file_Path( sharedFolder, 'init.lua' )
 				end
 
-				if isnil( filePath ) then
+				if (filePath == nil) then
 					filePath = file_Path( modulesFolder, moduleName .. '.lua' )
 				end
 

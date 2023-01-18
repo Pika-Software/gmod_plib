@@ -20,11 +20,6 @@ do
 
 end
 
--- Yesss, i created this :.
-function isnil( any )
-	return any == nil
-end
-
 -- Path Builder
 do
 	local table_concat = table.concat
