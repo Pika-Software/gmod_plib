@@ -49,6 +49,7 @@ if (SERVER) then
     list.Set( 'Button Classes', 'momentary_rot_button', true )
     list.Set( 'Button Classes', 'func_rot_button', true )
     list.Set( 'Button Classes', 'func_button', true )
+    list.Set( 'Button Classes', 'gmod_button', true )
 
     function ENTITY:IsButton()
         if list.Get( 'Button Classes' )[ self:GetClass() ] then
