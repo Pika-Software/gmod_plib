@@ -206,22 +206,26 @@ do
 end
 
 -- Logs
-function Info( str, ... )
-	Log( 'INFO', nil, str, ... )
-end
+do
 
-function Error( str, ... )
-	Log( 'ERROR', 'red', str, ... )
-end
+	local logger = Logger( addonName )
 
-function Warn( str, ... )
-	Log( 'WARN', 'red_orange', str, ... )
-end
-
-function Debug( str, ... )
-	if DeveloperMode then
-		Log( 'DEBUG', 'green', str, ... )
+	function Info( str, ... )
+		logger:Info( str, ... )
 	end
+
+	function Error( str, ... )
+		logger:Error( str, ... )
+	end
+
+	function Warn( str, ... )
+		logger:Warn( str, ... )
+	end
+
+	function Debug( str, ... )
+		logger:Debug( str, ... )
+	end
+
 end
 
 -- Include
