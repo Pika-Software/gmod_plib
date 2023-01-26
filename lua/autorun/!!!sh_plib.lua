@@ -80,19 +80,24 @@ do
 	-- Black
 	SetColor( 'black', Color( 0, 0, 0, 255 ) )
 
-	-- Red
-	SetColor( 'red', Color( 200, 50, 50 ) )
+	-- RGB
+	SetColor( 'red', Color( 255, 0, 0 ) )
+	SetColor( 'green', Color( 0, 255, 0 ) )
+	SetColor( 'blue', Color( 0, 0, 255 ) )
 
-	-- Blue
-	SetColor( 'blue', Color( 50, 150, 200 ) )
+	-- Logs
+	SetColor( 'info', Color( 71,134,255 ) )
+	SetColor( 'warn', Color( 255,131,89 ) )
+	SetColor( 'error', Color( 251,55,40 ) )
+	SetColor( 'debug', Color( 0,200,156 ) )
 
-	-- Green
-	SetColor( 'green', Color( 50, 200, 50 ) )
+	-- Server/Client
+	SetColor( 'client', Color( 222, 170, 10 ) )
+	SetColor( 'server', Color( 5, 170, 250 ) )
 
-	-- Orange
-	SetColor( 'orange', Color( 200, 100, 50 ) )
-
-	SetColor( 'red_orange', Color( 250, 100, 0) )
+	-- Extra
+	SetColor( 'plib', Color( 50, 200, 200 ) )
+	SetColor( 'yellow', Color( 200, 200, 50 ) )
 
 end
 
