@@ -104,15 +104,19 @@ end
 -- Log
 do
 
+	local lightGrey, darkWhite = GetColor( 'light_grey' ), GetColor( 'dark_white' )
+	local sideColor = GetColor( SERVER and 'server' or 'client' )
 	local string_NetFormat = string.NetFormat
-	local isstring = isstring
 	local os_time = os.time
 	local os_date = os.date
 
-	function Log( level, color, str, ... )
-		ArgAssert( level, 1, 'string' )
-		ArgAssert( str, 2, 'string' )
-		MsgC( GetColor( 'light_grey' ), os_date( '[%H:%M:%S]', os_time() ), GetColor( isstring( color ) and color or (SERVER and 'blue' or 'orange') ), '[' .. (SERVER and 'SERVER' or 'CLIENT') .. '/' .. level .. ']: ', GetColor( 'dark_white' ), string_NetFormat( str, ... ) .. '\n' )
+	function Log( levelColor, level, nameColor, name, str, ... )
+		ArgAssert( levelColor, 1, 'table' ); ArgAssert( level, 2, 'string' ); ArgAssert( nameColor, 3, 'table' ); ArgAssert( name, 4, 'string' )
+		MsgC( lightGrey, os_date( '%d/%m/%Y %H:%M:%S ', os_time() ), levelColor, level, lightGrey, ' --- ', sideColor, '[' .. (SERVER and 'SERVER' or 'CLIENT') .. '] ', nameColor, name, lightGrey, ' : ', darkWhite, string_NetFormat( str, ... ), '\n'  )
+	end
+
+end
+
 	end
 
 end
