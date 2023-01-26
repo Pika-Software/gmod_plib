@@ -117,6 +117,90 @@ do
 
 end
 
+-- Logger
+do
+
+	local meta = {}
+	meta.__index = meta
+
+	-- Logs name
+	function meta:GetName()
+		return self.Name
+	end
+
+	function meta:SetName( str )
+		ArgAssert( str, 1, 'string' )
+		self.Name = str
+	end
+
+	-- Logs name color
+	function meta:GetColor()
+		return self.Color
+	end
+
+	function meta:SetColor( color )
+		ArgAssert( color, 1, 'table' )
+		self.Color = color
+	end
+
+	-- Logs basic text colot
+	function meta:GetTextColor()
+		return self.TextColor
+	end
+
+	function meta:SetTextColor( color )
+		ArgAssert( color, 1, 'table' )
+		self.TextColor = color
+	end
+
+	-- Debug options
+	function meta:GetDebugFilter()
+		return self.DebugFilter
+	end
+
+	function meta:SetDebugFilter( func )
+		ArgAssert( func, 1, 'function' )
+		self.DebugFilter = func
+	end
+
+	-- Log print functions
+	do
+		local color = GetColor( 'info' )
+		function meta:Info( str, ... )
+			Log( color, ' INFO', self:GetColor(), self:GetName(), str, ... )
+		end
+	end
+
+	do
+		local color = GetColor( 'warn' )
+		function meta:Warn( str, ... )
+			Log( color, ' WARN', self:GetColor(), self:GetName(), str, ... )
+		end
+	end
+
+	do
+		local color = GetColor( 'error' )
+		function meta:Error( str, ... )
+			Log( color, 'ERROR', self:GetColor(), self:GetName(), str, ... )
+		end
+	end
+
+	do
+		local color = GetColor( 'debug' )
+		function meta:Debug( str, ... )
+			if DeveloperMode then
+				Log( color, 'DEBUG', self:GetColor(), self:GetName(), str, ... )
+			end
+		end
+	end
+
+	local plibColor = GetColor( 'plib' )
+	function Logger( name, color )
+		ArgAssert( name, 1, 'string' )
+		return setmetatable({
+			['Color'] = color or plibColor,
+			['Name'] = name
+		}, meta)
 	end
 
 end
